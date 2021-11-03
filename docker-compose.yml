@@ -14,7 +14,7 @@ services:
     ports:
       - "3306:3306"
   flights-api:
-    image: austinbaugh/utopia-flights-api
+    image: austinbaugh/utopia-flights-api:latest
     depends_on:
        - db
     container_name: flights-api
@@ -28,7 +28,7 @@ services:
     ports:
       - "8080:8080"
   users-api:
-    image: austinbaugh/utopia-users-api
+    image: austinbaugh/utopia-users-api:latest
     depends_on:
        - db
     container_name: users-api
@@ -42,7 +42,7 @@ services:
     ports:
       - "8090:8080"
   bookings-api:
-    image: austinbaugh/utopia-bookings-api
+    image: austinbaugh/utopia-bookings-api:latest
     depends_on:
        - db
     container_name: bookings-api
