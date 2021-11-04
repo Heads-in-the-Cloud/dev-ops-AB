@@ -15,7 +15,6 @@ services:
       - 3306:3306
   flights-api:
     image: austinbaugh/utopia-flights-api:latest
-    build: ../flights-spring-api-AB
     depends_on:
        - db
     container_name: flights-api
@@ -30,7 +29,6 @@ services:
       - 8080:8080
   users-api:
     image: austinbaugh/utopia-users-api:latest
-    build: ../users-spring-api-AB
     depends_on:
        - db
     container_name: users-api
@@ -45,7 +43,6 @@ services:
       - 8090:8080
   bookings-api:
     image: austinbaugh/utopia-bookings-api:latest
-    build: ../bookings-spring-api-AB
     depends_on:
        - db
     container_name: bookings-api
