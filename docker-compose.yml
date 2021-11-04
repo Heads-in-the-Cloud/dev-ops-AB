@@ -10,50 +10,53 @@ services:
       - ./mysql/data:/var/lib/mysql
       - ./mysql/startup_scripts:/docker-entrypoint-initdb.d
     networks:
-      - backend
+      - db_net
     ports:
-      - "3306:3306"
+      - 3306:3306
   flights-api:
     image: austinbaugh/utopia-flights-api:latest
+    build: ../flights-spring-api-AB
     depends_on:
        - db
     container_name: flights-api
     restart: always
     environment:
-      MYSQL_HOST: db
+      MYSQL_HOST: mysql:3306
+    networks:
+      - db_net
     expose:
       - 8080
-    networks:
-      - backend
     ports:
-      - "8080:8080"
+      - 8080:8080
   users-api:
     image: austinbaugh/utopia-users-api:latest
+    build: ../users-spring-api-AB
     depends_on:
        - db
     container_name: users-api
     restart: always
     environment:
-      MYSQL_HOST: db 
+      MYSQL_HOST: mysql:3306
     networks:
-      - backend
+      - db_net
     expose:
       - 8090
     ports:
-      - "8090:8080"
+      - 8090:8080
   bookings-api:
     image: austinbaugh/utopia-bookings-api:latest
+    build: ../bookings-spring-api-AB
     depends_on:
        - db
     container_name: bookings-api
     restart: always
     environment:
-      MYSQL_HOST: db
+      MYSQL_HOST: mysql:3306
     networks:
-      - backend
+      - db_net
     expose:
       - 8100
     ports:
-      - "8100:8080"
+      - 8100:8080
 networks:
-  backend:
+  db_net:
