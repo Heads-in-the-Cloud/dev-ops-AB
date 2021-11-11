@@ -1,59 +1,65 @@
 version: '3'
+
+networks:
+  db-net:
+
+volumes:
+  db-volume:
+
 services:
   db:
-    image: mysql:latest
+    image: mysql:8
     container_name: mysql
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: root
+    env_file: .env
     volumes:
-      - ./mysql/data:/var/lib/mysql
-      - ./mysql/startup_scripts:/docker-entrypoint-initdb.d
+      - db-volume:/var/lib/mysql
+      - ./mysql_startup_scripts:/docker-entrypoint-initdb.d
     networks:
-      - db_net
+      - db-net
     ports:
       - 3306:3306
-  flights-api:
-    image: austinbaugh/utopia-flights-api:latest
+
+  flights-spring-api:
+    image: austinbaugh/utopia-flights-spring-api:latest
+    build: ../spring-apis/flights-api
+    container_name: flights-spring-api
     depends_on:
        - db
-    container_name: flights-api
-    restart: always
     environment:
       MYSQL_HOST: mysql:3306
     networks:
-      - db_net
+      - db-net
     expose:
       - 8080
     ports:
       - 8080:8080
-  users-api:
+
+  users-spring-api:
     image: austinbaugh/utopia-users-api:latest
+    build: ../spring-apis/users-api
+    container_name: users-spring-api
     depends_on:
        - db
-    container_name: users-api
-    restart: always
     environment:
       MYSQL_HOST: mysql:3306
     networks:
-      - db_net
+      - db-net
     expose:
       - 8090
     ports:
       - 8090:8080
-  bookings-api:
-    image: austinbaugh/utopia-bookings-api:latest
+
+  bookings-spring-api:
+    image: austinbaugh/utopia-bookings-spring-api:latest
+    build: ../spring-apis/bookings-api
+    container_name: bookings-spring-api
     depends_on:
        - db
-    container_name: bookings-api
-    restart: always
     environment:
       MYSQL_HOST: mysql:3306
     networks:
-      - db_net
+      - db-net
     expose:
       - 8100
     ports:
       - 8100:8080
-networks:
-  db_net:
