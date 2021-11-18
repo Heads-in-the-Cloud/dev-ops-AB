@@ -239,7 +239,7 @@ DROP TABLE IF EXISTS `flight`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `flight` (
-  `id` int unsigned NOT NULL,
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
   `route_id` int unsigned NOT NULL,
   `airplane_id` int unsigned NOT NULL,
   `departure_time` datetime NOT NULL,
@@ -251,7 +251,7 @@ CREATE TABLE `flight` (
   KEY `fk_flight_airplane1_idx` (`airplane_id`),
   CONSTRAINT `fk_flight_airplane1` FOREIGN KEY (`airplane_id`) REFERENCES `airplane` (`id`),
   CONSTRAINT `fk_tbl_flight_tbl_route1` FOREIGN KEY (`route_id`) REFERENCES `route` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --

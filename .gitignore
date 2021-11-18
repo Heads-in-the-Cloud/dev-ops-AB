@@ -1,1 +1,5 @@
 .env
+local-compose.sh
+mysql_username.txt
+mysql_password.txt
+mysql_root_password.txt

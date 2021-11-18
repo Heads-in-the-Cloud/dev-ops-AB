@@ -1,0 +1,95 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: utopia
+spec:
+  restartPolicy: Never
+  volumes:
+    - name: db-data
+    - name: db-entry
+      hostPath:
+        path: /home/sheep/work/utopia/devops/mysql_startup_scripts
+    - name: db-user
+      secret:
+        secretName: db-user
+    - name: db-password
+      secret:
+        secretName: db-password
+    - name: db-root-password
+      secret:
+        secretName: db-root-password
+  containers:
+  - name: db
+    image: mysql:8
+    volumeMounts:
+      - name: db-data
+        mountPath: /var/lib/mysql
+      - name: db-entry
+        mountPath: /docker-entrypoint-initdb.d
+      - name: db-user
+        mountPath: /run/secrets
+      - name: db-password
+        mountPath: /run/secrets
+      - name: db-root-password
+        mountPath: /run/secrets
+    ports:
+      - containerPort: 3306
+        hostPort: 3306
+    env:
+      - name: MYSQL_USER_FILE
+        value: /run/secrets/db-user
+      - name: MYSQL_PASSWORD_FILE
+        value: /run/secrets/db-password
+      - name: MYSQL_ROOT_PASSWORD_FILE
+        value: /run/secrets/db-root-password
+  - name: flights-spring-api
+    image: austinbaugh/utopia-flights-spring-api:0.0.2-SNAPSHOT
+    volumeMounts:
+      - name: db-user
+        mountPath: /run/secrets
+      - name: db-password
+        mountPath: /run/secrets
+    ports:
+      - containerPort: 8080
+        hostPort: 8080
+    env:
+      - name: spring.datasource.url
+        value: jdbc:mysql://$NODE_IP:3306/utopia
+  - name: users-spring-api
+    image: austinbaugh/utopia-users-spring-api:0.0.2-SNAPSHOT
+    volumeMounts:
+      - name: db-user
+        mountPath: /run/secrets
+      - name: db-password
+        mountPath: /run/secrets
+    ports:
+      - containerPort: 8080
+        hostPort: 8090
+    env:
+      - name: spring.datasource.url
+        value: jdbc:mysql://$NODE_IP:3306/utopia
+  - name: bookings-spring-api
+    image: austinbaugh/utopia-bookings-spring-api:0.0.2-SNAPSHOT
+    volumeMounts:
+      - name: db-user
+        mountPath: /run/secrets
+      - name: db-password
+        mountPath: /run/secrets
+    ports:
+      - containerPort: 8080
+        hostPort: 8100
+    env:
+      - name: spring.datasource.url
+        value: jdbc:mysql://$NODE_IP:3306/utopia
+  - name: data-producer
+    image: austinbaugh/utopia-data-producer:0.0.2-SNAPSHOT
+    ports:
+      - containerPort: 5000
+        hostPort: 5000
+    env:
+      - name: USERS_API_URL
+        value: http://$NODE_IP:8080
+      - name: FLIGHTS_API_URL
+        value: http://$NODE_IP:8090
+      - name: BOOKINGS_API_URL
+        value: http://$NODE_IP:8100

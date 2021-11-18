@@ -8,11 +8,11 @@ volumes:
   db-volume:
 secrets:
   db-user:
-    external: true
+    file: ./mysql_username.txt
   db-password:
-    external: true
+    file: ./mysql_password.txt
   db-root-password:
-    external: true
+    file: ./mysql_root_password.txt
 
 services:
   db:
@@ -34,6 +34,7 @@ services:
       - 3306:3306
 
   data-producer:
+    build: ../data-producer
     image: austinbaugh/utopia-data-producer:$DATA_PRODUCER_TAG
     depends_on:
        - flights-spring-api
@@ -49,6 +50,7 @@ services:
       - 5000:5000
 
   flights-spring-api:
+    build: ../spring-apis/flights-api
     image: austinbaugh/utopia-flights-spring-api:$FLIGHTS_SPRING_API_TAG
     depends_on:
        - db
@@ -64,6 +66,7 @@ services:
       - 8080:8080
 
   users-spring-api:
+    build: ../spring-apis/users-api
     image: austinbaugh/utopia-users-spring-api:$USERS_SPRING_API_TAG
     depends_on:
        - db
@@ -79,6 +82,7 @@ services:
       - 8090:8080
 
   bookings-spring-api:
+    build: ../spring-apis/bookings-api
     image: austinbaugh/utopia-bookings-spring-api:$BOOKINGS_SPRING_API_TAG
     depends_on:
        - db
@@ -92,4 +96,3 @@ services:
       - db-net
     ports:
       - 8100:8080
-
