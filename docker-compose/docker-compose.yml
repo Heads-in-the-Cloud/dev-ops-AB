@@ -8,18 +8,18 @@ volumes:
   db-volume:
 secrets:
   db-user:
-    external: true
+    file: ./secrets/mysql_username.txt
   db-password:
-    external: true
+    file: ./secrets/mysql_password.txt
   db-root-password:
-    external: true
+    file: ./secrets/mysql_root_password.txt
 
 services:
   db:
-    image: mysql:$MYSQL_TAG
+    image: $MYSQL_IMAGE
     volumes:
-      - db-volume:/var/lib/mysql/data
-      - ./mysql_startup_scripts:/docker-entrypoint-initdb.d
+      - db-volume:/var/lib/mysql
+      - ../mysql_startup_scripts:/docker-entrypoint-initdb.d
     environment:
       MYSQL_USER_FILE: /run/secrets/db-user
       MYSQL_PASSWORD_FILE: /run/secrets/db-password
@@ -34,7 +34,8 @@ services:
       - 3306:3306
 
   data-producer:
-    image: austinbaugh/utopia-data-producer:$DATA_PRODUCER_TAG
+    image: $DATA_PRODUCER_IMAGE
+    build: ../../data-producer
     depends_on:
        - flights-spring-api
        - users-spring-api
@@ -49,7 +50,7 @@ services:
       - 5000:5000
 
   flights-spring-api:
-    image: austinbaugh/utopia-flights-spring-api:$FLIGHTS_SPRING_API_TAG
+    image: $FLIGHTS_SPRING_API_IMAGE
     depends_on:
        - db
     environment:
@@ -64,7 +65,7 @@ services:
       - 8080:8080
 
   users-spring-api:
-    image: austinbaugh/utopia-users-spring-api:$USERS_SPRING_API_TAG
+    image: $USERS_SPRING_API_IMAGE
     depends_on:
        - db
     environment:
@@ -79,7 +80,8 @@ services:
       - 8090:8080
 
   bookings-spring-api:
-    image: austinbaugh/utopia-bookings-spring-api:$BOOKINGS_SPRING_API_TAG
+    image: $BOOKINGS_SPRING_API_IMAGE
+    build: ../../spring-apis/bookings-api
     depends_on:
        - db
     environment:
