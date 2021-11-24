@@ -1,1 +1,3 @@
-docker-compose/secrets/*
+.env
+secrets/
+db.yml
