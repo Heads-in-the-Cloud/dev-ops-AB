@@ -1,0 +1,33 @@
+version: '3'
+
+volumes:
+  db-volume:
+
+secrets:
+  db-url:
+    file: secrets/mysql_url.txt
+  db-user:
+    file: secrets/mysql_username.txt
+  db-password:
+    file: secrets/mysql_password.txt
+  db-root-password:
+    file: secrets/mysql_root_password.txt
+
+services:
+  db:
+    container_name: db
+    image: mysql:8
+    volumes:
+      - db-volume:/var/lib/mysql
+      - ./mysql_startup_scripts:/docker-entrypoint-initdb.d
+    environment:
+      MYSQL_DATABASE: utopia
+      MYSQL_USER_FILE: /run/secrets/db-user
+      MYSQL_PASSWORD_FILE: /run/secrets/db-password
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/db-root-password
+    secrets:
+      - db-user
+      - db-password
+      - db-root-password
+    ports:
+      - 3306:3306

@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: ingress
+  name: utopia-ingress
 spec:
   rules:
   - http:
@@ -10,112 +10,105 @@ spec:
           pathType: Prefix
           backend:
             service: 
-              name: flights-spring-api
+              name: flights-service
               port:
                 number: 8080
         - path: /api/airplane-types
           pathType: Prefix
           backend:
             service: 
-              name: flights-spring-api
+              name: flights-service
               port:
                 number: 8080
         - path: /api/airports
           pathType: Prefix
           backend:
             service: 
-              name: flights-spring-api
+              name: flights-service
               port:
                 number: 8080
         - path: /api/flights
           pathType: Prefix
           backend:
             service: 
-              name: flights-spring-api
+              name: flights-service
               port:
                 number: 8080
         - path: /api/routes
           pathType: Prefix
           backend:
             service: 
-              name: flights-spring-api
+              name: flights-service
               port:
                 number: 8080
         - path: /api/bookings
           pathType: Prefix
           backend:
             service: 
-              name: bookings-spring-api
+              name: bookings-service
               port:
                 number: 8080
         - path: /api/booking-agents
           pathType: Prefix
           backend:
             service: 
-              name: bookings-spring-api
+              name: bookings-service
               port:
                 number: 8080
         - path: /api/booking-users
           pathType: Prefix
           backend:
             service: 
-              name: bookings-spring-api
+              name: bookings-service
               port:
                 number: 8080
         - path: /api/booking-guests
           pathType: Prefix
           backend:
             service: 
-              name: bookings-spring-api
+              name: bookings-service
               port:
                 number: 8080
         - path: /api/booking-payments
           pathType: Prefix
           backend:
             service: 
-              name: bookings-spring-api
+              name: bookings-service
               port:
                 number: 8080
         - path: /api/passengers
           pathType: Prefix
           backend:
             service: 
-              name: bookings-spring-api
+              name: bookings-service
               port:
                 number: 8080
         - path: /api/flight-bookings
           pathType: Prefix
           backend:
             service: 
-              name: bookings-spring-api
+              name: bookings-service
               port:
                 number: 8080
         - path: /api/login
           pathType: Prefix
           backend:
             service: 
-              name: users-spring-api
+              name: users-service
               port:
                 number: 8080
         - path: /api/users
           pathType: Prefix
           backend:
             service: 
-              name: users-spring-api
+              name: users-service
               port:
                 number: 8080
         - path: /api/user-roles
           pathType: Prefix
           backend:
             service: 
-              name: users-spring-api
+              name: users-service
               port:
                 number: 8080
-        - path: /
-          pathType: Prefix
-          backend:
-            service: 
-              name: data-producer
-              port:
-                number: 5000
 
