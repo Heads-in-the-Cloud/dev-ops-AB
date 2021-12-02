@@ -1,0 +1,24 @@
+#!groovy
+pipeline {
+    agent any
+
+    stages {
+        stage('Up for 2min') {
+            steps {
+                sh "mkdir secrets"
+                sh "echo ${env.DB_URL} > secrets/mysql_url.txt"
+                sh "echo ${env.DB_USERNAME} > secrets/mysql_username.txt"
+                sh "echo ${env.DB_PASSWORD} > secrets/mysql_password.txt"
+                sh "./kubernetes/deploy.sh"
+                sh "sleep 120"
+                sh "rm -rd secrets"
+            }
+        }
+
+        stage('Down') {
+            steps {
+                sh "kind delete cluster --name utopia"
+            }
+        }
+    }
+}
