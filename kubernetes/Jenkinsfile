@@ -11,13 +11,13 @@ pipeline {
                 sh "echo ${env.DB_PASSWORD} > secrets/mysql_password.txt"
                 sh "./kubernetes/deploy.sh"
                 sh "sleep 120"
-                sh "rm -rd secrets"
             }
         }
 
         stage('Down') {
             steps {
                 sh "kind delete cluster --name utopia"
+                sh "rm -rd secrets"
             }
         }
     }
