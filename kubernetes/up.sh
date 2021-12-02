@@ -1,6 +1,4 @@
 #!/bin/sh
-docker-compose -f ../db.yml up -d
-
 cat <<EOF | kind create cluster --name utopia --config=-
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
