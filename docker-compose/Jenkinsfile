@@ -5,14 +5,14 @@ pipeline {
     stages {
         stage('Up for 30sec') {
             steps {
-                sh "docker-compose up -d"
+                sh "docker-compose -f docker-compose/docker-compose.yml up -d"
                 sh "sleep 30"
             }
         }
 
         stage('Down') {
             steps {
-                sh "docker-compose down"
+                sh "docker-compose -f docker-compose/docker-compose.yml down"
             }
         }
     }
