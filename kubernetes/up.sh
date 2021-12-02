@@ -22,6 +22,8 @@ kubectl create secret generic db-info \
   --from-file=db-user=../secrets/mysql_username.txt \
   --from-file=db-url=../secrets/mysql_url.txt \
   --from-file=db-password=../secrets/mysql_password.txt
+kubectl create secret generic jwt-secret \
+  --from-file=jwt-secret=../secrets/jwt_secret.txt
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
 kubectl wait --namespace ingress-nginx \
   --for=condition=ready pod \
