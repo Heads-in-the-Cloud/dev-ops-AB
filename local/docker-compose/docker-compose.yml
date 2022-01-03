@@ -1,0 +1,68 @@
+version: '3'
+
+networks:
+  api-net:
+  nginx-net:
+
+services:
+  nginx:
+    image: nginx:1.16.0-alpine
+    depends_on:
+      - flights-microservice
+      - users-microservice
+      - bookings-microservice
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - api-net
+      - nginx-net
+    ports:
+      - 80:80
+
+  data-producer:
+    image: ${PRODUCER_REGISTRY_URI}:${PRODUCER_TAG}
+    depends_on:
+       - nginx
+    environment:
+      UTOPIA_API_URL: http://nginx:80
+    networks:
+      - nginx-net
+    ports:
+      - 5000:5000
+
+  flights-microservice:
+    image: ${FLIGHTS_REGISTRY_URI}:${FLIGHTS_TAG}
+    environment:
+      DB_URL: ${DB_URL}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+    networks:
+      - api-net
+    expose:
+      - 8080
+
+  users-microservice:
+    image: ${USERS_REGISTRY_URI}:${USERS_TAG}
+    environment:
+      DB_URL: ${DB_URL}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+    networks:
+      - api-net
+    expose:
+      - 8080
+
+  bookings-microservice:
+    image: ${BOOKINGS_REGISTRY_URI}:${BOOKINGS_TAG}
+    environment:
+      DB_URL: ${DB_URL}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+    networks:
+      - api-net
+    expose:
+      - 8080
+

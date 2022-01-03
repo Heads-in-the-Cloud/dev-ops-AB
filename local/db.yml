@@ -19,7 +19,7 @@ services:
     image: mysql:8
     volumes:
       - db-volume:/var/lib/mysql
-      - ./mysql_startup_scripts:/docker-entrypoint-initdb.d
+      - ../mysql_startup_scripts:/docker-entrypoint-initdb.d
     environment:
       MYSQL_DATABASE: utopia
       MYSQL_USER_FILE: /run/secrets/db-user

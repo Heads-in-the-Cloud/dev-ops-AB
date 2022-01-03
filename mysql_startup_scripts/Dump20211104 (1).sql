@@ -300,7 +300,7 @@ DROP TABLE IF EXISTS `flight_passengers`;
 /*!50001 DROP VIEW IF EXISTS `flight_passengers`*/;
 SET @saved_cs_client     = @@character_set_client;
 /*!50503 SET character_set_client = utf8mb4 */;
-/*!50001 CREATE VIEW `flight_passengers` AS SELECT 
+/*!50001 CREATE VIEW `flight_passengers` AS SELECT
  1 AS `flight_id`,
  1 AS `booking_id`,
  1 AS `passenger_id`*/;
@@ -314,7 +314,7 @@ DROP TABLE IF EXISTS `flight_status`;
 /*!50001 DROP VIEW IF EXISTS `flight_status`*/;
 SET @saved_cs_client     = @@character_set_client;
 /*!50503 SET character_set_client = utf8mb4 */;
-/*!50001 CREATE VIEW `flight_status` AS SELECT 
+/*!50001 CREATE VIEW `flight_status` AS SELECT
  1 AS `id`,
  1 AS `route_id`,
  1 AS `airplane_id`,
@@ -334,7 +334,7 @@ DROP TABLE IF EXISTS `guest_booking`;
 /*!50001 DROP VIEW IF EXISTS `guest_booking`*/;
 SET @saved_cs_client     = @@character_set_client;
 /*!50503 SET character_set_client = utf8mb4 */;
-/*!50001 CREATE VIEW `guest_booking` AS SELECT 
+/*!50001 CREATE VIEW `guest_booking` AS SELECT
  1 AS `id`,
  1 AS `is_active`,
  1 AS `confirmation_code`,
@@ -450,7 +450,7 @@ DROP TABLE IF EXISTS `user_booking`;
 /*!50001 DROP VIEW IF EXISTS `user_booking`*/;
 SET @saved_cs_client     = @@character_set_client;
 /*!50503 SET character_set_client = utf8mb4 */;
-/*!50001 CREATE VIEW `user_booking` AS SELECT 
+/*!50001 CREATE VIEW `user_booking` AS SELECT
  1 AS `id`,
  1 AS `is_active`,
  1 AS `confirmation_code`,
@@ -496,7 +496,7 @@ UNLOCK TABLES;
 /*!50001 SET character_set_results     = utf8mb4 */;
 /*!50001 SET collation_connection      = utf8mb4_0900_ai_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
-/*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
+/*!50013 DEFINER=`admin`@`%` SQL SECURITY DEFINER */
 /*!50001 VIEW `flight_passengers` AS select `flight_bookings`.`flight_id` AS `flight_id`,`flight_bookings`.`booking_id` AS `booking_id`,`passenger`.`id` AS `passenger_id` from ((`flight_bookings` join `passenger` on((`flight_bookings`.`booking_id` = `passenger`.`booking_id`))) join `booking` on((`flight_bookings`.`booking_id` = `booking`.`id`))) where (`booking`.`is_active` = true) */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
@@ -514,7 +514,7 @@ UNLOCK TABLES;
 /*!50001 SET character_set_results     = utf8mb4 */;
 /*!50001 SET collation_connection      = utf8mb4_0900_ai_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
-/*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
+/*!50013 DEFINER=`admin`@`%` SQL SECURITY DEFINER */
 /*!50001 VIEW `flight_status` AS select `flight`.`id` AS `id`,`flight`.`route_id` AS `route_id`,`flight`.`airplane_id` AS `airplane_id`,`flight`.`departure_time` AS `departure_time`,`flight`.`reserved_seats` AS `reserved_seats`,`flight`.`seat_price` AS `seat_price`,`airplane_capacity`.`max_capacity` AS `max_capacity`,`flight_passenger_count`.`passenger_count` AS `passenger_count`,((`airplane_capacity`.`max_capacity` - `flight`.`reserved_seats`) - `flight_passenger_count`.`passenger_count`) AS `available_seats` from ((`flight` join (select `airplane`.`id` AS `id`,`airplane_type`.`max_capacity` AS `max_capacity` from (`airplane` join `airplane_type` on((`airplane`.`type_id` = `airplane_type`.`id`)))) `airplane_capacity` on((`flight`.`airplane_id` = `airplane_capacity`.`id`))) join (select `flight_passengers`.`flight_id` AS `flight_id`,count(0) AS `passenger_count` from `flight_passengers` group by `flight_passengers`.`flight_id`) `flight_passenger_count` on((`flight`.`id` = `flight_passenger_count`.`flight_id`))) */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
@@ -532,7 +532,7 @@ UNLOCK TABLES;
 /*!50001 SET character_set_results     = utf8mb4 */;
 /*!50001 SET collation_connection      = utf8mb4_0900_ai_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
-/*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
+/*!50013 DEFINER=`admin`@`%` SQL SECURITY DEFINER */
 /*!50001 VIEW `guest_booking` AS select `booking`.`id` AS `id`,`booking`.`is_active` AS `is_active`,`booking`.`confirmation_code` AS `confirmation_code`,`booking_guest`.`contact_email` AS `contact_email`,`booking_guest`.`contact_phone` AS `contact_phone`,`booking_agent`.`agent_id` AS `agent_id` from ((`booking` join `booking_guest` on((`booking`.`id` = `booking_guest`.`booking_id`))) left join `booking_agent` on((`booking`.`id` = `booking_agent`.`booking_id`))) */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
@@ -550,7 +550,7 @@ UNLOCK TABLES;
 /*!50001 SET character_set_results     = utf8mb4 */;
 /*!50001 SET collation_connection      = utf8mb4_0900_ai_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
-/*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
+/*!50013 DEFINER=`admin`@`%` SQL SECURITY DEFINER */
 /*!50001 VIEW `user_booking` AS select `booking`.`id` AS `id`,`booking`.`is_active` AS `is_active`,`booking`.`confirmation_code` AS `confirmation_code`,`booking_user`.`user_id` AS `user_id`,`booking_agent`.`agent_id` AS `agent_id` from ((`booking` join `booking_user` on((`booking`.`id` = `booking_user`.`booking_id`))) left join `booking_agent` on((`booking`.`id` = `booking_agent`.`booking_id`))) */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
