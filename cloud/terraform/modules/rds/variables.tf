@@ -1,51 +1,56 @@
-variable "db_instance"{
+variable "db_instance" {
   type = string
   default = ""
 }
 
-variable "db_name"{
+variable "db_name" {
   type = string
   default = ""
 }
 
-variable "db_identifier"{
+variable "db_identifier" {
   type = string
   default = ""
 }
 
-variable "db_engine_version"{
+variable "db_engine_version" {
   type = string
   default = ""
 }
 
-variable "db_engine"{
+variable "db_engine" {
   type = string
   default = ""
 }
 
-variable "subnet_group_id"{
+variable "subnet_group_id" {
   type = string
   default = ""
 }
 
-variable "vpc_id"{
+variable "vpc_id" {
   type = string
   default = ""
 }
 
-variable "db_username"{
+variable "db_root_username" {
   type = string
   default = ""
 }
 
-variable "db_password"{
+variable "db_root_password" {
   type = string
   default = ""
 }
 
-variable "ami_id" {
+variable "db_username" {
   type = string
-  default = "ami-00f7e5c52c0f43726"
+  default = ""
+}
+
+variable "db_password" {
+  type = string
+  default = ""
 }
 
 variable "instance_type" {
@@ -59,6 +64,11 @@ variable "key_name" {
 }
 
 variable "public_subnet_id" {
+  type = string
+  default = ""
+}
+
+variable "private_cidr_blocks" {
   type = string
   default = ""
 }

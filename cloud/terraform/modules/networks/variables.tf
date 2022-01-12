@@ -32,13 +32,3 @@ variable "rt_cidr_block" {
   type = string
   default = ""
 }
-
-variable "area_zone_1" {
-  type = string
-  default = ""
-}
-
-variable "area_zone_2" {
-  type = string
-  default = ""
-}
