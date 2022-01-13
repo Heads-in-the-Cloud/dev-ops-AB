@@ -1,9 +1,12 @@
 apiVersion: v1
 kind: Service
-metadata: 
+metadata:
   name: users-service
+  namespace: default
   labels:
     app: users-microservice
+  annotations:
+    alb.ingress.kubernetes.io/target-type: ip
 spec:
   selector:
     app: users-microservice
@@ -16,10 +19,13 @@ spec:
 
 apiVersion: v1
 kind: Service
-metadata: 
+metadata:
   name: flights-service
+  namespace: default
   labels:
     app: flights-microservice
+  annotations:
+    alb.ingress.kubernetes.io/target-type: ip
 spec:
   selector:
     app: flights-microservice
@@ -32,10 +38,13 @@ spec:
 
 apiVersion: v1
 kind: Service
-metadata: 
+metadata:
   name: bookings-service
+  namespace: default
   labels:
     app: bookings-microservice
+  annotations:
+    alb.ingress.kubernetes.io/target-type: ip
 spec:
   selector:
     app: bookings-microservice

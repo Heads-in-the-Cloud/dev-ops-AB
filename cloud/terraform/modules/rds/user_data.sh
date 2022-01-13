@@ -352,8 +352,28 @@ CREATE TABLE `user_role` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 -- Dump completed on 2022-01-02 17:52:28
+--
+-- Dumping data for table `user`
+--
+
+LOCK TABLES `user` WRITE;
+/*!40000 ALTER TABLE `user` DISABLE KEYS */;
+INSERT INTO `user` VALUES (1,1,'Alexander','Walter','awalter','jandrese@msn.com','$2a$12$rKnLAxDg2MFs7qwvoTEOeO2/vi3lK5ZgQL712Fjzv44NJE0RKUCNa','(445) 995-8776'),(2,2,'Adah','Farrell','afarrell','thowell@optonline.net','rCX1MEJlMX6NgJiR','(474) 442-5801'),(3,2,'Darrell','Hill','dhill','yfreund@msn.com','jo7rUz1k25lTl2Bm','(697) 523-2353'),(4,1,'Nella','Harbor','nharbor','doche@aol.com','KPh6pFCGrNMMC8DF','(208) 276-5733'),(5,1,'Leola','Welch','lwelch','gozer@yahoo.com','j0zcGLC9G6xxqEQ5','(427) 319-3337'),(6,1,'Randall','Hunt','rhunt','heine@aol.com','R3nnoH1o77QCGwUF','(362) 666-9750'),(7,2,'Sammy','Hampton','shampton','mstrout@hotmail.com','EhZo8PWjfNaAn8nG','(350) 613-2763'),(8,2,'Yoselin','Trujillo','ytrujillo','tfinniga@yahoo.com','quP2C5l36G9PAa7Q','(727) 934-5708'),(9,1,'Natalee','Alexander','nalexander','bdbrown@me.com','4i6zizS8r9c2yiNY','(289) 934-1373'),(10,2,'Camren','West','cwest','fviegas@mac.com','9h2Cam2neBjGD2zH','(319) 875-6907'),(11,1,'Caden','Bass','cbass','ajlitt@outlook.com','IejkRGgiHItrnlP8','(747) 662-9049'),(12,2,'Matthew','Miller','mmiller','jespley@verizon.net','PSxpwwlNwHP7SrIV','(470) 653-2765'),(13,1,'Madelyn','Miller','mmiller2','janneh@verizon.net','WMUn4FJKLeQj35kI','(331) 939-0691'),(14,1,'Keaton','Wilcox','kwilcox','emmanuel@aol.com','q08o5Z1PuKT5jkUe','(938) 930-0937'),(15,2,'Christina','Owens','cowens','chaffar@sbcglobal.net','MyFWuwHz8jEpYCYl','(204) 435-2863'),(16,2,'Mitchell','Harvey','mharvey','sassen@yahoo.com','DgOQUVBwOerKVOP8','(329) 529-2931'),(17,1,'Lea','Ward','lward','qmacro@gmail.com','XLMpkHaXlPTf7Tlu','(330) 712-3387'),(18,1,'Julissa','Tucker','jtucker','sburke@gmail.com','FUtgPGOabIKPtO5P','(439) 231-0047'),(19,2,'Neil','Rangel','nrangel','dhrakar@hotmail.com','Qnmwt8vzpfLZ07CN','(838) 625-6123'),(20,2,'Drake','Swanson','dswanson','chunzi@optonline.net','8hVINFqzRTTMikYJ','(900) 396-0382');
+/*!40000 ALTER TABLE `user` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Dumping data for table `user_role`
+--
+
+LOCK TABLES `user_role` WRITE;
+/*!40000 ALTER TABLE `user_role` DISABLE KEYS */;
+INSERT INTO `user_role` VALUES (3,'Admin'),(1,'Employee'),(2,'Traveler');
+/*!40000 ALTER TABLE `user_role` ENABLE KEYS */;
+UNLOCK TABLES;
 
 CREATE USER '${db_username}'@'%' IDENTIFIED BY '${db_password}';
 GRANT SELECT, INSERT, UPDATE, DELETE ON utopia.* TO '${db_username}'@'%';
 FLUSH PRIVILEGES;
 EOF
+poweroff

@@ -6,11 +6,13 @@ resource "aws_subnet" "private_1" {
   vpc_id            = var.vpc_id
   cidr_block        = var.subnet_1_cidr_block
   availability_zone = data.aws_availability_zones.available.names[0]
+
   tags = {
     Name = "ab_private_subnet_1"
+    "kubernetes.io/cluster/ab" = "shared"
+    "kubernetes.io/role/internal-elb" = 1
   }
 }
-
 
 resource "aws_subnet" "private_2" {
   vpc_id            = var.vpc_id
@@ -18,7 +20,9 @@ resource "aws_subnet" "private_2" {
   availability_zone = data.aws_availability_zones.available.names[1]
 
   tags = {
-    Name = "ab_private_subnet_1"
+    Name = "ab_private_subnet_2"
+    "kubernetes.io/cluster/ab" = "shared"
+    "kubernetes.io/role/internal-elb" = 1
   }
 }
 
@@ -30,6 +34,8 @@ resource "aws_subnet" "public_1" {
 
   tags = {
     Name = "ab_public_subnet_1"
+    "kubernetes.io/cluster/ab" = "shared"
+    "kubernetes.io/role/elb" = 1
   }
 }
 
@@ -41,6 +47,8 @@ resource "aws_subnet" "public_2" {
 
   tags = {
     Name = "ab_public_subnet_2"
+    "kubernetes.io/cluster/ab" = "shared"
+    "kubernetes.io/role/elb" = 1
   }
 }
 
@@ -51,6 +59,26 @@ resource "aws_internet_gateway" "default" {
   tags = {
     Name = "ab_default_ig"
   }
+}
+
+resource "aws_eip" "nat" {
+  vpc        = true
+  depends_on = [aws_internet_gateway.default]
+}
+
+resource "aws_nat_gateway" "nat" {
+  allocation_id = aws_eip.nat.id
+  subnet_id     = aws_subnet.public_1.id
+  depends_on    = [aws_internet_gateway.default]
+
+  tags = {
+    Name        = "ab_nat"
+  }
+}
+resource "aws_route" "private_nat_gateway" {
+  route_table_id         = aws_route_table.private.id
+  destination_cidr_block = "0.0.0.0/0"
+  nat_gateway_id         = aws_nat_gateway.nat.id
 }
 
 resource "aws_route_table" "public" {
@@ -66,7 +94,7 @@ resource "aws_route_table" "public" {
   }
 }
 
-resource "aws_route_table" "private_rt" {
+resource "aws_route_table" "private" {
   vpc_id = var.vpc_id
 
   route = []
@@ -88,12 +116,12 @@ resource "aws_route_table_association" "public_2" {
 
 resource "aws_route_table_association" "private_1" {
   subnet_id      = aws_subnet.private_1.id
-  route_table_id = aws_route_table.private_rt.id
+  route_table_id = aws_route_table.private.id
 }
 
 resource "aws_route_table_association" "private_2" {
   subnet_id      = aws_subnet.private_2.id
-  route_table_id = aws_route_table.private_rt.id
+  route_table_id = aws_route_table.private.id
 }
 
 resource "aws_db_subnet_group" "default" {

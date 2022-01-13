@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: flights-deployment
+  namespace: default
   labels:
     app: flights-microservice
 spec:
@@ -14,9 +15,20 @@ spec:
       labels:
         app: flights-microservice
     spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/arch
+                operator: In
+                values:
+                - amd64
+                - arm64
       containers:
       - name: flights-microservice
-        image: docker.io/austinbaugh/utopia-flights-microservice:0.0.3-SNAPSHOT
+        image: $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/ab-flights-microservice:latest
+        imagePullPolicy: Always
         env:
           - name: DB_URL
             valueFrom:
@@ -47,6 +59,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: bookings-deployment
+  namespace: default
   labels:
     app: bookings-microservice
 spec:
@@ -59,9 +72,20 @@ spec:
       labels:
         app: bookings-microservice
     spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/arch
+                operator: In
+                values:
+                - amd64
+                - arm64
       containers:
       - name: bookings-microservice
-        image: docker.io/austinbaugh/utopia-bookings-microservice:0.0.3-SNAPSHOT
+        image: $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/ab-bookings-microservice:latest
+        imagePullPolicy: Always
         env:
           - name: DB_URL
             valueFrom:
@@ -92,6 +116,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: users-deployment
+  namespace: default
   labels:
     app: users-microservice
 spec:
@@ -104,9 +129,20 @@ spec:
       labels:
         app: users-microservice
     spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/arch
+                operator: In
+                values:
+                - amd64
+                - arm64
       containers:
       - name: users-microservice
-        image: docker.io/austinbaugh/utopia-users-microservice:0.0.3-SNAPSHOT
+        image: $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/ab-users-microservice:latest
+        imagePullPolicy: Always
         env:
           - name: DB_URL
             valueFrom:
