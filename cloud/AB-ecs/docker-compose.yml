@@ -1,7 +1,25 @@
 version: '3'
-x-aws-vpc: 'vpc-0f3dce67ace642302'
+x-aws-vpc: ${VPC_ID}
+
+networks:
+  api-net:
 
 services:
+    image: ${API_GATEWAY_REGISTRY_URI}:${API_GATEWAY_TAG}
+    depends_on:
+      - flights-microservice
+      - users-microservice
+      - bookings-microservice
+    environment:
+      DOMAIN: ${DOMAIN}
+      FLIGHTS: flights-microservice
+      BOOKINGS: bookings-microservice
+      USERS: users-microservice
+    networks:
+      - api-net
+    ports:
+      - 80
+
   flights-microservice:
     image: ${FLIGHTS_REGISTRY_URI}:${FLIGHTS_TAG}
     environment:
@@ -9,6 +27,8 @@ services:
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
+    networks:
+      - api-net
 
   users-microservice:
     image: ${USERS_REGISTRY_URI}:${USERS_TAG}
@@ -17,6 +37,8 @@ services:
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
+    networks:
+      - api-net
 
   bookings-microservice:
     image: ${BOOKINGS_REGISTRY_URI}:${BOOKINGS_TAG}
@@ -25,4 +47,5 @@ services:
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
-
+    networks:
+      - api-net

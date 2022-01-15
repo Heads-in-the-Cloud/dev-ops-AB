@@ -1,12 +1,14 @@
 #!/bin/sh
 
+# https://aws.amazon.com/blogs/containers/using-alb-ingress-controller-with-amazon-eks-on-fargate/
+
 export AWS_REGION='us-west-2'
 export CLUSTER_NAME='ab'
 export VPC_ID=vpc-0f3dce67ace642302
+export SUBNET_IDS=subnet-076b83db40e1a306b,subnet-0dd19084a6dde6ecd
 
 # Create Cluster
-eksctl create cluster --name=$CLUSTER_NAME --region=$AWS_REGION --fargate \
-  --vpc-private-subnets=subnet-06fe276dcff059e39,subnet-036e27baee51da27a
+eksctl create cluster --name=$CLUSTER_NAME --region=$AWS_REGION --fargate --vpc-private-subnets=$SUBNET_IDS
 
 # Approve cluster to associate IAM OpenID Connect Provider
 eksctl utils associate-iam-oidc-provider --cluster=$CLUSTER_NAME --approve

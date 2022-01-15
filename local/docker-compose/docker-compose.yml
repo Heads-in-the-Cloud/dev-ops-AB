@@ -2,33 +2,23 @@ version: '3'
 
 networks:
   api-net:
-  nginx-net:
 
 services:
-  nginx:
-    image: nginx:1.16.0-alpine
+  api-gateway:
+    image: ${API_GATEWAY_REGISTRY_URI}:${API_GATEWAY_TAG}
     depends_on:
       - flights-microservice
       - users-microservice
       - bookings-microservice
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    environment:
+      DOMAIN: 127.0.0.1
+      FLIGHTS: flights-microservice
+      BOOKINGS: bookings-microservice
+      USERS: users-microservice
     networks:
       - api-net
-      - nginx-net
     ports:
       - 80:80
-
-  data-producer:
-    image: ${PRODUCER_REGISTRY_URI}:${PRODUCER_TAG}
-    depends_on:
-       - nginx
-    environment:
-      UTOPIA_API_URL: http://nginx:80
-    networks:
-      - nginx-net
-    ports:
-      - 5000:5000
 
   flights-microservice:
     image: ${FLIGHTS_REGISTRY_URI}:${FLIGHTS_TAG}

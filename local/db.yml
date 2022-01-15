@@ -4,8 +4,6 @@ volumes:
   db-volume:
 
 secrets:
-  db-url:
-    file: secrets/mysql_url.txt
   db-user:
     file: secrets/mysql_username.txt
   db-password:

@@ -1,10 +1,10 @@
 #!/bin/sh
-export PRODUCER_REGISTRY_URI=austinbaugh/utopia-data-producer
+export API_GATEWAY_REGISTRY_URI=austinbaugh/utopia-api-gateway
 export FLIGHTS_REGISTRY_URI=austinbaugh/utopia-flights-microservice
 export USERS_REGISTRY_URI=austinbaugh/utopia-users-microservice
 export BOOKINGS_REGISTRY_URI=austinbaugh/utopia-bookings-microservice
 
-export PRODUCER_TAG=0.0.3-SNAPSHOT
+export API_GATEWAY_TAG=0.0.1
 export FLIGHTS_TAG=0.0.4-SNAPSHOT
 export USERS_TAG=0.0.4-SNAPSHOT
 export BOOKINGS_TAG=0.0.4-SNAPSHOT
