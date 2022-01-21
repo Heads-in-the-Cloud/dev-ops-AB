@@ -1,11 +1,13 @@
 version: '3'
 x-aws-vpc: ${VPC_ID}
+x-aws-loadbalancer: ${ALB_ID}
 
 networks:
-  api-net:
+  microservices:
 
 services:
-    image: ${API_GATEWAY_REGISTRY_URI}:${API_GATEWAY_TAG}
+  reverse-proxy:
+    image: ${REVERSE_PROXY_IMAGE}
     depends_on:
       - flights-microservice
       - users-microservice
@@ -16,36 +18,36 @@ services:
       BOOKINGS: bookings-microservice
       USERS: users-microservice
     networks:
-      - api-net
+      - microservices
     ports:
       - 80
 
   flights-microservice:
-    image: ${FLIGHTS_REGISTRY_URI}:${FLIGHTS_TAG}
+    image: ${FLIGHTS_IMAGE}
     environment:
       DB_URL: ${DB_URL}
-      DB_USERNAME: ${DB_USERNAME}
-      DB_PASSWORD: ${DB_PASSWORD}
+      DB_USERNAME: ${FLIGHTS_DB_USERNAME}
+      DB_PASSWORD: ${FLIGHTS_DB_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
     networks:
-      - api-net
+      - microservices
 
   users-microservice:
-    image: ${USERS_REGISTRY_URI}:${USERS_TAG}
+    image: ${USERS_IMAGE}
     environment:
       DB_URL: ${DB_URL}
-      DB_USERNAME: ${DB_USERNAME}
-      DB_PASSWORD: ${DB_PASSWORD}
+      DB_USERNAME: ${USERS_DB_USERNAME}
+      DB_PASSWORD: ${USERS_DB_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
     networks:
-      - api-net
+      - microservices
 
   bookings-microservice:
-    image: ${BOOKINGS_REGISTRY_URI}:${BOOKINGS_TAG}
+    image: ${BOOKINGS_IMAGE}
     environment:
       DB_URL: ${DB_URL}
-      DB_USERNAME: ${DB_USERNAME}
-      DB_PASSWORD: ${DB_PASSWORD}
+      DB_USERNAME: ${BOOKINGS_DB_USERNAME}
+      DB_PASSWORD: ${BOOKINGS_DB_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
     networks:
-      - api-net
+      - microservices

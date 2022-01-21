@@ -3,5 +3,5 @@ output "db_subnet_group_id" {
 }
 
 output "public_subnet_ids" {
-  value = [ aws_subnet.public_1.id, aws_subnet.public_2.id ]
+  value = [ for subnet in aws_subnet.public : subnet.id ]
 }

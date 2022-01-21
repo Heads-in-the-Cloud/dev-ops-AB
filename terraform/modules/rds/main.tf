@@ -1,4 +1,4 @@
-resource "aws_db_instance" "rds" {
+resource "aws_db_instance" "default" {
   allocated_storage      = 10
   engine                 = "mysql"
   engine_version         = "8.0"
@@ -22,19 +22,19 @@ resource "aws_security_group" "db" {
     from_port   = 3306
     to_port     = 3306
     protocol    = "tcp"
-    cidr_blocks = ["10.6.0.0/16"]
+    cidr_blocks = [ var.vpc_cidr_block ]
   }
 
   egress {
     from_port        = 0
     to_port          = 0
     protocol         = "-1"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
+    cidr_blocks      = [ "0.0.0.0/0" ]
+    ipv6_cidr_blocks = [ "::/0" ]
   }
 
   tags = {
-    Name = "AB_db_sg"
+    Name = "db-AB"
   }
 }
 
@@ -48,7 +48,7 @@ data "aws_ami" "amazon_linux_2" {
   }
 }
 
-resource "aws_instance" "db_bastion" {
+resource "aws_instance" "bastion" {
   instance_type          = "t2.micro"
   ami                    = data.aws_ami.amazon_linux_2.id
   vpc_security_group_ids = [ aws_security_group.ssh.id ]
@@ -56,7 +56,7 @@ resource "aws_instance" "db_bastion" {
   key_name               = var.key_name
 
   user_data = templatefile("${path.module}/user_data.sh", {
-    db_host          = aws_db_instance.rds.address
+    db_host          = aws_db_instance.default.address
     db_root_username = var.db_root_username
     db_root_password = var.db_root_password
     db_username      = var.db_username
@@ -64,13 +64,13 @@ resource "aws_instance" "db_bastion" {
   })
 
   tags = {
-    Name = "AB_db_bastion"
+    Name = "bastion-AB"
   }
 }
 
 resource "aws_security_group" "ssh" {
   name        = "AB_bastion"
-  description = "Inbound to only 22"
+  description = "Inbound to only 22 from anywhere"
   vpc_id      = var.vpc_id
 
   ingress {
@@ -85,11 +85,11 @@ resource "aws_security_group" "ssh" {
     from_port        = 0
     to_port          = 0
     protocol         = "-1"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
+    cidr_blocks      = [ "0.0.0.0/0" ]
+    ipv6_cidr_blocks = [ "::/0" ]
   }
 
   tags = {
-    Name = "AB_bastion_sg"
+    Name = "ssh-AB"
   }
 }
