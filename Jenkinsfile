@@ -55,7 +55,7 @@ EOF
 
                     sh "terraform plan -no-color -input=false -out plans/apply-${COMMIT_HASH}.tf"
                     //sh "aws s3 cp plans/${COMMIT_HASH} s3://${TF_S3_BUCKET}"
-                    sh "terraform show -no-color plans/-apply${COMMIT_HASH}.tf"
+                    sh "terraform show -no-color plans/apply-${COMMIT_HASH}.tf"
                 }
             }
         }
