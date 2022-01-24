@@ -110,11 +110,11 @@ EOF
                         sh "docker context use ecs-${PROJECT_ID}"
                         sh "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_URI}"
                         if(params.Apply) {
-                            sh "docker compose up --no-color"
+                            sh "docker compose up"
                         }
-                        if(params.Destroy) {
-                            sh "docker compose down --no-color"
-                        }
+                        //if(params.Destroy) {
+                        //    sh "docker compose down"
+                        //}
                         sh "docker context use default"
                     }
                 }
