@@ -100,7 +100,7 @@ EOF
                     env.DB_URL = tf_output.db_url
                     env.ALB_ID = tf_output.alb_id
 
-                    def repo_suffix = "-${lower(env.PROJECT_ID)}"
+                    def repo_suffix = "-${env.PROJECT_ID.toLowerCase()}"
                     env.REVERSE_PROXY_IMAGE = "$ECR_URI/api-gateway${repo_suffix}:latest"
                     env.FLIGHTS_IMAGE = "$ECR_URI/flights-microservice${repo_suffix}:latest"
                     env.USERS_IMAGE = "$ECR_URI/users-microservice${repo_suffix}:latest"
