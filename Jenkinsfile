@@ -30,10 +30,10 @@ pipeline {
                 dir("terraform") {
                     sh """
                         cat > terraform.tfvars << EOF
-region=${AWS_REGION} \
-project_id=${PROJECT_ID} \
-environment=${ENV} \
-public_ssh_key=${PUB_SSH_KEY}
+region = "${AWS_REGION}" \
+project_id = "${PROJECT_ID}" \
+environment = "${ENV}" \
+public_ssh_key = "${PUB_SSH_KEY}"
 EOF
                     """
                 }
@@ -69,9 +69,7 @@ EOF
 
             steps {
                 dir("terraform") {
-                    sh """
-                        terraform apply -no-color -input=false plans/apply-${COMMIT_HASH}.tf
-                    """
+                    sh "terraform apply -no-color -input=false plans/apply-${COMMIT_HASH}.tf"
                 }
             }
         }
