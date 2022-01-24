@@ -40,14 +40,6 @@ EOF
             }
         }
 
-        post {
-            cleanup {
-                script {
-                    sh 'rm terraform.tfvars'
-                }
-            }
-        }
-
         stage('Terraform Plan Apply') {
             when {
                 expression {
@@ -132,6 +124,14 @@ EOF
                 dir("terraform") {
                     sh "terraform apply -no-color -input=false plans/destroy-${COMMIT_HASH}.tf"
                 }
+            }
+        }
+    }
+
+    post {
+        cleanup {
+            script {
+                sh 'rm terraform.tfvars'
             }
         }
     }
