@@ -30,7 +30,7 @@ pipeline {
 
             steps {
                 dir("terraform") {
-                    mkdir '-p plans'
+                    sh 'mkdir -p plans'
                     sh 'terraform init -no-color -input=false'
                     //sh 'terraform workspace select ${environment} || terraform workspace new ${environment}'
 
