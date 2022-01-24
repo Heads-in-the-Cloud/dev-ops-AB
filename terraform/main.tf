@@ -19,10 +19,6 @@ data "aws_ecr_repository" "bookings_microservice" {
   name = format("bookings-microservice-%s", lower(var.project_id))
 }
 
-data "aws_vpc" "default" {
-  cidr_block = "10.6.0.0/16"
-}
-
 # Key/Value pairs of root db creds and microservice user creds
 data "aws_secretsmanager_secret_version" "db_creds" {
   secret_id = "${var.environment}/${var.project_id}/db_creds"
@@ -33,11 +29,19 @@ locals {
   )
 }
 
+resource "aws_vpc" "default" {
+  cidr_block = "10.6.0.0/16"
+
+  tags = {
+    Name = "default-${var.project_id}"
+  }
+}
+
 # Dynamically allocates a subnet per availability zone of the given region
 module "networks" {
   source         = "./modules/networks"
-  vpc_cidr_block = data.aws_vpc.default.cidr_block
-  vpc_id         = data.aws_vpc.default.id
+  vpc_cidr_block = aws_vpc.default.cidr_block
+  vpc_id         = aws_vpc.default.id
   rt_cidr_block  = "0.0.0.0/0"
   project_id     = var.project_id
 }
@@ -55,8 +59,8 @@ module "networks" {
 # RDS instance
 module "rds" {
   source            = "./modules/rds"
-  vpc_id            = data.aws_vpc.default.id
-  vpc_cidr_block    = data.aws_vpc.default.cidr_block
+  vpc_id            = aws_vpc.default.id
+  vpc_cidr_block    = aws_vpc.default.cidr_block
   allocated_storage = 10
   instance_class    = "db.t2.micro"
   name              = "utopia"
@@ -77,7 +81,7 @@ module "bastion" {
   source         = "./modules/bastion"
   policy_arn     = data.aws_iam_policy.read_s3.arn
   instance_type  = "t2.micro"
-  vpc_id         = data.aws_vpc.default.id
+  vpc_id         = aws_vpc.default.id
   public_ssh_key = var.public_ssh_key
   subnet_id      = element(module.networks.public_subnet_ids, 1)
   user_data      = templatefile("${path.root}/user_data.sh", {
