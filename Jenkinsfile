@@ -79,7 +79,7 @@ EOF
                 dir("terraform") {
                     sh "terraform apply -no-color -input=false plans/apply-${COMMIT_HASH}.tf"
                     sh 'terraform refresh -no-color'
-                    sh 'terraform output | tr -d \'\\\"\\ \' > output.tf'
+                    sh 'terraform output | tr -d \'\\\"\\ \' > ../output.tf'
                 }
             }
         }
@@ -99,7 +99,7 @@ EOF
                         env.JWT_SECRET  = aws_secrets.jwt_secret
                     }
 
-                    def tf_outputs = readProperties(file: '../terraform/output.tf')
+                    def tf_outputs = readProperties(file: '../output.tf')
                     env.DOMAIN = tf_output.domain
                     env.VPC_ID = tf_output.vpc_id
                     env.DB_URL = tf_output.db_url
