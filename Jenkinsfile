@@ -19,9 +19,9 @@ pipeline {
         COMMIT_HASH = sh(returnStdout: true, script: "git rev-parse --short=8 HEAD").trim()
         //TF_S3_BUCKET = "tf-plans-ab"
         AWS_REGION = sh(script:'aws configure get region', returnStdout: true).trim()
-        PUB_SSH_KEY = credentials('pub-ssh-key')
-        PUB_SSH_KEY = credentials('project-id')
+        PROJECT_ID = credentials('project-id')
         ENV = credentials('env')
+        PUB_SSH_KEY = credentials('pub-ssh-key')
     }
 
     stages {
