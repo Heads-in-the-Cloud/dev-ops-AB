@@ -26,15 +26,17 @@ pipeline {
 
     stages {
         stage('Configure Environment Inputs') {
-            dir("terraform") {
-                sh """
-                cat > terraform.tfvars << EOF
+            steps {
+                dir("terraform") {
+                    sh """
+                        cat > terraform.tfvars << EOF
 region=${AWS_REGION} \
 project_id=${PROJECT_ID} \
 environment=${ENV} \
 public_ssh_key=${PUB_SSH_KEY}
-                EOF
-                """
+EOF
+                    """
+                }
             }
         }
 
