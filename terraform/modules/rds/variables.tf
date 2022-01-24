@@ -1,79 +1,59 @@
-variable "db_instance" {
-  type = string
-  default = ""
+variable "allocated_storage" {
+  type = number
+  default = null
 }
 
-variable "db_name" {
+variable "project_id" {
   type = string
-  default = ""
+  default = null
 }
 
-variable "db_identifier" {
+variable "environment" {
   type = string
-  default = ""
+  default = null
 }
 
-variable "db_engine_version" {
+variable "instance_class" {
   type = string
-  default = ""
+  default = null
 }
 
-variable "db_engine" {
+variable "name" {
   type = string
-  default = ""
+  default = null
+}
+
+variable "engine_version" {
+  type = string
+  default = null
+}
+
+variable "engine" {
+  type = string
+  default = null
 }
 
 variable "subnet_group_id" {
   type = string
-  default = ""
+  default = null
 }
 
 variable "vpc_id" {
   type = string
-  default = ""
+  default = null
 }
 
 variable "vpc_cidr_block" {
   type = string
-  default = ""
+  default = null
 }
 
-variable "db_root_username" {
+variable "root_username" {
   type = string
-  default = ""
+  default = null
 }
 
-variable "db_root_password" {
+variable "root_password" {
   type = string
-  default = ""
-}
-
-variable "db_username" {
-  type = string
-  default = ""
-}
-
-variable "db_password" {
-  type = string
-  default = ""
-}
-
-variable "instance_type" {
-  type = string
-  default = "t2.micro"
-}
-
-variable "key_name" {
-  type = string
-  default = "AB-key"
-}
-
-variable "public_subnet_id" {
-  type = string
-  default = ""
-}
-
-variable "private_cidr_blocks" {
-  type = string
-  default = ""
+  default = null
 }

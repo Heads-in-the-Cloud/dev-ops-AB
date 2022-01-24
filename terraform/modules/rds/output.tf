@@ -1,3 +1,3 @@
-output "db_instance" {
-  value = aws_db_instance.default
+output "instance_address" {
+  value = aws_db_instance.default.address
 }

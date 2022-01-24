@@ -1,11 +1,29 @@
 variable "vpc_id" {
-    type = string
-    default = "vpc-0f3dce67ace642302"
-    description = "default vpc"
+  type        = string
+  default     = null
+  description = "vpc"
 }
 
 variable "region" {
-    type = string
-    default = "us-west-2"
-    description = "default region"
+  type        = string
+  default     = null
+  description = "region"
+}
+
+variable "project_id" {
+  type        = string
+  default     = null
+  description = "project identifier to suffix all names with"
+}
+
+variable "environment" {
+  type        = string
+  default     = "dev"
+  description = "dev, staging, or prod"
+}
+
+variable "public_ssh_key" {
+  type        = string
+  default     = null
+  description = "SSH key used for bastion hosts"
 }

@@ -3,30 +3,30 @@ data "aws_availability_zones" "available" {
 }
 
 resource "aws_subnet" "private" {
-  count                   = "${length(data.aws_availability_zones.available.names)}"
+  count                   = length(data.aws_availability_zones.available.names)
   vpc_id                  = var.vpc_id
   cidr_block              = cidrsubnet(var.vpc_cidr_block, 8, count.index)
-  availability_zone       = "${data.aws_availability_zones.available.names[count.index]}"
+  availability_zone       = data.aws_availability_zones.available.names[count.index]
   map_public_ip_on_launch = false
 
   tags = {
-    Name = format("private-%d-AB", count.index + 1)
-    "kubernetes.io/cluster/AB"        = "shared"
+    Name = format("private-%d-%s", count.index + 1, var.project_id)
+    "kubernetes.io/cluster/default-${var.project_id}" = "shared"
     "kubernetes.io/role/internal-elb" = 1
   }
 }
 
 resource "aws_subnet" "public" {
-  count                   = "${length(data.aws_availability_zones.available.names)}"
+  count                   = length(data.aws_availability_zones.available.names)
   vpc_id                  = var.vpc_id
   cidr_block              = cidrsubnet(var.vpc_cidr_block, 8, count.index + 20)
-  availability_zone       = "${data.aws_availability_zones.available.names[count.index]}"
+  availability_zone       = data.aws_availability_zones.available.names[count.index]
   map_public_ip_on_launch = true
 
   tags = {
-    Name = format("public-%d-AB", count.index + 1)
-    "kubernetes.io/cluster/AB" = "shared"
-    "kubernetes.io/role/elb"   = 1
+    Name = format("public-%d-%s", count.index + 1, var.project_id)
+    "kubernetes.io/cluster/default-${var.project_id}" = "shared"
+    "kubernetes.io/role/elb" = 1
   }
 }
 
@@ -34,7 +34,7 @@ resource "aws_internet_gateway" "default" {
   vpc_id = var.vpc_id
 
   tags = {
-    Name = "default-AB"
+    Name = "default-${var.project_id}"
   }
 }
 
@@ -43,7 +43,7 @@ resource "aws_eip" "nat" {
   depends_on = [ aws_internet_gateway.default ]
 
   tags = {
-    Name     = "nat-AB"
+    Name     = "nat-${var.project_id}"
   }
 }
 
@@ -53,7 +53,7 @@ resource "aws_nat_gateway" "default" {
   depends_on    = [ aws_internet_gateway.default ]
 
   tags = {
-    Name        = "default-AB"
+    Name = "default-${var.project_id}"
   }
 }
 resource "aws_route" "private_nat_gateway" {
@@ -71,45 +71,45 @@ resource "aws_route_table" "public" {
   }
 
   tags = {
-    Name = "public-AB"
+    Name = "public-${var.project_id}"
   }
 }
 
 resource "aws_route_table" "private" {
   vpc_id = var.vpc_id
 
-  route = []
+  //route = []
 
   tags = {
-    Name = "privagte-AB"
+    Name = "private-${var.project_id}"
   }
 }
 
 resource "aws_route_table_association" "public" {
-  count          = "${length(aws_subnet.public)}"
+  count          = length(aws_subnet.public)
   subnet_id      = aws_subnet.public[count.index].id
   route_table_id = aws_route_table.public.id
 }
 
 resource "aws_route_table_association" "private" {
-  count          = "${length(aws_subnet.private)}"
+  count          = length(aws_subnet.private)
   subnet_id      = aws_subnet.private[count.index].id
   route_table_id = aws_route_table.private.id
 }
 
-resource "aws_db_subnet_group" "default" {
-  name       = "ab_default"
-  subnet_ids = [ for subnet in aws_subnet.private : subnet.id ]
+resource "aws_db_subnet_group" "private" {
+  name       = format("private_%s", lower(var.project_id))
+  subnet_ids = aws_subnet.private[*].id
 
   tags = {
-    Name = "AB_default_db_sg"
+    Name = "private-${var.project_id}"
   }
 }
 
 resource "aws_security_group" "alb" {
-  name = "AB-alb"
+  name        = "alb-${var.project_id}"
   description = "Open HTTP port"
-  vpc_id = var.vpc_id
+  vpc_id      = var.vpc_id
 
   # HTTP
   ingress {
@@ -120,27 +120,27 @@ resource "aws_security_group" "alb" {
   }
 
   egress {
-    from_port     = 0
-    to_port       = 0
-    protocol      = "-1"
-    cidr_blocks   = [ "0.0.0.0/0" ]
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = [ "0.0.0.0/0" ]
   }
 
   tags = {
-    Name = "alb-AB"
+    Name = "alb-${var.project_id}"
   }
 }
 
 // ECS Application Load Balancer
 resource "aws_lb" "ecs" {
-  name = "AB-ecs"
-  internal = false
+  name               = "ecs-${var.project_id}"
+  internal           = false
   load_balancer_type = "application"
-  subnets = [ for subnet in aws_subnet.public : subnet.id ]
-  security_groups = [ aws_security_group.alb.id ]
+  subnets            = aws_subnet.public[*].id
+  security_groups    = [ aws_security_group.alb.id ]
 
   tags = {
-    Name = "ecs-AB"
+    Name = "ecs-${var.project_id}"
   }
 }
 
@@ -152,8 +152,8 @@ data "aws_route53_zone" "default" {
 // ECS Route 53 Record
 resource "aws_route53_record" "ecs" {
   zone_id = data.aws_route53_zone.default.zone_id
-  name = "ecs.austin.hitwc.link"
-  type = "CNAME"
-  ttl = "20"
+  name    = "ecs.austin.hitwc.link"
+  type    = "CNAME"
+  ttl     = "20"
   records = [ aws_lb.ecs.dns_name ]
 }
