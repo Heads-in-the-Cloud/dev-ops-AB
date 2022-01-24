@@ -100,7 +100,7 @@ EOF
                                 variable: 'SECRETS'
                             )
                         ]) {
-                            def aws_secrets = readJSON(text: SECRETS)
+                            def aws_secrets = readJSON text: SECRETS
                             env.DB_USERNAME = aws_secrets.db_username
                             env.DB_PASSWORD = aws_secrets.db_password
                             env.JWT_SECRET  = aws_secrets.jwt_secret
@@ -141,7 +141,7 @@ EOF
                             env.DB_PASSWORD = aws_secrets.db_password
                             env.JWT_SECRET  = aws_secrets.jwt_secret
 
-                            def tf_outputs = readProperties(file: '../terraform/env.tf')
+                            def tf_outputs = readProperties(file: '../terraform/output.tf')
                             env.DOMAIN = tf_outputs.domain
                             env.VPC_ID = tf_outputs.vpc_id
                             env.DB_URL = tf_outputs.db_url
