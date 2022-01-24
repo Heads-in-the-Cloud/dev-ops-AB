@@ -93,26 +93,28 @@ EOF
 
             steps {
                 dir("ecs-${PROJECT_ID}") {
-                    withCredentials([
-                        string(
-                            credentialsId: "${ENV}/${PROJECT_ID}/default",
-                            variable: 'SECRETS'
-                        )
-                    ]) {
-                        def aws_secrets = readJSON(text: SECRETS)
-                        env.DB_USERNAME = aws_secrets.user_username
-                        env.DB_PASSWORD = aws_secrets.user_password
-                        env.JWT_SECRET  = aws_secrets.jwt_secret
+                    script {
+                        withCredentials([
+                            string(
+                                credentialsId: "${ENV}/${PROJECT_ID}/default",
+                                variable: 'SECRETS'
+                            )
+                        ]) {
+                            def aws_secrets = readJSON(text: SECRETS)
+                            env.DB_USERNAME = aws_secrets.user_username
+                            env.DB_PASSWORD = aws_secrets.user_password
+                            env.JWT_SECRET  = aws_secrets.jwt_secret
 
-                        def tf_outputs = readProperties(file: '../terraform/env.tf')
-                        env.DOMAIN = aws_secrets.domain
-                        env.VPC_ID = aws_secrets.vpc_id
-                        env.DB_URL = aws_secrets.db_url
-                        env.ALB_ID  = tf_output.alb_id
+                            def tf_outputs = readProperties(file: '../terraform/env.tf')
+                            env.DOMAIN = aws_secrets.domain
+                            env.VPC_ID = aws_secrets.vpc_id
+                            env.DB_URL = aws_secrets.db_url
+                            env.ALB_ID  = tf_output.alb_id
 
-                        sh "docker context use ecs-${PROJECT_ID}"
-                        sh "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
-                        sh "docker compose up --no-color"
+                            sh "docker context use ecs-${PROJECT_ID}"
+                            sh "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+                            sh "docker compose up --no-color"
+                        }
                     }
                 }
             }
@@ -126,27 +128,29 @@ EOF
             }
 
             steps {
-                dir("ecs-${PROJECT_ID}") {
-                    withCredentials([
-                        string(
-                            credentialsId: "${ENV}/${PROJECT_ID}/default",
-                            variable: 'SECRETS'
-                        )
-                    ]) {
-                        def aws_secrets = readJSON(text: SECRETS)
-                        env.DB_USERNAME = aws_secrets.user_username
-                        env.DB_PASSWORD = aws_secrets.user_password
-                        env.JWT_SECRET  = aws_secrets.jwt_secret
+                script {
+                    dir("ecs-${PROJECT_ID}") {
+                        withCredentials([
+                            string(
+                                credentialsId: "${ENV}/${PROJECT_ID}/default",
+                                variable: 'SECRETS'
+                            )
+                        ]) {
+                            def aws_secrets = readJSON(text: SECRETS)
+                            env.DB_USERNAME = aws_secrets.user_username
+                            env.DB_PASSWORD = aws_secrets.user_password
+                            env.JWT_SECRET  = aws_secrets.jwt_secret
 
-                        def tf_outputs = readProperties(file: '../terraform/env.tf')
-                        env.DOMAIN = aws_secrets.domain
-                        env.VPC_ID = aws_secrets.vpc_id
-                        env.DB_URL = aws_secrets.db_url
-                        env.ALB_ID  = tf_output.alb_id
+                            def tf_outputs = readProperties(file: '../terraform/env.tf')
+                            env.DOMAIN = aws_secrets.domain
+                            env.VPC_ID = aws_secrets.vpc_id
+                            env.DB_URL = aws_secrets.db_url
+                            env.ALB_ID  = tf_output.alb_id
 
-                        sh "docker context use ecs-${PROJECT_ID}"
-                        sh "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
-                        sh "docker compose down --no-color"
+                            sh "docker context use ecs-${PROJECT_ID}"
+                            sh "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+                            sh "docker compose down --no-color"
+                        }
                     }
                 }
             }
