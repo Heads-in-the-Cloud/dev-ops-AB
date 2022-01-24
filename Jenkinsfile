@@ -129,7 +129,7 @@ EOF
     post {
         cleanup {
             script {
-                sh 'rm terraform.tfvars'
+                sh 'rm terraform/terraform.tfvars'
             }
         }
     }
