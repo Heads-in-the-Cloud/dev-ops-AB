@@ -97,12 +97,12 @@ resource "aws_route_table_association" "private" {
   route_table_id = aws_route_table.private.id
 }
 
-resource "aws_db_subnet_group" "private" {
+resource "aws_db_subnet_group" "default" {
   name       = format("private_%s", lower(var.project_id))
   subnet_ids = aws_subnet.private[*].id
 
   tags = {
-    Name = "private-${var.project_id}"
+    Name = "default-${var.project_id}"
   }
 }
 
@@ -131,29 +131,27 @@ resource "aws_security_group" "alb" {
   }
 }
 
-// ECS Application Load Balancer
-resource "aws_lb" "ecs" {
-  name               = "ecs-${var.project_id}"
+// Application Load Balancer
+resource "aws_lb" "default" {
+  name               = "default-${var.project_id}"
   internal           = false
   load_balancer_type = "application"
   subnets            = aws_subnet.public[*].id
   security_groups    = [ aws_security_group.alb.id ]
 
   tags = {
-    Name = "ecs-${var.project_id}"
+    Name = "default-${var.project_id}"
   }
 }
 
-// Route 53 Hosted Zone
 data "aws_route53_zone" "default" {
   name = "hitwc.link"
 }
 
-// ECS Route 53 Record
-resource "aws_route53_record" "ecs" {
+resource "aws_route53_record" "default" {
   zone_id = data.aws_route53_zone.default.zone_id
-  name    = "ecs.austin.hitwc.link"
+  name    = format("utopia-%s.hitwc.link", lower(var.project_id))
   type    = "CNAME"
   ttl     = "20"
-  records = [ aws_lb.ecs.dns_name ]
+  records = [ aws_lb.default.dns_name ]
 }

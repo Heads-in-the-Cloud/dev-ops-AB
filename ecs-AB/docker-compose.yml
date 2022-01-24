@@ -26,8 +26,8 @@ services:
     image: ${FLIGHTS_IMAGE}
     environment:
       DB_URL: ${DB_URL}
-      DB_USERNAME: ${FLIGHTS_DB_USERNAME}
-      DB_PASSWORD: ${FLIGHTS_DB_PASSWORD}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
     networks:
       - microservices
@@ -36,8 +36,8 @@ services:
     image: ${USERS_IMAGE}
     environment:
       DB_URL: ${DB_URL}
-      DB_USERNAME: ${USERS_DB_USERNAME}
-      DB_PASSWORD: ${USERS_DB_PASSWORD}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
     networks:
       - microservices
@@ -46,8 +46,8 @@ services:
     image: ${BOOKINGS_IMAGE}
     environment:
       DB_URL: ${DB_URL}
-      DB_USERNAME: ${BOOKINGS_DB_USERNAME}
-      DB_PASSWORD: ${BOOKINGS_DB_PASSWORD}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
     networks:
       - microservices

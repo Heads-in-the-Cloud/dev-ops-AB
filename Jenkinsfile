@@ -6,12 +6,12 @@ pipeline {
         booleanParam(
             name: 'Apply',
             defaultValue: false,
-            description: 'Apply Terraform plan?'
+            description: 'Apply Terraform plan and deploy ECS cluster'
         )
         booleanParam(
             name: 'Destroy',
             defaultValue: false,
-            description: 'Destroy Terraform build?'
+            description: 'Destroy ECS cluster and Terraform build'
         )
     }
 
@@ -19,6 +19,14 @@ pipeline {
         COMMIT_HASH = sh(returnStdout: true, script: "git rev-parse --short=8 HEAD").trim()
         //TF_S3_BUCKET = "tf-plans-ab"
         AWS_REGION = sh(script:'aws configure get region', returnStdout: true).trim()
+        AWS_ACCOUNT_ID = sh(script:'aws sts get-caller-identity --query "Account" --output text', returnStdout: true).trim()
+        ECR_URI = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+
+        REVERSE_PROXY_IMAGE = "$ECR_URI/ab-api-gateway:latest"
+        FLIGHTS_IMAGE = "$ECR_URI/ab-flights-microservice:latest"
+        USERS_IMAGE = "$ECR_URI/ab-users-microservice:latest"
+        BOOKINGS_IMAGE = "$ECR_URI/ab-bookings-microservice:latest"
+
         PROJECT_ID = credentials('project-id')
         ENV = credentials('env')
         PUB_SSH_KEY = credentials('pub-ssh-key')
@@ -70,26 +78,80 @@ EOF
             steps {
                 dir("terraform") {
                     sh "terraform apply -no-color -input=false plans/apply-${COMMIT_HASH}.tf"
-                }
-            }
-        }
-
-        /*
-        stage('Terraform Get Output') {
-            when {
-                expression {
-                params.Apply
-                }
-            }
-
-            steps {
-                dir("terraform") {
                     sh 'terraform refresh'
                     sh 'terraform output | tr -d \'\\\"\\ \' > env.tf'
                 }
             }
         }
-        */
+
+        stage('Deploy ECS cluster') {
+            when {
+                expression {
+                    params.Apply
+                }
+            }
+
+            steps {
+                dir("ecs-${PROJECT_ID}") {
+                    withCredentials([
+                        string(
+                            credentialsId: "${ENV}/${PROJECT_ID}/default",
+                            variable: 'SECRETS'
+                        )
+                    ]) {
+                        def aws_secrets = readJSON(text: SECRETS)
+                        env.DB_USERNAME = aws_secrets.user_username
+                        env.DB_PASSWORD = aws_secrets.user_password
+                        env.JWT_SECRET  = aws_secrets.jwt_secret
+
+                        def tf_outputs = readProperties(file: '../terraform/env.tf')
+                        env.DOMAIN = aws_secrets.domain
+                        env.VPC_ID = aws_secrets.vpc_id
+                        env.DB_URL = aws_secrets.db_url
+                        env.ALB_ID  = tf_output.alb_id
+
+                        sh "docker context use ecs-${PROJECT_ID}"
+                        sh "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+                        sh "docker compose up --no-color"
+                    }
+                }
+            }
+        }
+
+        stage('Destroy ECS cluster') {
+            when {
+                expression {
+                    params.Destroy
+                }
+            }
+
+            steps {
+                dir("ecs-${PROJECT_ID}") {
+                    withCredentials([
+                        string(
+                            credentialsId: "${ENV}/${PROJECT_ID}/default",
+                            variable: 'SECRETS'
+                        )
+                    ]) {
+                        def aws_secrets = readJSON(text: SECRETS)
+                        env.DB_USERNAME = aws_secrets.user_username
+                        env.DB_PASSWORD = aws_secrets.user_password
+                        env.JWT_SECRET  = aws_secrets.jwt_secret
+
+                        def tf_outputs = readProperties(file: '../terraform/env.tf')
+                        env.DOMAIN = aws_secrets.domain
+                        env.VPC_ID = aws_secrets.vpc_id
+                        env.DB_URL = aws_secrets.db_url
+                        env.ALB_ID  = tf_output.alb_id
+
+                        sh "docker context use ecs-${PROJECT_ID}"
+                        sh "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+                        sh "docker compose down --no-color"
+                    }
+                }
+            }
+        }
+
 
         stage('Terraform Plan Destroy') {
             when {
