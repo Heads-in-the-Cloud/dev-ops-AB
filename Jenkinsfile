@@ -75,7 +75,7 @@ pipeline {
 
         steps {
             dir("terraform") {
-               sh "terraform destroy -no-color -auto-approve plans/plan-${COMMIT_HASH}.tf"
+               sh "terraform destroy -no-color -auto-approve plans/${COMMIT_HASH}.tf"
             }
         }
     }
