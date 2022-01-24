@@ -1,9 +1,3 @@
-variable "vpc_id" {
-  type        = string
-  default     = null
-  description = "vpc"
-}
-
 variable "region" {
   type        = string
   default     = null

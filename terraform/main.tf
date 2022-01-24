@@ -19,9 +19,8 @@ data "aws_ecr_repository" "bookings_microservice" {
   name = format("bookings-microservice-%s", lower(var.project_id))
 }
 
-# Pre-made VPC with existing CIDR block defined
 data "aws_vpc" "default" {
-  id = var.vpc_id
+  cidr_block = "10.6.0.0/16"
 }
 
 # Key/Value pairs of root db creds and microservice user creds

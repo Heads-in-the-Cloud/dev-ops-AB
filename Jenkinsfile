@@ -18,9 +18,26 @@ pipeline {
    environment {
         COMMIT_HASH = sh(returnStdout: true, script: "git rev-parse --short=8 HEAD").trim()
         //TF_S3_BUCKET = "tf-plans-ab"
+        AWS_REGION = sh(script:'aws configure get region', returnStdout: true).trim()
+        PUB_SSH_KEY = credentials('pub-ssh-key')
+        PUB_SSH_KEY = credentials('project-id')
+        ENV = credentials('env')
     }
 
     stages {
+        stage('Configure Environment Inputs') {
+            dir("terraform") {
+                sh """
+                cat > terraform.tfvars << EOF
+region=${AWS_REGION} \
+project_id=${PROJECT_ID} \
+environment=${ENV} \
+public_ssh_key=${PUB_SSH_KEY}
+                EOF
+                """
+            }
+        }
+
         stage('Terraform Plan Apply') {
             when {
                 expression {
@@ -50,14 +67,21 @@ pipeline {
 
             steps {
                 dir("terraform") {
-                    sh "terraform apply -no-color -input=false plans/apply-${COMMIT_HASH}.tf"
+                    sh """
+                        terraform apply -no-color -input=false plans/apply-${COMMIT_HASH}.tf \
+                    """
                 }
             }
         }
 
         /*
         stage('Terraform Get Output') {
-            when { expression { params.APPLY } }
+            when {
+                expression {
+                params.Apply
+                }
+            }
+
             steps {
                 dir("terraform") {
                     sh 'terraform refresh'
