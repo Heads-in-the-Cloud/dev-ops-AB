@@ -40,6 +40,14 @@ EOF
             }
         }
 
+        post {
+            cleanup {
+                script {
+                    sh 'rm terraform.tfvars'
+                }
+            }
+        }
+
         stage('Terraform Plan Apply') {
             when {
                 expression {
@@ -70,7 +78,7 @@ EOF
             steps {
                 dir("terraform") {
                     sh """
-                        terraform apply -no-color -input=false plans/apply-${COMMIT_HASH}.tf \
+                        terraform apply -no-color -input=false plans/apply-${COMMIT_HASH}.tf
                     """
                 }
             }
