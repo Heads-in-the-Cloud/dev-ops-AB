@@ -19,13 +19,13 @@ data "aws_ecr_repository" "bookings_microservice" {
   name = format("bookings-microservice-%s", lower(var.project_id))
 }
 
-# Key/Value pairs of root db creds and microservice user creds
-data "aws_secretsmanager_secret_version" "db_creds" {
-  secret_id = "${var.environment}/${var.project_id}/db_creds"
+# Key/Value pairs of root db creds, microservice user creds, and the JWT secret
+data "aws_secretsmanager_secret_version" "default" {
+  secret_id = "${var.environment}/${var.project_id}/default"
 }
 locals {
-  db_creds = jsondecode(
-    data.aws_secretsmanager_secret_version.db_creds.secret_string
+  secrets = jsondecode(
+    data.aws_secretsmanager_secret_version.default.secret_string
   )
 }
 
@@ -67,8 +67,8 @@ module "rds" {
   name              = "utopia"
   engine            = "mysql"
   engine_version    = "8.0"
-  root_username     = local.db_creds.root_username
-  root_password     = local.db_creds.root_password
+  root_username     = local.secrets.db_root_username
+  root_password     = local.secrets.db_root_password
   subnet_group_id   = module.networks.db_subnet_group_id
   project_id        = var.project_id
 }
@@ -88,10 +88,10 @@ module "bastion" {
   user_data      = templatefile("${path.root}/user_data.sh", {
     s3_bucket        = format("db-init-%s", lower(var.project_id))#aws_s3_bucket.db_init.bucket
     db_host          = module.rds.instance_address
-    db_root_username = local.db_creds.root_username
-    db_root_password = local.db_creds.root_password
-    db_username      = local.db_creds.user_username
-    db_password      = local.db_creds.user_password
+    db_root_username = local.secrets.db_root_username
+    db_root_password = local.secrets.db_root_password
+    db_username      = local.secrets.db_username
+    db_password      = local.secrets.db_password
   })
 
   project_id = var.project_id
