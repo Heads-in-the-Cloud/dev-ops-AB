@@ -115,6 +115,7 @@ EOF
                         if(params.Destroy) {
                             sh "docker compose down --no-color"
                         }
+                        sh "docker context use default"
                     }
                 }
             }
