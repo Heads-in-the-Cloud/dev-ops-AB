@@ -35,8 +35,8 @@ resource "aws_secretsmanager_secret" "user_db_creds" {
 
   tags = {
     Name = "user_db_creds_AB"
-    Key  = "jenkins:credentials:type,Value=usernamePassword"
-    Key  = "jenkins:credentials:username,Value=${local.db_creds.user_username}"
+    "jenkins:credentials:type" = "usernamePassword"
+    "jenkins:credentials:username" = "${local.db_creds.user_username}"
   }
 }
 
