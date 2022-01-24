@@ -22,14 +22,14 @@ pipeline {
         AWS_ACCOUNT_ID = sh(script:'aws sts get-caller-identity --query "Account" --output text', returnStdout: true).trim()
         ECR_URI = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
 
-        REVERSE_PROXY_IMAGE = "$ECR_URI/ab-api-gateway:latest"
-        FLIGHTS_IMAGE = "$ECR_URI/ab-flights-microservice:latest"
-        USERS_IMAGE = "$ECR_URI/ab-users-microservice:latest"
-        BOOKINGS_IMAGE = "$ECR_URI/ab-bookings-microservice:latest"
-
         PROJECT_ID  = credentials('project-id')
         ENV         = credentials('env')
         PUB_SSH_KEY = credentials('pub-ssh-key')
+
+        REVERSE_PROXY_IMAGE = "$ECR_URI/api-gateway-${lower(PROJECT_ID)}:latest"
+        FLIGHTS_IMAGE = "$ECR_URI/flights-microservice-${lower(PROJECT_ID)}:latest"
+        USERS_IMAGE = "$ECR_URI/users-microservice-${lower(PROJECT_ID)}:latest"
+        BOOKINGS_IMAGE = "$ECR_URI/bookings-microservice-${lower(PROJECT_ID)}:latest"
     }
 
     stages {
@@ -107,7 +107,7 @@ EOF
 
                     dir("ecs-${PROJECT_ID}") {
                         sh "docker context use ecs-${PROJECT_ID}"
-                        sh "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+                        sh "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_URI}"
                         if(params.Apply) {
                             sh "docker compose up --no-color"
                         }
