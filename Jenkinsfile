@@ -25,11 +25,6 @@ pipeline {
         PROJECT_ID  = credentials('project-id')
         ENV         = credentials('env')
         PUB_SSH_KEY = credentials('pub-ssh-key')
-
-        REVERSE_PROXY_IMAGE = "$ECR_URI/api-gateway-${lower(PROJECT_ID)}:latest"
-        FLIGHTS_IMAGE = "$ECR_URI/flights-microservice-${lower(PROJECT_ID)}:latest"
-        USERS_IMAGE = "$ECR_URI/users-microservice-${lower(PROJECT_ID)}:latest"
-        BOOKINGS_IMAGE = "$ECR_URI/bookings-microservice-${lower(PROJECT_ID)}:latest"
     }
 
     stages {
@@ -104,6 +99,12 @@ EOF
                     env.VPC_ID = tf_output.vpc_id
                     env.DB_URL = tf_output.db_url
                     env.ALB_ID = tf_output.alb_id
+
+                    def repo_suffix = "-${lower(env.PROJECT_ID)}"
+                    env.REVERSE_PROXY_IMAGE = "$ECR_URI/api-gateway${repo_suffix}:latest"
+                    env.FLIGHTS_IMAGE = "$ECR_URI/flights-microservice${repo_suffix}:latest"
+                    env.USERS_IMAGE = "$ECR_URI/users-microservice${repo_suffix}:latest"
+                    env.BOOKINGS_IMAGE = "$ECR_URI/bookings-microservice${repo_suffix}:latest"
 
                     dir("ecs-${PROJECT_ID}") {
                         sh "docker context use ecs-${PROJECT_ID}"
