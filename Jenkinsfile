@@ -21,10 +21,10 @@ pipeline {
     }
 
     stages {
-        stage('Terraform Plan') {
+        stage('Terraform Plan Apply') {
             when {
                 expression {
-                    !params.Destroy
+                    params.Apply
                 }
             }
 
@@ -34,22 +34,23 @@ pipeline {
                     sh 'terraform init -no-color -input=false'
                     //sh 'terraform workspace select ${environment} || terraform workspace new ${environment}'
 
-                    sh "terraform plan -no-color -input=false -out plans/${COMMIT_HASH}.tf"
+                    sh "terraform plan -no-color -input=false -out plans/apply-${COMMIT_HASH}.tf"
                     //sh "aws s3 cp plans/${COMMIT_HASH} s3://${TF_S3_BUCKET}"
-                    sh "terraform show -no-color plans/${COMMIT_HASH}.tf"
+                    sh "terraform show -no-color plans/-apply${COMMIT_HASH}.tf"
                 }
             }
         }
-        stage('Terraform Apply') {
-            when {
-                expression {
-                    params.Apply && !params.Destroy
-                }
-            }
 
+        stage('Terraform Apply') {
             steps {
+                when {
+                    expression {
+                        params.Apply
+                    }
+                }
+
                 dir("terraform") {
-                    sh "terraform apply -no-color -input=false plans/${COMMIT_HASH}.tf"
+                    sh "terraform apply -no-color -input=false plans/apply-${COMMIT_HASH}.tf"
                 }
             }
         }
@@ -66,19 +67,39 @@ pipeline {
         }
         */
 
-        stage('Terraform Destroy') {
+        stage('Terraform Plan Destroy') {
             when {
                 expression {
-                  params.Destroy
+                    params.Destroy
                 }
             }
 
-        steps {
-            dir("terraform") {
-               sh "terraform destroy -no-color -auto-approve plans/${COMMIT_HASH}.tf"
+            steps {
+                dir("terraform") {
+                    sh 'mkdir -p plans'
+                    sh 'terraform init -no-color -input=false'
+                    //sh 'terraform workspace select ${environment} || terraform workspace new ${environment}'
+
+                    sh "terraform plan -destroy -no-color -input=false -out plans/destroy-${COMMIT_HASH}.tf"
+                    //sh "aws s3 cp plans/${COMMIT_HASH} s3://${TF_S3_BUCKET}"
+                    sh "terraform show -no-color plans/destroy-${COMMIT_HASH}.tf"
+                }
+            }
+        }
+
+        stage('Terraform Destroy') {
+            steps {
+                when {
+                    expression {
+                        params.Destroy
+                    }
+                }
+
+                dir("terraform") {
+                    sh "terraform apply -no-color -input=false plans/destroy-${COMMIT_HASH}.tf"
+                }
             }
         }
     }
-
   }
 }
