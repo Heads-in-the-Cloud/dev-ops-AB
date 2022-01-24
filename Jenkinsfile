@@ -99,7 +99,7 @@ EOF
                         env.JWT_SECRET  = aws_secrets.jwt_secret
                     }
 
-                    def tf_outputs = readProperties file: 'output.tf'
+                    def tf_output = readProperties file: 'output.tf'
                     env.DOMAIN = tf_output.domain
                     env.VPC_ID = tf_output.vpc_id
                     env.DB_URL = tf_output.db_url
