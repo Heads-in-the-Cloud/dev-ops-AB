@@ -7,7 +7,7 @@ output "public_subnet_ids" {
 }
 
 output "domain" {
-  value = aws_route_53_record.default.name
+  value = aws_route53_record.default.name
 }
 
 output "alb_id" {
