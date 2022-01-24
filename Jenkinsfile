@@ -42,13 +42,13 @@ pipeline {
         }
 
         stage('Terraform Apply') {
-            steps {
-                when {
-                    expression {
-                        params.Apply
-                    }
+            when {
+                expression {
+                    params.Apply
                 }
+            }
 
+            steps {
                 dir("terraform") {
                     sh "terraform apply -no-color -input=false plans/apply-${COMMIT_HASH}.tf"
                 }
@@ -88,13 +88,13 @@ pipeline {
         }
 
         stage('Terraform Destroy') {
-            steps {
-                when {
-                    expression {
-                        params.Destroy
-                    }
+            when {
+                expression {
+                    params.Destroy
                 }
+            }
 
+            steps {
                 dir("terraform") {
                     sh "terraform apply -no-color -input=false plans/destroy-${COMMIT_HASH}.tf"
                 }
