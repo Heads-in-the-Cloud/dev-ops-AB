@@ -30,11 +30,11 @@ locals {
 }
 
 resource "aws_secretsmanager_secret" "user_db_creds" {
-  secret_id = "${var.environment}/${var.project_id}/user_db_creds"
+  name = "${var.environment}/${var.project_id}/user_db_creds"
 }
 
 resource "aws_secretsmanager_secret_version" "user_db_creds" {
-  secret_id = aws_secretsmanager_secret.user_db_creds
+  secret_id = aws_secretsmanager_secret.user_db_creds.id
   secret_string = local.db_creds.user_password
   description = "Microservice DB Creds for Jenkins"
 
