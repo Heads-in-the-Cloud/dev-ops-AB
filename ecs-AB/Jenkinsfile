@@ -1,0 +1,64 @@
+#!groovy
+pipeline {
+    agent any
+
+    parameters {
+        booleanParam(
+            name: 'Down',
+            defaultValue: false,
+            description: 'Take down existing cluster'
+        )
+    }
+
+   environment {
+        COMMIT_HASH = sh(returnStdout: true, script: "git rev-parse --short=8 HEAD").trim()
+        AWS_REGION = sh(script:'aws configure get region', returnStdout: true).trim()
+        AWS_ACCOUNT_ID = sh(script:'aws sts get-caller-identity --query "Account" --output text', returnStdout: true).trim()
+        ECR_URI = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+   }
+
+        stage('Configure Environment Inputs') {
+            steps {
+                script {
+                    withCredentials([
+                        string(
+                            credentialsId: "${ENV}/${PROJECT_ID}/default",
+                            variable: 'SECRETS'
+                        )
+                    ]) {
+                        def aws_secrets = readJSON text: SECRETS
+                        env.DB_USERNAME = aws_secrets.db_username
+                        env.DB_PASSWORD = aws_secrets.db_password
+                        env.JWT_SECRET  = aws_secrets.jwt_secret
+                    }
+
+                    def tf_output = readProperties file: '../output.tf'
+                    env.DOMAIN = tf_output.domain
+                    env.VPC_ID = tf_output.vpc_id
+                    env.DB_URL = tf_output.db_url
+                    env.ALB_ID = tf_output.alb_id
+
+                    def repo_suffix = "-${env.PROJECT_ID.toLowerCase()}"
+                    env.REVERSE_PROXY_IMAGE = "$ECR_URI/reverse-proxy${repo_suffix}:latest"
+                    env.FLIGHTS_IMAGE = "$ECR_URI/flights-microservice${repo_suffix}:latest"
+                    env.USERS_IMAGE = "$ECR_URI/users-microservice${repo_suffix}:latest"
+                    env.BOOKINGS_IMAGE = "$ECR_URI/bookings-microservice${repo_suffix}:latest"
+                }
+           }
+       }
+
+        stage('ECS cluster') {
+            steps {
+                    sh "docker context use ecs-${PROJECT_ID}"
+                    sh "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_URI}"
+                    if(params.Down) {
+                        sh "docker compose down"
+                    } else {
+                        sh "docker compose up"
+                    }
+                    sh "docker context use default"
+                }
+            }
+        }
+   }
+}
