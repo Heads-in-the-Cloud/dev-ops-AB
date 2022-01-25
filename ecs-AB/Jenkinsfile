@@ -36,7 +36,7 @@ pipeline {
                         env.JWT_SECRET  = aws_secrets.jwt_secret
                     }
 
-                    def tf_output = readProperties file: '../output.tf'
+                    def tf_output = readProperties file: 'output.tf'
                     env.DOMAIN = tf_output.domain
                     env.VPC_ID = tf_output.vpc_id
                     env.DB_URL = tf_output.db_url
@@ -53,10 +53,12 @@ pipeline {
 
         stage('ECS cluster') {
             steps {
-                sh "docker context use ecs-${PROJECT_ID}"
-                sh "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_URI}"
-                sh "docker compose up"
-                sh "docker context use default"
+                dir("ecs-${PROJECT_ID}") {
+                    sh "docker context use ecs-${PROJECT_ID}"
+                    sh "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_URI}"
+                    sh "docker compose up"
+                    sh "docker context use default"
+                }
             }
         }
     }
