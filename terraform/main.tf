@@ -37,7 +37,7 @@ module "networks" {
 module "rds" {
   source            = "./modules/rds"
   vpc_id            = module.networks.vpc_id
-  vpc_cidr_block    = aws_vpc.default.cidr_block
+  vpc_cidr_block    = module.networks.vpc_cidr_block
   allocated_storage = 10
   instance_class    = "db.t2.micro"
   name              = "utopia"
