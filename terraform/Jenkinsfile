@@ -54,10 +54,10 @@ terraform {
 EOF
                     """
                     sh """cat > terraform.tfvars << EOF
-region = '$REGION'
-project_id = '$PROJECT_ID'
-environment = '$ENV'
-public_ssh_key = "$PUB_SSH_KEY'
+region = "$REGION"
+project_id = "$PROJECT_ID"
+environment = "$ENV"
+public_ssh_key = "$PUB_SSH_KEY"
 EOF
                     """
                     sh 'mkdir -p plans'
