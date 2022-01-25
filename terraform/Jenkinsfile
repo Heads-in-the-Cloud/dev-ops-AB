@@ -16,9 +16,15 @@ pipeline {
     }
 
    environment {
-        COMMIT_HASH = sh(returnStdout: true, script: "git rev-parse --short=8 HEAD").trim()
+        COMMIT_HASH = sh(
+            returnStdout: true,
+            script: "git rev-parse --short=8 HEAD"
+        ).trim()
         //TF_S3_BUCKET = "tf-plans-ab"
-        AWS_REGION = sh(script:'aws configure get region', returnStdout: true).trim()
+        AWS_REGION = sh(
+            script:'aws configure get region',
+            returnStdout: true
+        ).trim()
 
         PROJECT_ID  = credentials('project-id')
         ENV         = credentials('env')
@@ -29,7 +35,7 @@ pipeline {
         stage('Configure Environment Inputs') {
             steps {
                 sh """
-                    cat > terraform/terraform.tfvars << EOF
+cat > terraform/terraform.tfvars << EOF
 region = "${AWS_REGION}"
 project_id = "${PROJECT_ID}"
 environment = "${ENV}"
@@ -52,9 +58,17 @@ EOF
                     sh 'terraform init -no-color -input=false'
                     //sh 'terraform workspace select ${environment} || terraform workspace new ${environment}'
 
-                    sh "terraform plan -no-color -input=false -out plans/apply-${COMMIT_HASH}.tf"
+                    sh """
+                        terraform plan \
+                            -no-color \
+                            -input=false \
+                            -out plans/apply-${COMMIT_HASH}.tf
+                    """
                     //sh "aws s3 cp plans/${COMMIT_HASH} s3://${TF_S3_BUCKET}"
-                    sh "terraform show -no-color plans/apply-${COMMIT_HASH}.tf"
+                    sh """
+                        terraform show \
+                            -no-color plans/apply-${COMMIT_HASH}.tf
+                    """
                 }
             }
         }

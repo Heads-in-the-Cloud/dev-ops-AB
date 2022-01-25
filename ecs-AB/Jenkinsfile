@@ -11,11 +11,23 @@ pipeline {
     }
 
    environment {
-        COMMIT_HASH = sh(returnStdout: true, script: "git rev-parse --short=8 HEAD").trim()
-        AWS_REGION = sh(script:'aws configure get region', returnStdout: true).trim()
-        AWS_ACCOUNT_ID = sh(script:'aws sts get-caller-identity --query "Account" --output text', returnStdout: true).trim()
+        COMMIT_HASH = sh(
+            returnStdout: true,
+            script: "git rev-parse --short=8 HEAD"
+        ).trim()
+        AWS_REGION = sh(
+            script: 'aws configure get region',
+            returnStdout: true
+        ).trim()
+        AWS_ACCOUNT_ID = sh(
+            script: '''
+                aws sts get-caller-identity \
+                    --query "Account" \
+                    --output text
+            ''',
+            returnStdout: true
+        ).trim()
         ECR_URI = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
-
         ENV         = credentials('env')
         PROJECT_ID  = credentials('project-id')
    }
@@ -44,9 +56,9 @@ pipeline {
 
                     def repo_suffix = "-${env.PROJECT_ID.toLowerCase()}"
                     env.REVERSE_PROXY_IMAGE = "$ECR_URI/reverse-proxy${repo_suffix}:latest"
-                    env.FLIGHTS_IMAGE = "$ECR_URI/flights-microservice${repo_suffix}:latest"
-                    env.USERS_IMAGE = "$ECR_URI/users-microservice${repo_suffix}:latest"
-                    env.BOOKINGS_IMAGE = "$ECR_URI/bookings-microservice${repo_suffix}:latest"
+                    env.FLIGHTS_IMAGE       = "$ECR_URI/flights-microservice${repo_suffix}:latest"
+                    env.USERS_IMAGE         = "$ECR_URI/users-microservice${repo_suffix}:latest"
+                    env.BOOKINGS_IMAGE      = "$ECR_URI/bookings-microservice${repo_suffix}:latest"
                 }
             }
         }
