@@ -23,12 +23,13 @@ locals {
   secrets = jsondecode(
     data.aws_secretsmanager_secret_version.default.secret_string
   )
+  vpc_cidr_block = "10.6.0.0/16"
 }
 
 # Creates a private & public subnet per availability zone of the region
 module "networks" {
   source         = "./modules/networks"
-  vpc_cidr_block = "10.6.0.0/16"
+  vpc_cidr_block = local.vpc_cidr_block
   rt_cidr_block  = "0.0.0.0/0"
   project_id     = var.project_id
 }
@@ -37,7 +38,7 @@ module "networks" {
 module "rds" {
   source            = "./modules/rds"
   vpc_id            = module.networks.vpc_id
-  vpc_cidr_block    = module.networks.vpc_cidr_block
+  vpc_cidr_block    = local.vpc_cidr_block
   allocated_storage = 10
   instance_class    = "db.t2.micro"
   name              = "utopia"
