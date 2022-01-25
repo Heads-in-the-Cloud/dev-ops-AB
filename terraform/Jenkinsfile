@@ -47,7 +47,7 @@ EOF
             }
 
             steps {
-                dir "terraform" {
+                dir("terraform") {
                     sh 'mkdir -p plans'
                     sh 'terraform init -no-color -input=false'
                     //sh 'terraform workspace select ${environment} || terraform workspace new ${environment}'
@@ -67,7 +67,7 @@ EOF
             }
 
             steps {
-                dir "terraform" {
+                dir("terraform") {
                     sh "terraform apply -no-color -input=false plans/apply-${COMMIT_HASH}.tf"
                     sh 'terraform refresh -no-color'
                     sh 'terraform output | tr -d \'\\\"\\ \' > ../output.tf'
@@ -83,7 +83,7 @@ EOF
             }
 
             steps {
-                dir "terraform" {
+                dir("terraform") {
                     sh 'mkdir -p plans'
                     sh 'terraform init -no-color -input=false'
                     //sh 'terraform workspace select ${environment} || terraform workspace new ${environment}'
@@ -103,7 +103,7 @@ EOF
             }
 
             steps {
-                dir "terraform" {
+                dir("terraform") {
                     sh "terraform apply -no-color -input=false plans/destroy-${COMMIT_HASH}.tf"
                 }
             }
