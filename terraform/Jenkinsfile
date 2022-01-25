@@ -21,7 +21,7 @@ pipeline {
             script: "git rev-parse --short=8 HEAD"
         ).trim()
         //TF_S3_BUCKET = "tf-plans-ab"
-        AWS_REGION = sh(
+        REGION = sh(
             script:'aws configure get region',
             returnStdout: true
         ).trim()
@@ -32,20 +32,8 @@ pipeline {
     }
 
     stages {
-        stage('Configure Environment Inputs') {
-            steps {
-                sh """
-cat > terraform/terraform.tfvars << EOF
-region = '$AWS_REGION'
-project_id = '$PROJECT_ID'
-environment = '$ENV'
-public_ssh_key = "${PUB_SSH_KEY}"
-EOF
-                """
-            }
-        }
 
-        stage('Terraform Plan Apply') {
+        stage('Terraform Plan') {
             when {
                 expression {
                     params.Apply
@@ -54,6 +42,24 @@ EOF
 
             steps {
                 dir("terraform") {
+                    sh """cat > terraform.tf << EOF
+terraform {
+  backend "s3" {
+    bucket  = 'utopia-$PROJECT_ID.toLowerCase()'
+    key     = "terraform/terraform.tfstate"
+    region  = '$REGION'
+    encrypt = true
+  }
+}
+EOF
+                    """
+                    sh """cat > terraform.tfvars << EOF
+region = '$REGION'
+project_id = '$PROJECT_ID'
+environment = '$ENV'
+public_ssh_key = "$PUB_SSH_KEY'
+EOF
+                    """
                     sh 'mkdir -p plans'
                     sh 'terraform init -no-color -input=false'
                     //sh 'terraform workspace select ${environment} || terraform workspace new ${environment}'
@@ -131,4 +137,5 @@ EOF
             }
         }
     }
+
 }

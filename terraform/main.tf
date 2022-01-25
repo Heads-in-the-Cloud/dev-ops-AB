@@ -46,7 +46,7 @@ module "networks" {
 #  engine_version    = "8.0"
 #  root_username     = local.secrets.db_root_username
 #  root_password     = local.secrets.db_root_password
-#  subnets           = module.networks.private_subnets
+#  subnets           = module.networks.private_subnet_ids
 #  project_id        = var.project_id
 #}
 #
