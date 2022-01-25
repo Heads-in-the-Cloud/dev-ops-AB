@@ -47,14 +47,13 @@ EOF
             }
 
             steps {
-                    sh 'mkdir -p plans'
-                    sh 'terraform init -no-color -input=false'
-                    //sh 'terraform workspace select ${environment} || terraform workspace new ${environment}'
+                sh 'mkdir -p plans'
+                sh 'terraform init -no-color -input=false'
+                //sh 'terraform workspace select ${environment} || terraform workspace new ${environment}'
 
-                    sh "terraform plan -no-color -input=false -out plans/apply-${COMMIT_HASH}.tf"
-                    //sh "aws s3 cp plans/${COMMIT_HASH} s3://${TF_S3_BUCKET}"
-                    sh "terraform show -no-color plans/apply-${COMMIT_HASH}.tf"
-                }
+                sh "terraform plan -no-color -input=false -out plans/apply-${COMMIT_HASH}.tf"
+                //sh "aws s3 cp plans/${COMMIT_HASH} s3://${TF_S3_BUCKET}"
+                sh "terraform show -no-color plans/apply-${COMMIT_HASH}.tf"
             }
         }
 
@@ -66,11 +65,9 @@ EOF
             }
 
             steps {
-                dir("terraform") {
-                    sh "terraform apply -no-color -input=false plans/apply-${COMMIT_HASH}.tf"
-                    sh 'terraform refresh -no-color'
-                    sh 'terraform output | tr -d \'\\\"\\ \' > ../output.tf'
-                }
+                sh "terraform apply -no-color -input=false plans/apply-${COMMIT_HASH}.tf"
+                sh 'terraform refresh -no-color'
+                sh 'terraform output | tr -d \'\\\"\\ \' > ../output.tf'
             }
         }
 
