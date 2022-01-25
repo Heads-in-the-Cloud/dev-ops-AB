@@ -51,12 +51,33 @@ pipeline {
             }
         }
 
-        stage('ECS cluster') {
+        stage('Deploy ECS') {
+            when {
+                expression {
+                    !params.Down
+                }
+            }
             steps {
                 dir("ecs-${PROJECT_ID}") {
                     sh "docker context use ecs-${PROJECT_ID}"
                     sh "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_URI}"
                     sh "docker compose up"
+                    sh "docker context use default"
+                }
+            }
+        }
+
+        stage('Destroy ECS') {
+            when {
+                expression {
+                    params.Down
+                }
+            }
+            steps {
+                dir("ecs-${PROJECT_ID}") {
+                    sh "docker context use ecs-${PROJECT_ID}"
+                    sh "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_URI}"
+                    sh "docker compose down"
                     sh "docker context use default"
                 }
             }
