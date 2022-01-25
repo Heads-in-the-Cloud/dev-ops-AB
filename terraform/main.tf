@@ -1,7 +1,3 @@
-provider "aws" {
-  region = var.region
-}
-
 # ECR Repositories
 data "aws_ecr_repository" "reverse_proxy" {
   name = format("reverse-proxy-%s", lower(var.project_id))
@@ -29,39 +25,18 @@ locals {
   )
 }
 
-resource "aws_vpc" "default" {
-  cidr_block = "10.6.0.0/16"
-  enable_dns_hostnames = true
-
-  tags = {
-    Name = "default-${var.project_id}"
-  }
-}
-
-# Dynamically allocates a subnet per availability zone of the given region
+# Creates a private & public subnet per availability zone of the region
 module "networks" {
   source         = "./modules/networks"
-  vpc_cidr_block = aws_vpc.default.cidr_block
-  vpc_id         = aws_vpc.default.id
+  vpc_cidr_block = "10.6.0.0/16"
   rt_cidr_block  = "0.0.0.0/0"
   project_id     = var.project_id
 }
 
-# MySQL schema creation scripts
-# TODO: uncomment if method of schema-creation changes
-#resource "aws_s3_bucket" "db_init" {
-#  bucket = format("db-init-%s", lower(var.project_id))
-#  acl    = "private"
-#
-#  tags = {
-#    Name = "db-init-${var.project_id}"
-#  }
-#}
-
 # RDS instance
 module "rds" {
   source            = "./modules/rds"
-  vpc_id            = aws_vpc.default.id
+  vpc_id            = module.networks.vpc_id
   vpc_cidr_block    = aws_vpc.default.cidr_block
   allocated_storage = 10
   instance_class    = "db.t2.micro"
@@ -83,11 +58,11 @@ module "bastion" {
   source         = "./modules/bastion"
   policy_arn     = data.aws_iam_policy.read_s3.arn
   instance_type  = "t2.micro"
-  vpc_id         = aws_vpc.default.id
+  vpc_id         = module.networks.vpc_id
   public_ssh_key = var.public_ssh_key
   subnet_id      = element(module.networks.public_subnet_ids, 1)
   user_data      = templatefile("${path.root}/user_data.sh", {
-    s3_bucket        = format("db-init-%s", lower(var.project_id))#aws_s3_bucket.db_init.bucket
+    s3_bucket        = format("utopia-%s", lower(var.project_id))
     db_host          = module.rds.instance_address
     db_root_username = local.secrets.db_root_username
     db_root_password = local.secrets.db_root_password

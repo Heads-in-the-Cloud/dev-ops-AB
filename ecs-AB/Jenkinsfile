@@ -27,7 +27,7 @@ pipeline {
             ''',
             returnStdout: true
         ).trim()
-        ECR_URI = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+        ECR_URI     = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
         ENV         = credentials('env')
         PROJECT_ID  = credentials('project-id')
    }

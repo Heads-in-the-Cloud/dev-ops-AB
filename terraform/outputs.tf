@@ -10,3 +10,6 @@ output "db_url" {
 output "alb_id" {
   value = module.networks.alb_id
 }
+output "bastion_ip" {
+  value = module.bastion.public_ipv4
+}

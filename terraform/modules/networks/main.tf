@@ -2,9 +2,18 @@ data "aws_availability_zones" "available" {
   state = "available"
 }
 
+resource "aws_vpc" "default" {
+  cidr_block = var.vpc_cidr_block
+  enable_dns_hostnames = true
+
+  tags = {
+    Name = "default-${var.project_id}"
+  }
+}
+
 resource "aws_subnet" "private" {
   count                   = length(data.aws_availability_zones.available.names)
-  vpc_id                  = var.vpc_id
+  vpc_id                  = aws_vpc.default.id
   cidr_block              = cidrsubnet(var.vpc_cidr_block, 8, count.index)
   availability_zone       = data.aws_availability_zones.available.names[count.index]
   map_public_ip_on_launch = false
@@ -18,7 +27,7 @@ resource "aws_subnet" "private" {
 
 resource "aws_subnet" "public" {
   count                   = length(data.aws_availability_zones.available.names)
-  vpc_id                  = var.vpc_id
+  vpc_id                  = aws_vpc.default.id
   cidr_block              = cidrsubnet(var.vpc_cidr_block, 8, count.index + 20)
   availability_zone       = data.aws_availability_zones.available.names[count.index]
   map_public_ip_on_launch = true
@@ -31,7 +40,7 @@ resource "aws_subnet" "public" {
 }
 
 resource "aws_internet_gateway" "default" {
-  vpc_id = var.vpc_id
+  vpc_id = aws_vpc.default.id
 
   tags = {
     Name = "default-${var.project_id}"
@@ -63,7 +72,7 @@ resource "aws_route" "private_nat_gateway" {
 }
 
 resource "aws_route_table" "public" {
-  vpc_id = var.vpc_id
+  vpc_id = aws_vpc.default.id
 
   route {
     cidr_block = var.rt_cidr_block
@@ -76,7 +85,7 @@ resource "aws_route_table" "public" {
 }
 
 resource "aws_route_table" "private" {
-  vpc_id = var.vpc_id
+  vpc_id = aws_vpc.default.id
 
   //route = []
 
@@ -109,7 +118,7 @@ resource "aws_db_subnet_group" "default" {
 resource "aws_security_group" "alb" {
   name        = "alb-${var.project_id}"
   description = "Open HTTP port"
-  vpc_id      = var.vpc_id
+  vpc_id      = aws_vpc.default.id
 
   # HTTP
   ingress {
