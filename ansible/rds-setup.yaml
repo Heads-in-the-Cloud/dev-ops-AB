@@ -1,0 +1,73 @@
+---
+- hosts: 127.0.0.1
+  connection: local
+
+  vars:
+## Get output.tf from S3
+    project_id: AB
+    vpc_id:
+    private_subnets:
+      -
+      -
+    #public_subnets:
+    #  -
+    #  -
+## Obtain db root & user creds from secrets manager
+    root_username: root
+    root_password: temp
+    user_username: user
+    user_password: temp
+
+  tasks:
+
+## Create RDS w/ root user & SecGroup
+- name: Get info of existing VPC
+  amazon.aws.ec2_vpc_net_info:
+    id: vpc
+    vpc_ids: "{{ vpc_id }}"
+- name: Create RDS subnet group
+  community.aws.rds_subnet_group:
+    id: rds_subnets
+    name: "default-{{ project_id }}"
+    subnets: "{{ private_subnets }}"
+    tags:
+      - name: "default-{{ project_id }}"
+- name: Create MySQL Security Group
+  community.aws.security_group:
+    id: sec_group
+    name: "db-{{ project_id }}"
+    description: "Inbound to only 3306"
+    vpc_id: "{{ vpc_id }}"
+    ingress:
+      description: MySQL
+      from_port: 3306
+      to_port: 3306
+      protocol: tcp
+      cidr_blocks: "{{ vpc.cidr_block }}"
+    egress:
+      from_port: 0
+      to_port: 0
+      protocol: -1
+      cidr_blocks: 0.0.0.0/0
+      ipv6_cidr_blocks: ::/0
+    tags:
+      - name: "db-{{ project_id }}"
+- name: Create RDS instance
+  community.aws.rds_instance:
+    id: rds
+    identifier: "db-{{ lower(project_id) }}"
+    allocated_storage: 10
+    engine: mysql
+    engine_version: 8.0
+    db_instance_class: db.t2.micro
+    name: utopia
+    username: "{{ root_username }}"
+    password: "{{ root_password }}"
+    skip_final_snapshot: True
+    subnet_group_name: "{{ rds_subnets.name }}"
+    vpc_security_group_ids:
+      - "{{ sec_group.id }}"
+
+## Wait for RDS to become available
+## Create Bastion as EC2 instance w/ AMI, SecGroup, & S3 read permissions from IAM
+## Have user_data create DB schema & DB user using root creds and poweroff EC2 instance

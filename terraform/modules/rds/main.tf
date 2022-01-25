@@ -1,3 +1,11 @@
+resource "aws_db_subnet_group" "default" {
+  name       = format("default_%s", lower(var.project_id))
+  subnet_ids = var.subnets[*].id
+
+  tags = {
+    Name = "default-${var.project_id}"
+  }
+}
 resource "aws_db_instance" "default" {
   allocated_storage      = var.allocated_storage
   engine                 = var.engine
@@ -8,7 +16,7 @@ resource "aws_db_instance" "default" {
   password               = var.root_password
   skip_final_snapshot    = true
   identifier             = format("db-%s", lower(var.project_id))
-  db_subnet_group_name   = var.subnet_group_id
+  db_subnet_group_name   = aws_db_subnet_group.name
   vpc_security_group_ids = [ aws_security_group.db.id ]
 }
 

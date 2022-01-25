@@ -106,15 +106,6 @@ resource "aws_route_table_association" "private" {
   route_table_id = aws_route_table.private.id
 }
 
-resource "aws_db_subnet_group" "default" {
-  name       = format("private_%s", lower(var.project_id))
-  subnet_ids = aws_subnet.private[*].id
-
-  tags = {
-    Name = "default-${var.project_id}"
-  }
-}
-
 resource "aws_security_group" "alb" {
   name        = "alb-${var.project_id}"
   description = "Open HTTP port"

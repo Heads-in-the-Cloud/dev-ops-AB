@@ -33,8 +33,8 @@ variable "engine" {
   default = null
 }
 
-variable "subnet_group_id" {
-  type = string
+variable "subnets" {
+  type = string[]
   default = null
 }
 

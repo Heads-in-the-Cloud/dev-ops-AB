@@ -70,6 +70,7 @@ pipeline {
                 }
             }
             steps {
+                sh 'ln -s docker-compose-ecs ecs-$PROJECT_ID'
                 dir("ecs-${PROJECT_ID}") {
                     sh "docker context use ecs-${PROJECT_ID}"
                     sh "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_URI}"
@@ -92,6 +93,7 @@ pipeline {
                     sh "docker compose down"
                     sh "docker context use default"
                 }
+                sh "rm -f ecs-$PROJECT_ID"
             }
         }
     }
