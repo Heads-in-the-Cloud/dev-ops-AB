@@ -47,7 +47,7 @@ terraform {
   backend "s3" {
     bucket  = "utopia-${PROJECT_ID.toLowerCase()}"
     key     = "terraform/terraform.tfstate"
-    region  = '$REGION'
+    region  = "$REGION"
     encrypt = true
   }
 }
