@@ -45,7 +45,7 @@ pipeline {
                     sh """cat > terraform.tf << EOF
 terraform {
   backend "s3" {
-    bucket  = 'utopia-$PROJECT_ID.toLowerCase()'
+    bucket  = "utopia-${PROJECT_ID.toLowerCase()}"
     key     = "terraform/terraform.tfstate"
     region  = '$REGION'
     encrypt = true
