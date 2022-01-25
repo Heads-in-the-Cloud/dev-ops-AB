@@ -17,6 +17,7 @@ pipeline {
         ECR_URI = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
    }
 
+    stages {
         stage('Configure Environment Inputs') {
             steps {
                 script {
@@ -44,21 +45,19 @@ pipeline {
                     env.USERS_IMAGE = "$ECR_URI/users-microservice${repo_suffix}:latest"
                     env.BOOKINGS_IMAGE = "$ECR_URI/bookings-microservice${repo_suffix}:latest"
                 }
-           }
-       }
+            }
+        }
 
         stage('ECS cluster') {
             steps {
-                    sh "docker context use ecs-${PROJECT_ID}"
-                    sh "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_URI}"
-                    if(params.Down) {
-                        sh "docker compose down"
-                    } else {
-                        sh "docker compose up"
-                    }
-                    sh "docker context use default"
+                sh "docker context use ecs-${PROJECT_ID}"
+                sh "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_URI}"
+                if(params.Down) {
+                    sh "docker compose down"
+                } else {
+                    sh "docker compose up"
                 }
+                sh "docker context use default"
             }
         }
-   }
-}
+  }
