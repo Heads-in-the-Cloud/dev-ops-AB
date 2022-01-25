@@ -39,7 +39,7 @@ pipeline {
                     def tf_output = readProperties file: '../output.tf'
                     env.DOMAIN = tf_output.domain
                     env.VPC_ID = tf_output.vpc_id
-                    env.DB_URL = tf_output.db_url
+                    env.DB_URL = "mysql://${tf_output.db_url}/utopia"
                     env.ALB_ID = tf_output.alb_id
 
                     def repo_suffix = "-${env.PROJECT_ID.toLowerCase()}"
