@@ -41,19 +41,11 @@ pipeline {
         stage('Plan') {
             steps {
                 dir("terraform") {
-                    script {
-                        if(params.Operation == "Apply") {
-                            env.plan_file_path = "plans/apply-${COMMIT_HASH}.tf"
-                        } else {
-                            env.plan_file_path = "plans/destroy-${COMMIT_HASH}.tf"
-                        }
-                    }
-                    def tf_workspace = "${params.Env}-${params.ProjectId}"
                     sh """cat > terraform.tf << EOF
 terraform {
   backend "s3" {
     bucket  = "$S3_BUCKET"
-    key     = "env:/$tf_workspace/terraform.tfstate"
+    key     = "terraform.tfstate"
     region  = "$REGION"
     encrypt = true
   }
@@ -67,17 +59,15 @@ environment = "${params.Env.toLowerCase()}"
 EOF
                     """
                     sh 'terraform init -input=false -migrate-state'
-                    sh "terraform workspace select $tf_workspace || terraform workspace new $tf_workspace"
-                    sh 'mkdir -p plans'
+                    sh "terraform workspace select ${params.Env} || terraform workspace new ${params.Env}"
                     script {
                         if(params.Operation == "Apply") {
-                            sh "terraform plan -input=false -out ${env.plan_file_path}"
+                            sh "terraform plan -input=false -out plan.bin"
                         } else {
-                            sh "terraform plan -destroy -input=false -out ${env.plan_file_path}"
+                            sh "terraform plan -destroy -input=false -out plan.bin"
                         }
                     }
-                    sh "aws s3 cp ${env.plan_file_path} s3://$S3_BUCKET/env:/$tf_workspace/plans/"
-                    sh "terraform show ${env.plan_file_path}"
+                    sh "terraform show plan.bin"
                 }
             }
         }
@@ -89,11 +79,10 @@ EOF
 
             steps {
                 dir("terraform") {
-                    sh "terraform apply -input=false ${env.plan_file_path}"
+                    sh "terraform apply -input=false plan.bin"
                     sh 'terraform refresh'
-                    sh 'terraform output > output.tf'
-                    sh "aws s3 cp output.tf s3://$S3_BUCKET/terraform/"
-                    sh 'rm -f output.tf'
+                    sh 'terraform output > output.txt'
+                    sh "aws s3 cp output.txt s3://$S3_BUCKET/env:/${params.Env}/"
                 }
             }
         }
@@ -105,7 +94,7 @@ EOF
 
             steps {
                 dir("terraform") {
-                    sh "terraform apply -input=false ${env.plan_file_path}"
+                    sh "terraform apply -input=false plan.bin"
                 }
             }
         }
