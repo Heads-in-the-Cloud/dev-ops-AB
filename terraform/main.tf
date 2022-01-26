@@ -58,7 +58,7 @@ module "rds" {
 #  public_ssh_key = var.public_ssh_key
 #  subnet_id      = element(module.networks.public_subnet_ids, 1)
 #  user_data      = templatefile("${path.root}/user_data.sh", {
-#    s3_bucket        = format("utopia-%s", lower(var.project_id))
+#    s3_bucket        = lower(var.project_id)
 #    db_host          = module.rds.instance_address
 #    db_root_username = local.secrets.db_root_username
 #    db_root_password = local.secrets.db_root_password

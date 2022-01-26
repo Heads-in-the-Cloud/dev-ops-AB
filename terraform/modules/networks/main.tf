@@ -150,7 +150,7 @@ data "aws_route53_zone" "default" {
 
 resource "aws_route53_record" "default" {
   zone_id = data.aws_route53_zone.default.zone_id
-  name    = format("utopia-%s.hitwc.link", lower(var.project_id))
+  name    = format("%s.hitwc.link", lower(var.project_id))
   type    = "CNAME"
   ttl     = "20"
   records = [ aws_lb.default.dns_name ]

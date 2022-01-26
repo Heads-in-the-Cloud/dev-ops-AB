@@ -30,7 +30,7 @@ pipeline {
             script: "git rev-parse --short=8 HEAD",
             returnStdout: true
         ).trim()
-        S3_BUCKET = "utopia-${params.ProjectId.toLowerCase()}"
+        S3_BUCKET = "${params.ProjectId.toLowerCase()}"
         REGION = sh(
             script:'aws configure get region',
             returnStdout: true
@@ -65,10 +65,9 @@ project_id = "${params.ProjectId}"
 environment = "${params.Env}"
 EOF
                     """
+                    sh "terraform workspace select ${params.Env}-${params.ProjectId} || terraform workspace new ${params.Env}-${params.ProjectId}"
+                    sh 'terraform init -no-color -input=false'
                     sh 'mkdir -p plans'
-
-                    //sh 'terraform workspace select ${environment} || terraform workspace new ${environment}'
-                    //sh 'terraform init -no-color -input=false'
                     script {
                         if(params.Operation == "Apply") {
                             sh "terraform plan -no-color -input=false -out ${env.plan_file_path}"
