@@ -22,14 +22,19 @@ data "aws_secretsmanager_secret_version" "default" {
 
 locals {
   vpc_cidr_block = "10.6.0.0/16"
+  subnets        = {
+    private = ["10.6.0.0/24", "10.6.0.1/24"]
+    public  = ["10.6.0.2/24", "10.6.0.3/24"]
+  }
 }
 
 # Creates a private & public subnet per availability zone of the region
 module "networks" {
-  source         = "./modules/networks"
-  vpc_cidr_block = local.vpc_cidr_block
-  rt_cidr_block  = "0.0.0.0/0"
-  project_id     = var.project_id
+  source             = "./modules/networks"
+  vpc_cidr_block     = local.vpc_cidr_block
+  subnet_cidr_blocks = local.subnets
+  rt_cidr_block      = "0.0.0.0/0"
+  project_id         = var.project_id
 }
 
 # RDS instance
@@ -39,7 +44,7 @@ module "rds" {
     id         = module.networks.vpc_id
     cidr_block = local.vpc_cidr_block
   }
-  subnet_ids = module.networks.private_subnet_ids
+  subnet_ids = module.networks.subnet_ids.private
   project_id = var.project_id
 }
 ## Bastion host on public subnet that initially connects to RDS instance to create schema and add the microservice user
@@ -54,7 +59,7 @@ module "rds" {
 #  instance_type  = "t2.micro"
 #  vpc_id         = module.networks.vpc_id
 #  public_ssh_key = var.public_ssh_key
-#  subnet_id      = element(module.networks.public_subnet_ids, 1)
+#  subnet_id      = element(module.networks.subnet_ids.public, 1)
 #  user_data      = templatefile("${path.root}/user_data.sh", {
 #    s3_bucket        = lower(var.project_id)
 #    db_host          = module.rds.instance_address

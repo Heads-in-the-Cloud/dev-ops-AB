@@ -11,11 +11,21 @@ resource "aws_vpc" "default" {
   }
 }
 
+resource "random_shuffle" "public_azs" {
+  input        = data.aws_availability_zones.available.names
+  result_count = length(var.subnet_cidr_blocks.public)
+}
+
+resource "random_shuffle" "private_azs" {
+  input        = data.aws_availability_zones.available.names
+  result_count = length(var.subnet_cidr_blocks.private)
+}
+
 resource "aws_subnet" "private" {
-  count                   = length(data.aws_availability_zones.available.names)
+  count                   = length(var.subnet_cidr_blocks.private)
   vpc_id                  = aws_vpc.default.id
-  cidr_block              = cidrsubnet(var.vpc_cidr_block, 8, count.index)
-  availability_zone       = data.aws_availability_zones.available.names[count.index]
+  cidr_block              = var.subnet_cidr_blocks.private[count.index]
+  availability_zone       = random_shuffle.private_azs[count.index]
   map_public_ip_on_launch = false
 
   tags = {
@@ -26,10 +36,10 @@ resource "aws_subnet" "private" {
 }
 
 resource "aws_subnet" "public" {
-  count                   = length(data.aws_availability_zones.available.names)
+  count                   = length(var.subnet_cidr_blocks.public)
   vpc_id                  = aws_vpc.default.id
-  cidr_block              = cidrsubnet(var.vpc_cidr_block, 8, count.index + 20)
-  availability_zone       = data.aws_availability_zones.available.names[count.index]
+  cidr_block              = var.subnet_cidr_blocks.public[count.index]
+  availability_zone       = random_shuffle.public_azs[count.index]
   map_public_ip_on_launch = true
 
   tags = {
@@ -56,15 +66,21 @@ resource "aws_eip" "nat" {
   }
 }
 
+resource "random_shuffle" "nat_public_subnet_id" {
+  input        = aws_subnet.public[*].id
+  result_count = 1
+}
+
 resource "aws_nat_gateway" "default" {
   allocation_id = aws_eip.nat.id
-  subnet_id     = aws_subnet.public[0].id
+  subnet_id     = random_id.nat_public_subnet_id
   depends_on    = [ aws_internet_gateway.default ]
 
   tags = {
     Name = "default-${var.project_id}"
   }
 }
+
 resource "aws_route" "private_nat_gateway" {
   route_table_id         = aws_route_table.private.id
   destination_cidr_block = "0.0.0.0/0"
@@ -87,8 +103,6 @@ resource "aws_route_table" "public" {
 resource "aws_route_table" "private" {
   vpc_id = aws_vpc.default.id
 
-  //route = []
-
   tags = {
     Name = "private-${var.project_id}"
   }
@@ -104,54 +118,4 @@ resource "aws_route_table_association" "private" {
   count          = length(aws_subnet.private)
   subnet_id      = aws_subnet.private[count.index].id
   route_table_id = aws_route_table.private.id
-}
-
-resource "aws_security_group" "alb" {
-  name        = "alb-${var.project_id}"
-  description = "Open HTTP port"
-  vpc_id      = aws_vpc.default.id
-
-  # HTTP
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = [ "0.0.0.0/0" ]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = [ "0.0.0.0/0" ]
-  }
-
-  tags = {
-    Name = "alb-${var.project_id}"
-  }
-}
-
-// Application Load Balancer
-resource "aws_lb" "default" {
-  name               = "default-${var.project_id}"
-  internal           = false
-  load_balancer_type = "application"
-  subnets            = aws_subnet.public[*].id
-  security_groups    = [ aws_security_group.alb.id ]
-
-  tags = {
-    Name = "default-${var.project_id}"
-  }
-}
-
-data "aws_route53_zone" "default" {
-  name = "hitwc.link"
-}
-
-resource "aws_route53_record" "default" {
-  zone_id = data.aws_route53_zone.default.zone_id
-  name    = format("%s.hitwc.link", lower(var.project_id))
-  type    = "CNAME"
-  ttl     = "20"
-  records = [ aws_lb.default.dns_name ]
 }
