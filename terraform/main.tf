@@ -23,8 +23,8 @@ data "aws_secretsmanager_secret_version" "default" {
 locals {
   vpc_cidr_block = "10.6.0.0/16"
   subnets        = {
-    private = ["10.6.0.0/24", "10.6.0.1/24"]
-    public  = ["10.6.0.2/24", "10.6.0.3/24"]
+    private = ["10.6.0.0/24", "10.6.1.0/24"]
+    public  = ["10.6.2.0/24", "10.6.3.0/24"]
   }
 }
 
