@@ -6,10 +6,6 @@ variable "instance_type" {
   type = string
   default = null
 }
-variable "public_ssh_key" {
-  type = string
-  default = null
-}
 variable "subnet_id" {
   type = string
   default = null

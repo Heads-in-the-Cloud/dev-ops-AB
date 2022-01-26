@@ -47,30 +47,23 @@ data "aws_iam_policy_document" "default" {
 
 resource "aws_iam_role" "default" {
   name = "${var.project_id}-bastion"
-  assume_role_policy = data.aws_iam_policy_document.bastion.json
+  assume_role_policy = data.aws_iam_policy_document.default.json
 }
 
 resource "aws_iam_role_policy_attachment" "default" {
-  role = aws_iam_role.bastion.name
+  role = aws_iam_role.default.name
   policy_arn = var.policy_arn
 }
 
 resource "aws_iam_instance_profile" "default" {
   name = "${var.project_id}-bastion"
-  role = aws_iam_role.bastion.name
-}
-
-resource "aws_key_pair" "default" {
-  key_name = "${var.project_id}-bastion"
-  public_key = var.public_ssh_key
+  role = aws_iam_role.default.name
 }
 
 resource "aws_instance" "default" {
   vpc_security_group_ids = [ aws_security_group.ssh.id ]
   iam_instance_profile   = aws_iam_instance_profile.default.name
   instance_type  = var.instance_type
-  instance_state = "stopped"
-  key_name       = aws_key_pair.default.key_name
   subnet_id      = var.subnet_id
   ami            = data.aws_ami.amazon_linux_2.id
   user_data      = var.user_data
