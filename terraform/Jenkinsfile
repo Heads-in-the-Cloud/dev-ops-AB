@@ -38,7 +38,7 @@ pipeline {
     }
 
     stages {
-        stage('Terraform Plan') {
+        stage('Plan') {
             steps {
                 dir("terraform") {
                     script {
@@ -81,22 +81,30 @@ EOF
             }
         }
 
-        stage('Terraform Apply/Destroy') {
+        stage('Apply') {
             when {
-                expression { !params.PlanOnly }
+                expression { params.Operation == "Apply" }
             }
 
             steps {
                 dir("terraform") {
                     sh "terraform apply -input=false ${env.plan_file_path}"
-                    script {
-                        if(params.Operation == "Apply") {
-                            sh 'terraform refresh'
-                            sh 'terraform output | tr -d \'\\\"\\ \' > output.tf'
-                            sh "aws s3 cp output.tf s3://$S3_BUCKET/terraform/"
-                            sh 'rm -f output.tf'
-                        }
-                    }
+                    sh 'terraform refresh'
+                    sh 'terraform output | tr -d \'\\\"\\ \' > output.tf'
+                    sh "aws s3 cp output.tf s3://$S3_BUCKET/terraform/"
+                    sh 'rm -f output.tf'
+                }
+            }
+        }
+
+        stage('Destroy') {
+            when {
+                expression { params.Operation == "Destroy" }
+            }
+
+            steps {
+                dir("terraform") {
+                    sh "terraform apply -input=false ${env.plan_file_path}"
                 }
             }
         }
