@@ -10,6 +10,9 @@ output "public_subnets" {
 output "alb_id" {
   value = module.networks.alb_id
 }
+output "db_url" {
+  value = module.rds.instance_address
+}
 output "domain" {
   value = module.networks.domain
 }
