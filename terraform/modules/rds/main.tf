@@ -32,3 +32,8 @@ resource "aws_security_group" "db" {
     Name = "${var.project_id}-db"
   }
 }
+
+module "init-lambda" {
+  source = "./init-lambda"
+  project_id = var.project_id
+}

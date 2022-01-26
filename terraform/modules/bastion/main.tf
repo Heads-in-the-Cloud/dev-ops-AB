@@ -29,11 +29,11 @@ resource "aws_security_group" "ssh" {
   }
 
   tags = {
-    Name = "${var.project_id}-bastion"
+    Name = "${var.project_id}-ssh"
   }
 }
 
-data "aws_iam_policy_document" "bastion" {
+data "aws_iam_policy_document" "default" {
   version = "2012-10-17"
   statement {
     effect = "Allow"
@@ -67,12 +67,13 @@ resource "aws_key_pair" "default" {
 
 resource "aws_instance" "default" {
   vpc_security_group_ids = [ aws_security_group.ssh.id ]
-  iam_instance_profile   = aws_iam_instance_profile.bastion.name
-  instance_type = var.instance_type
-  key_name      = aws_key_pair.bastion.key_name
-  subnet_id     = var.subnet_id
-  ami           = data.aws_ami.amazon_linux_2.id
-  user_data     = var.user_data
+  iam_instance_profile   = aws_iam_instance_profile.default.name
+  instance_type  = var.instance_type
+  instance_state = "stopped"
+  key_name       = aws_key_pair.default.key_name
+  subnet_id      = var.subnet_id
+  ami            = data.aws_ami.amazon_linux_2.id
+  user_data      = var.user_data
 
   tags = {
     Name = "${var.project_id}-bastion"

@@ -48,11 +48,12 @@ pipeline {
                             env.plan_file_path = "plans/destroy-${COMMIT_HASH}.tf"
                         }
                     }
+                    def tf_workspace = "${params.Env}-${params.ProjectId}"
                     sh """cat > terraform.tf << EOF
 terraform {
   backend "s3" {
     bucket  = "$S3_BUCKET"
-    key     = "terraform/terraform.tfstate"
+    key     = "env:/$tf_workspace/terraform.tfstate"
     region  = "$REGION"
     encrypt = true
   }
@@ -66,7 +67,7 @@ environment = "${params.Env.toLowerCase()}"
 EOF
                     """
                     sh 'terraform init -input=false -migrate-state'
-                    sh "terraform workspace select ${params.Env}-${params.ProjectId} || terraform workspace new ${params.Env}-${params.ProjectId}"
+                    sh "terraform workspace select $tf_workspace || terraform workspace new $tf_workspace"
                     sh 'mkdir -p plans'
                     script {
                         if(params.Operation == "Apply") {
@@ -75,7 +76,7 @@ EOF
                             sh "terraform plan -destroy -input=false -out ${env.plan_file_path}"
                         }
                     }
-                    sh "aws s3 cp ${env.plan_file_path} s3://$S3_BUCKET/terraform/plans/"
+                    sh "aws s3 cp ${env.plan_file_path} s3://$S3_BUCKET/env:/$tf_workspace/plans/"
                     sh "terraform show ${env.plan_file_path}"
                 }
             }
@@ -90,7 +91,7 @@ EOF
                 dir("terraform") {
                     sh "terraform apply -input=false ${env.plan_file_path}"
                     sh 'terraform refresh'
-                    sh 'terraform output | tr -d \'\\\"\\ \' > output.tf'
+                    sh 'terraform output > output.tf'
                     sh "aws s3 cp output.tf s3://$S3_BUCKET/terraform/"
                     sh 'rm -f output.tf'
                 }

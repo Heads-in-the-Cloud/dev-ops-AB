@@ -13,9 +13,6 @@ output "alb_id" {
 output "domain" {
   value = module.networks.domain
 }
-output "db_subnet_group_name" {
-  value = module.rds.subnet_group_name
-}
 output "db_security_group_id" {
   value = module.rds.security_group_id
 }
