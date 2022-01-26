@@ -1,0 +1,15 @@
+---
+- hosts: 127.0.0.1
+  connection: local
+
+  vars:
+    ## Get output.tf from S3
+    project_id: AB-utopia
+
+  tasks:
+
+  - name: Takedown RDS instance
+    community.aws.rds_instance:
+      id: "{{ project_id | lower }}"
+      skip_final_snapshot: True
+      state: absent

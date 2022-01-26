@@ -7,6 +7,13 @@ resource "aws_db_subnet_group" "default" {
   }
 }
 
+data "aws_secretsmanager_secret_version" "default" {
+  secret_id = var.secret_id
+}
+locals {
+  secrets = jsondecode(data.aws_secretsmanager_secret_version.default.secret_string)
+}
+
 resource "aws_security_group" "db" {
   name        = "${var.project_id}_db"
   description = "Inbound to only 3306"
@@ -32,3 +39,17 @@ resource "aws_security_group" "db" {
     Name = "${var.project_id}-db"
   }
 }
+resource "aws_db_instance" "default" {
+  allocated_storage      = var.allocated_storage
+  engine                 = var.engine
+  engine_version         = var.engine_version
+  instance_class         = var.instance_class
+  name                   = var.name
+  username               = local.secrets.root_username
+  password               = local.secrets.root_password
+  skip_final_snapshot    = true
+  identifier             = lower(var.project_id)
+  db_subnet_group_name   = var.subnet_group_id
+  vpc_security_group_ids = [ aws_security_group.default.id ]
+}
+
