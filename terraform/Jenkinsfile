@@ -42,10 +42,11 @@ pipeline {
             steps {
                 dir("terraform") {
                     script {
+                        def plan_file_path
                         if(params.Operation == "Apply") {
-                            def plan_file_path = "plans/apply-${COMMIT_HASH}.tf"
+                            plan_file_path = "plans/apply-${COMMIT_HASH}.tf"
                         } else {
-                            def plan_file_path = "plans/destroy-${COMMIT_HASH}.tf"
+                            plan_file_path = "plans/destroy-${COMMIT_HASH}.tf"
                         }
                     }
                     sh """cat > terraform.tf << EOF
@@ -83,6 +84,10 @@ EOF
         }
 
         stage('Terraform Apply/Destroy') {
+            when {
+                expression { !params.PlanOnly }
+            }
+
             steps {
                 dir("terraform") {
                     sh "terraform apply -no-color -input=false $plan_file_path"
