@@ -10,7 +10,7 @@ pipeline {
         )
         choice(
             name: 'Env',
-            choices: ['dev', 'staging', 'prod'],
+            choices: ['Dev', 'Staging', 'Prod'],
             description: 'Deployment environment'
         )
         booleanParam(
@@ -62,7 +62,7 @@ EOF
                     sh """cat > terraform.tfvars << EOF
 region = "$REGION"
 project_id = "${params.ProjectId}"
-environment = "${params.Env}"
+environment = "${params.Env.toLowerCase()}"
 EOF
                     """
                     sh "terraform workspace select ${params.Env}-${params.ProjectId} || terraform workspace new ${params.Env}-${params.ProjectId}"
