@@ -16,8 +16,8 @@ variable "environment" {
   description = "dev, staging, or prod"
 }
 
-variable "public_ssh_key" {
-  type        = string
-  default     = null
-  description = "SSH key used for bastion hosts"
-}
+#variable "public_ssh_key" {
+#  type        = string
+#  default     = null
+#  description = "SSH key used for bastion hosts"
+#}

@@ -1,36 +1,23 @@
 resource "aws_db_subnet_group" "default" {
   name       = format("default_%s", lower(var.project_id))
-  subnet_ids = var.subnets[*].id
+  subnet_ids = var.subnet_ids[*]
 
   tags = {
     Name = "default-${var.project_id}"
   }
 }
-resource "aws_db_instance" "default" {
-  allocated_storage      = var.allocated_storage
-  engine                 = var.engine
-  engine_version         = var.engine_version
-  instance_class         = var.instance_class
-  name                   = var.name
-  username               = var.root_username
-  password               = var.root_password
-  skip_final_snapshot    = true
-  identifier             = format("db-%s", lower(var.project_id))
-  db_subnet_group_name   = aws_db_subnet_group.name
-  vpc_security_group_ids = [ aws_security_group.db.id ]
-}
 
 resource "aws_security_group" "db" {
   name        = "db_${var.project_id}"
   description = "Inbound to only 3306"
-  vpc_id      = var.vpc_id
+  vpc_id      = var.vpc.id
 
   ingress {
     description = "MySQL"
     from_port   = 3306
     to_port     = 3306
     protocol    = "tcp"
-    cidr_blocks = [ var.vpc_cidr_block ]
+    cidr_blocks = [ var.vpc.cidr_block ]
   }
 
   egress {

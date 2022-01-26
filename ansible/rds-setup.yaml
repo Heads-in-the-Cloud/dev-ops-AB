@@ -20,38 +20,7 @@
 
   tasks:
 
-## Create RDS w/ root user & SecGroup
-- name: Get info of existing VPC
-  amazon.aws.ec2_vpc_net_info:
-    id: vpc
-    vpc_ids: "{{ vpc_id }}"
-- name: Create RDS subnet group
-  community.aws.rds_subnet_group:
-    id: rds_subnets
-    name: "default-{{ project_id }}"
-    subnets: "{{ private_subnets }}"
-    tags:
-      - name: "default-{{ project_id }}"
-- name: Create MySQL Security Group
-  community.aws.security_group:
-    id: sec_group
-    name: "db-{{ project_id }}"
-    description: "Inbound to only 3306"
-    vpc_id: "{{ vpc_id }}"
-    ingress:
-      description: MySQL
-      from_port: 3306
-      to_port: 3306
-      protocol: tcp
-      cidr_blocks: "{{ vpc.cidr_block }}"
-    egress:
-      from_port: 0
-      to_port: 0
-      protocol: -1
-      cidr_blocks: 0.0.0.0/0
-      ipv6_cidr_blocks: ::/0
-    tags:
-      - name: "db-{{ project_id }}"
+## Create RDS w/ admin creds
 - name: Create RDS instance
   community.aws.rds_instance:
     id: rds
@@ -65,8 +34,7 @@
     password: "{{ root_password }}"
     skip_final_snapshot: True
     subnet_group_name: "{{ rds_subnets.name }}"
-    vpc_security_group_ids:
-      - "{{ sec_group.id }}"
+    vpc_security_group_ids: "{{ sec_group.id }}"
 
 ## Wait for RDS to become available
 ## Create Bastion as EC2 instance w/ AMI, SecGroup, & S3 read permissions from IAM

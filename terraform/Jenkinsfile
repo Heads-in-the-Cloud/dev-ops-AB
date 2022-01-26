@@ -3,49 +3,57 @@ pipeline {
     agent any
 
     parameters {
-        booleanParam(
-            name: 'Apply',
-            defaultValue: false,
-            description: 'Apply Terraform plan'
+        string(
+            name: 'ProjectId',
+            defaultValue: 'utopia-AB',
+            description: 'Deployment environment'
+        )
+        choice(
+            name: 'Env',
+            choices: ['Dev', 'Staging', 'Prod'],
+            defaultValue: 'Dev',
+            description: 'Deployment environment'
         )
         booleanParam(
-            name: 'Destroy',
-            defaultValue: false,
-            description: 'Destroy Terraform build'
+            name: 'PlanOnly',
+            defaultValue: true,
+            description: 'Determines whether or not to run the final stage'
+        )
+        choice(
+            name: 'Operation',
+            choices: ['Apply', 'Destroy'],
+            defaultValue: 'Apply',
+            description: 'Base infrastructure operation'
         )
     }
 
    environment {
         COMMIT_HASH = sh(
-            returnStdout: true,
-            script: "git rev-parse --short=8 HEAD"
+            script: "git rev-parse --short=8 HEAD",
+            returnStdout: true
         ).trim()
-        //TF_S3_BUCKET = "tf-plans-ab"
+        S3_BUCKET = "utopia-${params.ProjectId.toLowerCase()}"
         REGION = sh(
             script:'aws configure get region',
             returnStdout: true
         ).trim()
-
-        PROJECT_ID  = credentials('project-id')
-        ENV         = credentials('env')
-        PUB_SSH_KEY = credentials('pub-ssh-key')
     }
 
     stages {
-
         stage('Terraform Plan') {
-            when {
-                expression {
-                    params.Apply
-                }
-            }
-
-            steps {
-                dir("terraform") {
+            dir("terraform") {
+                steps {
+                    script {
+                        if(params.Operation == "Apply") {
+                            def plan_file_path = "plans/apply-${COMMIT_HASH}.tf"
+                        } else {
+                            def plan_file_path = "plans/destroy-${COMMIT_HASH}.tf"
+                        }
+                    }
                     sh """cat > terraform.tf << EOF
 terraform {
   backend "s3" {
-    bucket  = "utopia-${PROJECT_ID.toLowerCase()}"
+    bucket  = "$S3_BUCKET"
     key     = "terraform/terraform.tfstate"
     region  = "$REGION"
     encrypt = true
@@ -55,87 +63,35 @@ EOF
                     """
                     sh """cat > terraform.tfvars << EOF
 region = "$REGION"
-project_id = "$PROJECT_ID"
-environment = "$ENV"
-public_ssh_key = "$PUB_SSH_KEY"
+project_id = "${params.ProjectId}"
+environment = "${params.Env}"
 EOF
                     """
                     sh 'mkdir -p plans'
-                    sh 'terraform init -no-color -input=false'
-                    //sh 'terraform workspace select ${environment} || terraform workspace new ${environment}'
 
-                    sh """
-                        terraform plan \
-                            -no-color \
-                            -input=false \
-                            -out plans/apply-${COMMIT_HASH}.tf
-                    """
-                    //sh "aws s3 cp plans/${COMMIT_HASH} s3://${TF_S3_BUCKET}"
-                    sh """
-                        terraform show \
-                            -no-color plans/apply-${COMMIT_HASH}.tf
-                    """
+                    sh "aws s3 cp --sync terraform.tfstate s3://$S3_BUCKET/terraform/"
+                    sh 'terraform init -no-color -input=false'
+                    script {
+                        if(params.Operation == "Apply") {
+                            sh "terraform plan -no-color -input=false $PLAN_FILE"
+                        } else {
+                            sh "terraform plan -destroy -no-color -input=false $PLAN_FILE"
+                        }
+                    }
+                    sh "aws s3 cp $PLAN_FILE s3://$S3_BUCKET/terraform/plans/"
+                    sh "terraform show -no-color $PLAN_FILE"
                 }
             }
         }
 
-        stage('Terraform Apply') {
-            when {
-                expression {
-                    params.Apply
-                }
-            }
-
+        stage('Terraform Apply/Destroy') {
             steps {
                 dir("terraform") {
-                    sh "terraform apply -no-color -input=false plans/apply-${COMMIT_HASH}.tf"
+                    sh "terraform apply -no-color -input=false ${PLAN_FILE}"
                     sh 'terraform refresh -no-color'
                     sh 'terraform output | tr -d \'\\\"\\ \' > ../../output.tf'
                 }
             }
         }
-
-        stage('Terraform Plan Destroy') {
-            when {
-                expression {
-                    params.Destroy
-                }
-            }
-
-            steps {
-                dir("terraform") {
-                    sh 'mkdir -p plans'
-                    sh 'terraform init -no-color -input=false'
-                    //sh 'terraform workspace select ${environment} || terraform workspace new ${environment}'
-
-                    sh "terraform plan -destroy -no-color -input=false -out plans/destroy-${COMMIT_HASH}.tf"
-                    //sh "aws s3 cp plans/${COMMIT_HASH} s3://${TF_S3_BUCKET}"
-                    sh "terraform show -no-color plans/destroy-${COMMIT_HASH}.tf"
-                }
-            }
-        }
-
-        stage('Terraform Destroy') {
-            when {
-                expression {
-                    params.Destroy
-                }
-            }
-
-            steps {
-                dir("terraform") {
-                    sh "terraform apply -no-color -input=false plans/destroy-${COMMIT_HASH}.tf"
-                }
-            }
-        }
     }
-
-    post {
-        cleanup {
-            script {
-                sh 'rm terraform/terraform.tfvars'
-            }
-        }
-    }
-
 }
