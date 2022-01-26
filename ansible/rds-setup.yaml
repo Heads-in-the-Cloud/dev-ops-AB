@@ -4,40 +4,38 @@
 
   vars:
     ## Get output.tf from S3
-    project_id: utopia-AB
-    vpc_id: vpc-03c969d96a6582247
-    rds_subnet_group_id:
-    rds_security_group_id:
+    project_id: AB-utopia
+    vpc_id: vpc-09ba651230e7b79fe
+    db_subnet_group_name:
+    db_security_group_id:
     private_subnet_ids:
-      - subnet-09195778c8cff0010
-      - subnet-072b4ee3b133960bc
+      - subnet-0dcbbfb382383795a
+      - subnet-0113a077f761515c4
     #public_subnet_ids:
     #  -
     #  -
     ## Obtain db root & user creds from secrets manager
     root_username: root
-    root_password: temp
+    root_password: temporary
     user_username: user
-    user_password: temp
+    user_password: temporary
 
   tasks:
 
-## Create RDS w/ admin creds
-- name: Create RDS instance
-  community.aws.rds_instance:
-    id: rds
-    identifier: "{{ lower(project_id) }}"
-    allocated_storage: 10
-    engine: mysql
-    engine_version: 8.0
-    db_instance_class: db.t2.micro
-    name: utopia
-    username: "{{ root_username }}"
-    password: "{{ root_password }}"
-    skip_final_snapshot: True
-    subnet_group_name: "{{ rds_subnets.name }}"
-    vpc_security_group_ids: "{{ db_security_group_id }}"
+  ## Create RDS w/ admin creds
+  - name: Create RDS instance
+    community.aws.rds_instance:
+      id: "{{ project_id | lower }}"
+      allocated_storage: 10
+      engine: mysql
+      engine_version: 8.0
+      db_instance_class: db.t2.micro
+      username: "{{ root_username }}"
+      password: "{{ root_password }}"
+      skip_final_snapshot: True
+      db_subnet_group_name: "{{ db_subnet_group_name }}"
+      vpc_security_group_ids: "{{ db_security_group_id }}"
 
-## Wait for RDS to become available
-## Create Bastion as EC2 instance w/ AMI, SecGroup, & S3 read permissions from IAM
-## Have user_data create DB schema & DB user using root creds and poweroff EC2 instance
+  ## Wait for RDS to become available
+  ## Create Bastion as EC2 instance w/ AMI, SecGroup, & S3 read permissions from IAM
+  ## Have user_data create DB schema & DB user using root creds and poweroff EC2 instance

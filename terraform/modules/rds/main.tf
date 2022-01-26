@@ -1,5 +1,5 @@
 resource "aws_db_subnet_group" "default" {
-  name       = format("default_%s", lower(var.project_id))
+  name       = lower(var.project_id)
   subnet_ids = var.subnet_ids[*]
 
   tags = {
@@ -8,7 +8,7 @@ resource "aws_db_subnet_group" "default" {
 }
 
 resource "aws_security_group" "db" {
-  name        = "db_${var.project_id}"
+  name        = "${var.project_id}_db"
   description = "Inbound to only 3306"
   vpc_id      = var.vpc.id
 
@@ -29,6 +29,6 @@ resource "aws_security_group" "db" {
   }
 
   tags = {
-    Name = "db-${var.project_id}"
+    Name = "${var.project_id}-db"
   }
 }
