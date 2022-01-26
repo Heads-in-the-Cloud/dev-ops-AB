@@ -71,13 +71,13 @@ EOF
                     //sh 'terraform init -no-color -input=false'
                     script {
                         if(params.Operation == "Apply") {
-                            sh "terraform plan -no-color -input=false $PLAN_FILE"
+                            sh "terraform plan -no-color -input=false $plan_file_path"
                         } else {
-                            sh "terraform plan -destroy -no-color -input=false $PLAN_FILE"
+                            sh "terraform plan -destroy -no-color -input=false $plan_file_path"
                         }
                     }
-                    sh "aws s3 cp $PLAN_FILE s3://$S3_BUCKET/terraform/plans/"
-                    sh "terraform show -no-color $PLAN_FILE"
+                    sh "aws s3 cp $plan_file_path s3://$S3_BUCKET/terraform/plans/"
+                    sh "terraform show -no-color $plan_file_path"
                 }
             }
         }
@@ -85,7 +85,7 @@ EOF
         stage('Terraform Apply/Destroy') {
             steps {
                 dir("terraform") {
-                    sh "terraform apply -no-color -input=false ${PLAN_FILE}"
+                    sh "terraform apply -no-color -input=false $plan_file_path"
                     sh 'terraform refresh -no-color'
                     sh 'terraform output | tr -d \'\\\"\\ \' > ../../output.tf'
                 }
