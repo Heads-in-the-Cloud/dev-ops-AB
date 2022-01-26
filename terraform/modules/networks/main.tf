@@ -73,7 +73,7 @@ resource "random_shuffle" "nat_public_subnet_id" {
 
 resource "aws_nat_gateway" "default" {
   allocation_id = aws_eip.nat.id
-  subnet_id     = random_id.nat_public_subnet_id
+  subnet_id     = random_shuffle.nat_public_subnet_id
   depends_on    = [ aws_internet_gateway.default ]
 
   tags = {

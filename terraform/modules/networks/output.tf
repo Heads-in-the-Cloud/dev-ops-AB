@@ -1,8 +1,8 @@
 output "subnet_ids" {
-  value = object({
-    private = [ for subnet in aws_subnet.public : subnet.id ]
-    public = [ for subnet in aws_subnet.public : subnet.id ]
-  })
+  value = {
+    private = aws_subnet.private[*].id
+    public  = aws_subnet.public[*].id
+  }
 }
 
 output "domain" {
