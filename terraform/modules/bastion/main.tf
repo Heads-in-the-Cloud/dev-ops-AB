@@ -29,7 +29,7 @@ resource "aws_security_group" "ssh" {
   }
 
   tags = {
-    Name = "ssh-${var.project_id}"
+    Name = "bastion-${var.project_id}"
   }
 }
 

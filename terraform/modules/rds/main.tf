@@ -3,7 +3,7 @@ resource "aws_db_subnet_group" "default" {
   subnet_ids = var.subnet_ids[*]
 
   tags = {
-    Name = "default-${var.project_id}"
+    Name = var.project_id
   }
 }
 

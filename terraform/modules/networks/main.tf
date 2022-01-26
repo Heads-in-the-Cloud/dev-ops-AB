@@ -7,7 +7,7 @@ resource "aws_vpc" "default" {
   enable_dns_hostnames = true
 
   tags = {
-    Name = "default-${var.project_id}"
+    Name = var.project_id
   }
 }
 
@@ -53,7 +53,7 @@ resource "aws_internet_gateway" "default" {
   vpc_id = aws_vpc.default.id
 
   tags = {
-    Name = "default-${var.project_id}"
+    Name = var.project_id
   }
 }
 
@@ -77,7 +77,7 @@ resource "aws_nat_gateway" "default" {
   depends_on    = [ aws_internet_gateway.default ]
 
   tags = {
-    Name = "default-${var.project_id}"
+    Name = var.project_id
   }
 }
 

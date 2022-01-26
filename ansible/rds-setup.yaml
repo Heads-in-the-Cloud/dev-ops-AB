@@ -3,16 +3,18 @@
   connection: local
 
   vars:
-## Get output.tf from S3
-    project_id: AB
+    ## Get output.tf from S3
+    project_id: utopia-AB
     vpc_id:
-    private_subnets:
+    rds_subnet_group_id:
+    rds_security_group_id:
+    private_subnet_ids:
       -
       -
-    #public_subnets:
+    #public_subnet_ids:
     #  -
     #  -
-## Obtain db root & user creds from secrets manager
+    ## Obtain db root & user creds from secrets manager
     root_username: root
     root_password: temp
     user_username: user
@@ -24,7 +26,7 @@
 - name: Create RDS instance
   community.aws.rds_instance:
     id: rds
-    identifier: "db-{{ lower(project_id) }}"
+    identifier: "default-{{ lower(project_id) }}"
     allocated_storage: 10
     engine: mysql
     engine_version: 8.0
@@ -34,7 +36,7 @@
     password: "{{ root_password }}"
     skip_final_snapshot: True
     subnet_group_name: "{{ rds_subnets.name }}"
-    vpc_security_group_ids: "{{ sec_group.id }}"
+    vpc_security_group_ids: "{{ db_security_group_id }}"
 
 ## Wait for RDS to become available
 ## Create Bastion as EC2 instance w/ AMI, SecGroup, & S3 read permissions from IAM

@@ -21,8 +21,8 @@ data "aws_secretsmanager_secret_version" "default" {
 }
 
 locals {
-  vpc_cidr_block = "10.6.0.0/16"
-  subnets        = {
+  vpc_cidr_block     = "10.6.0.0/16"
+  subnet_cidr_blocks = {
     private = ["10.6.0.0/24", "10.6.1.0/24"]
     public  = ["10.6.2.0/24", "10.6.3.0/24"]
   }
@@ -32,7 +32,7 @@ locals {
 module "networks" {
   source             = "./modules/networks"
   vpc_cidr_block     = local.vpc_cidr_block
-  subnet_cidr_blocks = local.subnets
+  subnet_cidr_blocks = local.subnet_cidr_blocks
   rt_cidr_block      = "0.0.0.0/0"
   project_id         = var.project_id
 }

@@ -32,7 +32,7 @@ resource "aws_lb" "default" {
   security_groups    = [ aws_security_group.alb.id ]
 
   tags = {
-    Name = "default-${var.project_id}"
+    Name = var.project_id
   }
 }
 
