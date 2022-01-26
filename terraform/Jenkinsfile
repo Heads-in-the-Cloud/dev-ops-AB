@@ -94,6 +94,7 @@ EOF
                             sh 'terraform refresh -no-color'
                             sh 'terraform output | tr -d \'\\\"\\ \' > output.tf'
                             sh "aws s3 cp output.tf s3://$S3_BUCKET/terraform/"
+                            sh 'rm -f output.tf'
                         }
                     }
                 }
