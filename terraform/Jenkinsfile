@@ -42,11 +42,10 @@ pipeline {
             steps {
                 dir("terraform") {
                     script {
-                        def plan_file_path
                         if(params.Operation == "Apply") {
-                            plan_file_path = "plans/apply-${COMMIT_HASH}.tf"
+                            env.plan_file_path = "plans/apply-${COMMIT_HASH}.tf"
                         } else {
-                            plan_file_path = "plans/destroy-${COMMIT_HASH}.tf"
+                            env.plan_file_path = "plans/destroy-${COMMIT_HASH}.tf"
                         }
                     }
                     sh """cat > terraform.tf << EOF
@@ -72,13 +71,13 @@ EOF
                     //sh 'terraform init -no-color -input=false'
                     script {
                         if(params.Operation == "Apply") {
-                            sh "terraform plan -no-color -input=false $plan_file_path"
+                            sh "terraform plan -no-color -input=false ${env.plan_file_path}"
                         } else {
-                            sh "terraform plan -destroy -no-color -input=false $plan_file_path"
+                            sh "terraform plan -destroy -no-color -input=false ${env.plan_file_path}"
                         }
                     }
-                    sh "aws s3 cp $plan_file_path s3://$S3_BUCKET/terraform/plans/"
-                    sh "terraform show -no-color $plan_file_path"
+                    sh "aws s3 cp ${env.plan_file_path} s3://$S3_BUCKET/terraform/plans/"
+                    sh "terraform show -no-color ${env.plan_file_path}"
                 }
             }
         }
@@ -90,7 +89,7 @@ EOF
 
             steps {
                 dir("terraform") {
-                    sh "terraform apply -no-color -input=false $plan_file_path"
+                    sh "terraform apply -no-color -input=false ${env.plan_file_path}"
                     sh 'terraform refresh -no-color'
                     sh 'terraform output | tr -d \'\\\"\\ \' > ../../output.tf'
                 }
