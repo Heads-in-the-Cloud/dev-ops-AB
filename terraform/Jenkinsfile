@@ -74,7 +74,9 @@ EOF
 
         stage('Apply') {
             when {
-                expression { params.Operation == "Apply" }
+                expression {
+                    !params.PlanOnly && params.Operation == "Apply"
+                }
             }
 
             steps {
@@ -89,7 +91,9 @@ EOF
 
         stage('Destroy') {
             when {
-                expression { params.Operation == "Destroy" }
+                expression {
+                    !params.PlanOnly && params.Operation == "Destroy"
+                }
             }
 
             steps {
