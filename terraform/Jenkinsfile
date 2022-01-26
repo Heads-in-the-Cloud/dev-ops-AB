@@ -67,7 +67,6 @@ EOF
                     """
                     sh 'mkdir -p plans'
 
-                    sh "aws s3 sync terraform.tfstate s3://$S3_BUCKET/terraform/"
                     sh 'terraform init -no-color -input=false'
                     script {
                         if(params.Operation == "Apply") {
