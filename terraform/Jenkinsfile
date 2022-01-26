@@ -65,18 +65,18 @@ project_id = "${params.ProjectId}"
 environment = "${params.Env.toLowerCase()}"
 EOF
                     """
+                    sh 'terraform init -input=false -migrate-state'
                     sh "terraform workspace select ${params.Env}-${params.ProjectId} || terraform workspace new ${params.Env}-${params.ProjectId}"
-                    sh 'terraform init -no-color -input=false'
                     sh 'mkdir -p plans'
                     script {
                         if(params.Operation == "Apply") {
-                            sh "terraform plan -no-color -input=false -out ${env.plan_file_path}"
+                            sh "terraform plan -input=false -out ${env.plan_file_path}"
                         } else {
-                            sh "terraform plan -destroy -no-color -input=false -out ${env.plan_file_path}"
+                            sh "terraform plan -destroy -input=false -out ${env.plan_file_path}"
                         }
                     }
                     sh "aws s3 cp ${env.plan_file_path} s3://$S3_BUCKET/terraform/plans/"
-                    sh "terraform show -no-color ${env.plan_file_path}"
+                    sh "terraform show ${env.plan_file_path}"
                 }
             }
         }
@@ -88,10 +88,10 @@ EOF
 
             steps {
                 dir("terraform") {
-                    sh "terraform apply -no-color -input=false ${env.plan_file_path}"
+                    sh "terraform apply -input=false ${env.plan_file_path}"
                     script {
                         if(params.Operation == "Apply") {
-                            sh 'terraform refresh -no-color'
+                            sh 'terraform refresh'
                             sh 'terraform output | tr -d \'\\\"\\ \' > output.tf'
                             sh "aws s3 cp output.tf s3://$S3_BUCKET/terraform/"
                             sh 'rm -f output.tf'
