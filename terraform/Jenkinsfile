@@ -30,7 +30,7 @@ pipeline {
             script: "git rev-parse --short=8 HEAD",
             returnStdout: true
         ).trim()
-        S3_BUCKET = "${params.ProjectId.toLowerCase()}"
+        S3_BUCKET = params.ProjectId.toLowerCase()
         REGION = sh(
             script:'aws configure get region',
             returnStdout: true

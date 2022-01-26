@@ -3,10 +3,20 @@ pipeline {
     agent any
 
     parameters {
-        booleanParam(
-            name: 'Down',
-            defaultValue: false,
-            description: 'Take down existing cluster'
+        string(
+            name: 'ProjectId',
+            defaultValue: 'AB-utopia',
+            description: 'Identifier applied to all names'
+        )
+        choice(
+            name: 'Env',
+            choices: ['Dev', 'Staging', 'Prod'],
+            description: 'Deployment environment'
+        )
+        choice(
+            name: 'Operation',
+            choices: ['Up', 'Down'],
+            description: 'Bring up or take down ECS cluster'
         )
     }
 
@@ -15,7 +25,8 @@ pipeline {
             returnStdout: true,
             script: "git rev-parse --short=8 HEAD"
         ).trim()
-        AWS_REGION = sh(
+        S3_BUCKET = params.ProjectId.toLowerCase()
+        REGION = sh(
             script: 'aws configure get region',
             returnStdout: true
         ).trim()
@@ -27,9 +38,8 @@ pipeline {
             ''',
             returnStdout: true
         ).trim()
-        ECR_URI     = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
-        ENV         = credentials('env')
-        PROJECT_ID  = credentials('project-id')
+
+        ecr_uri = "${AWS_ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com"
    }
 
     stages {
@@ -38,7 +48,7 @@ pipeline {
                 script {
                     withCredentials([
                         string(
-                            credentialsId: "${ENV}/${PROJECT_ID}/default",
+                            credentialsId: "${params.Env.toLowerCase()}/${params.ProjectId}/default",
                             variable: 'SECRETS'
                         )
                     ]) {
@@ -48,17 +58,18 @@ pipeline {
                         env.JWT_SECRET  = aws_secrets.jwt_secret
                     }
 
-                    def tf_output = readProperties file: '../output.tf'
+                    sh "aws s3 s3://$S3_BUCKET/terraform/output.tf ."
+                    def tf_output = readProperties file: 'output.tf'
                     env.DOMAIN = tf_output.domain
                     env.VPC_ID = tf_output.vpc_id
                     env.DB_URL = "mysql://${tf_output.db_url}/utopia"
                     env.ALB_ID = tf_output.alb_id
 
-                    def repo_suffix = "-${env.PROJECT_ID.toLowerCase()}"
-                    env.REVERSE_PROXY_IMAGE = "$ECR_URI/reverse-proxy${repo_suffix}:latest"
-                    env.FLIGHTS_IMAGE       = "$ECR_URI/flights-microservice${repo_suffix}:latest"
-                    env.USERS_IMAGE         = "$ECR_URI/users-microservice${repo_suffix}:latest"
-                    env.BOOKINGS_IMAGE      = "$ECR_URI/bookings-microservice${repo_suffix}:latest"
+                    def repo_prefix = "$ecr_uri/${env.PROJECT_ID.toLowerCase()}-"
+                    env.REVERSE_PROXY_IMAGE = "${repo_prefix}reverse-proxy:latest"
+                    env.FLIGHTS_IMAGE       = "${repo_prefix}flights-microservice:latest"
+                    env.USERS_IMAGE         = "${repo_prefix}users-microservice:latest"
+                    env.BOOKINGS_IMAGE      = "${repo_prefix}bookings-microservice:latest"
                 }
             }
         }
@@ -70,10 +81,10 @@ pipeline {
                 }
             }
             steps {
-                sh 'ln -s docker-compose-ecs ecs-$PROJECT_ID'
-                dir("ecs-${PROJECT_ID}") {
-                    sh "docker context use ecs-${PROJECT_ID}"
-                    sh "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_URI}"
+                sh "ln -s docker-compose-ecs ${params.ProjectId}-ecs"
+                dir("${params.ProjectId}-ecs") {
+                    sh "docker context use ${params.ProjectId}-ecs"
+                    sh "aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $ecr_uri"
                     sh "docker compose up"
                     sh "docker context use default"
                 }
@@ -87,13 +98,13 @@ pipeline {
                 }
             }
             steps {
-                dir("ecs-${PROJECT_ID}") {
-                    sh "docker context use ecs-${PROJECT_ID}"
-                    sh "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_URI}"
+                dir("${params.ProjectId}-ecs") {
+                    sh "docker context use ${params.ProjectId}-ecs"
+                    sh "aws ecr get-login-password --region ${REGION} | docker login --username AWS --password-stdin ${ECR_URI}"
                     sh "docker compose down"
                     sh "docker context use default"
                 }
-                sh "rm -f ecs-$PROJECT_ID"
+                sh "rm -f ${params.ProjectId}-ecs"
             }
         }
     }
