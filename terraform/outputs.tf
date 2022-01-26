@@ -13,6 +13,3 @@ output "alb_id" {
 output "domain" {
   value = module.networks.domain
 }
-output "db_security_group_id" {
-  value = module.rds.security_group_id
-}
