@@ -11,7 +11,6 @@ pipeline {
         choice(
             name: 'Env',
             choices: ['Dev', 'Staging', 'Prod'],
-            defaultValue: 'Dev',
             description: 'Deployment environment'
         )
         booleanParam(
@@ -22,7 +21,6 @@ pipeline {
         choice(
             name: 'Operation',
             choices: ['Apply', 'Destroy'],
-            defaultValue: 'Apply',
             description: 'Base infrastructure operation'
         )
     }
@@ -41,8 +39,8 @@ pipeline {
 
     stages {
         stage('Terraform Plan') {
-            dir("terraform") {
-                steps {
+            steps {
+                dir("terraform") {
                     script {
                         if(params.Operation == "Apply") {
                             def plan_file_path = "plans/apply-${COMMIT_HASH}.tf"
