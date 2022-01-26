@@ -58,8 +58,8 @@ pipeline {
                         env.JWT_SECRET  = aws_secrets.jwt_secret
                     }
 
-                    sh "aws s3 s3://$S3_BUCKET/terraform/output.tf ."
-                    def tf_output = readProperties file: 'output.tf'
+                    sh "aws s3 s3://$S3_BUCKET/env:/${params.Env}/terraform/output.txt ."
+                    def tf_output = readProperties file: 'output.txt'
                     env.DOMAIN = tf_output.domain
                     env.VPC_ID = tf_output.vpc_id
                     env.DB_URL = "mysql://${tf_output.db_url}/utopia"
