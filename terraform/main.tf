@@ -19,10 +19,8 @@ data "aws_ecr_repository" "bookings_microservice" {
 data "aws_secretsmanager_secret_version" "default" {
   secret_id = "${var.environment}/${var.project_id}/default"
 }
+
 locals {
-  secrets = jsondecode(
-    data.aws_secretsmanager_secret_version.default.secret_string
-  )
   vpc_cidr_block = "10.6.0.0/16"
 }
 

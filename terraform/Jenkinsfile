@@ -6,11 +6,11 @@ pipeline {
         string(
             name: 'ProjectId',
             defaultValue: 'utopia-AB',
-            description: 'Deployment environment'
+            description: 'Identifier applied to all names'
         )
         choice(
             name: 'Env',
-            choices: ['Dev', 'Staging', 'Prod'],
+            choices: ['dev', 'staging', 'prod'],
             description: 'Deployment environment'
         )
         booleanParam(
