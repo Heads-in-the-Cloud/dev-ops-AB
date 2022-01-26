@@ -1,18 +1,18 @@
 # ECR Repositories
 data "aws_ecr_repository" "reverse_proxy" {
-  name = format("reverse-proxy-%s", lower(var.project_id))
+  name = format("%s-reverse-proxy", lower(var.project_id))
 }
 
 data "aws_ecr_repository" "users_microservice" {
-  name = format("users-microservice-%s", lower(var.project_id))
+  name = format("%s-users-microservice", lower(var.project_id))
 }
 
 data "aws_ecr_repository" "flights_microservice" {
-  name = format("flights-microservice-%s", lower(var.project_id))
+  name = format("%s-flights-microservice", lower(var.project_id))
 }
 
 data "aws_ecr_repository" "bookings_microservice" {
-  name = format("bookings-microservice-%s", lower(var.project_id))
+  name = format("%s-bookings-microservice", lower(var.project_id))
 }
 
 # Key/Value pairs of root db creds, microservice user creds, and the JWT secret

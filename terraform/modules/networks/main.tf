@@ -29,8 +29,8 @@ resource "aws_subnet" "private" {
   map_public_ip_on_launch = false
 
   tags = {
-    Name = format("private-%d-%s", count.index + 1, var.project_id)
-    "kubernetes.io/cluster/default-${var.project_id}" = "shared"
+    Name = format("%s-private-%d", var.project_id, count.index + 1)
+    "kubernetes.io/cluster/${var.project_id}" = "shared"
     "kubernetes.io/role/internal-elb" = 1
   }
 }
@@ -43,8 +43,8 @@ resource "aws_subnet" "public" {
   map_public_ip_on_launch = true
 
   tags = {
-    Name = format("public-%d-%s", count.index + 1, var.project_id)
-    "kubernetes.io/cluster/default-${var.project_id}" = "shared"
+    Name = format("%s-public-%d", var.project_id, count.index + 1)
+    "kubernetes.io/cluster/${var.project_id}" = "shared"
     "kubernetes.io/role/elb" = 1
   }
 }
@@ -62,7 +62,7 @@ resource "aws_eip" "nat" {
   depends_on = [ aws_internet_gateway.default ]
 
   tags = {
-    Name     = "nat-${var.project_id}"
+    Name     = "${var.project_id}-nat"
   }
 }
 
@@ -96,7 +96,7 @@ resource "aws_route_table" "public" {
   }
 
   tags = {
-    Name = "public-${var.project_id}"
+    Name = "${var.project_id}-public"
   }
 }
 
@@ -104,7 +104,7 @@ resource "aws_route_table" "private" {
   vpc_id = aws_vpc.default.id
 
   tags = {
-    Name = "private-${var.project_id}"
+    Name = "${var.project_id}-private"
   }
 }
 

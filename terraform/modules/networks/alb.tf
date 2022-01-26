@@ -1,6 +1,6 @@
 // Application Load Balancer
 resource "aws_security_group" "alb" {
-  name        = "alb-${var.project_id}"
+  name        = "${var.project_id}-alb"
   description = "Open HTTP port"
   vpc_id      = aws_vpc.default.id
 
@@ -20,12 +20,12 @@ resource "aws_security_group" "alb" {
   }
 
   tags = {
-    Name = "alb-${var.project_id}"
+    Name = "${var.project_id}-alb"
   }
 }
 
 resource "aws_lb" "default" {
-  name               = "default-${var.project_id}"
+  name               = var.project_id
   internal           = false
   load_balancer_type = "application"
   subnets            = aws_subnet.public[*].id

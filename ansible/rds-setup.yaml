@@ -5,12 +5,12 @@
   vars:
     ## Get output.tf from S3
     project_id: utopia-AB
-    vpc_id:
+    vpc_id: vpc-03c969d96a6582247
     rds_subnet_group_id:
     rds_security_group_id:
     private_subnet_ids:
-      -
-      -
+      - subnet-09195778c8cff0010
+      - subnet-072b4ee3b133960bc
     #public_subnet_ids:
     #  -
     #  -
@@ -26,7 +26,7 @@
 - name: Create RDS instance
   community.aws.rds_instance:
     id: rds
-    identifier: "default-{{ lower(project_id) }}"
+    identifier: "{{ lower(project_id) }}"
     allocated_storage: 10
     engine: mysql
     engine_version: 8.0
