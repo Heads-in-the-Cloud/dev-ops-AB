@@ -71,9 +71,9 @@ EOF
                     //sh 'terraform init -no-color -input=false'
                     script {
                         if(params.Operation == "Apply") {
-                            sh "terraform plan -no-color -input=false ${env.plan_file_path}"
+                            sh "terraform plan -no-color -input=false -out ${env.plan_file_path}"
                         } else {
-                            sh "terraform plan -destroy -no-color -input=false ${env.plan_file_path}"
+                            sh "terraform plan -destroy -no-color -input=false -out ${env.plan_file_path}"
                         }
                     }
                     sh "aws s3 cp ${env.plan_file_path} s3://$S3_BUCKET/terraform/plans/"
