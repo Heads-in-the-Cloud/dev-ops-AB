@@ -89,8 +89,13 @@ EOF
             steps {
                 dir("terraform") {
                     sh "terraform apply -no-color -input=false ${env.plan_file_path}"
-                    sh 'terraform refresh -no-color'
-                    sh 'terraform output | tr -d \'\\\"\\ \' > ../../output.tf'
+                    script {
+                        if(params.Operation == "Apply") {
+                            sh 'terraform refresh -no-color'
+                            sh 'terraform output | tr -d \'\\\"\\ \' > output.tf'
+                            sh "aws s3 cp output.tf s3://$S3_BUCKET/terraform/"
+                        }
+                    }
                 }
             }
         }
