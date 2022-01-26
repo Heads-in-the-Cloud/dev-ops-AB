@@ -25,7 +25,7 @@ resource "aws_subnet" "private" {
   count                   = length(var.subnet_cidr_blocks.private)
   vpc_id                  = aws_vpc.default.id
   cidr_block              = var.subnet_cidr_blocks.private[count.index]
-  availability_zone       = random_shuffle.private_azs[count.index]
+  availability_zone       = random_shuffle.private_azs.result[count.index]
   map_public_ip_on_launch = false
 
   tags = {
@@ -39,7 +39,7 @@ resource "aws_subnet" "public" {
   count                   = length(var.subnet_cidr_blocks.public)
   vpc_id                  = aws_vpc.default.id
   cidr_block              = var.subnet_cidr_blocks.public[count.index]
-  availability_zone       = random_shuffle.public_azs[count.index]
+  availability_zone       = random_shuffle.public_azs.result[count.index]
   map_public_ip_on_launch = true
 
   tags = {
@@ -73,7 +73,7 @@ resource "random_shuffle" "nat_public_subnet_id" {
 
 resource "aws_nat_gateway" "default" {
   allocation_id = aws_eip.nat.id
-  subnet_id     = random_shuffle.nat_public_subnet_id
+  subnet_id     = random_shuffle.nat_public_subnet_id.result
   depends_on    = [ aws_internet_gateway.default ]
 
   tags = {
