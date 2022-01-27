@@ -72,6 +72,7 @@ pipeline {
                 sh "rm -f ${params.ProjectId}-ecs"
                 sh "ln -s ecs ${params.ProjectId}-ecs"
                 dir("${params.ProjectId}-ecs") {
+                    sh "echo ${USERS_IMAGE}"
                     sh "aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com"
                     sh "ENV=${params.Env} PROJECT_ID=${params.ProjectId} ansible-playbook up.yaml -f 10"
                 }
