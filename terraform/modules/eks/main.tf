@@ -61,22 +61,22 @@ POLICY
 
 resource "aws_iam_role_policy_attachment" "AmazonEKSClusterPolicy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
-  role       = aws_iam_role.eks_cluster.name
+  role       = aws_iam_role.eks.name
 }
 
 resource "aws_iam_role_policy_attachment" "AmazonEKSServicePolicy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSServicePolicy"
-  role       = aws_iam_role.eks_cluster.name
+  role       = aws_iam_role.eks.name
 }
 
 resource "aws_iam_role_policy_attachment" "AmazonEKSCloudWatchMetricsPolicy" {
   policy_arn = aws_iam_policy.AmazonEKSClusterCloudWatchMetricsPolicy.arn
-  role       = aws_iam_role.eks_cluster.name
+  role       = aws_iam_role.eks.name
 }
 
 resource "aws_iam_role_policy_attachment" "AmazonEKSCluserNLBPolicy" {
   policy_arn = aws_iam_policy.AmazonEKSClusterNLBPolicy.arn
-  role       = aws_iam_role.eks_cluster.name
+  role       = aws_iam_role.eks.name
 }
 resource "aws_eks_cluster" "default" {
   name     = var.project_id
