@@ -49,7 +49,7 @@ pipeline {
                     def tf_output = readProperties file: 'output.txt'
                     env.DOMAIN = tf_output.domain
                     env.VPC_ID = tf_output.vpc_id
-                    env.DB_URL = "mysql://${tf_output.db_url}/utopia"
+                    env.DB_URL = "mysql://${tf_output.db_url}:3306/utopia"
                     env.ALB_ID = tf_output.alb_id
 
                     def ecr_uri = "${AWS_ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com"
