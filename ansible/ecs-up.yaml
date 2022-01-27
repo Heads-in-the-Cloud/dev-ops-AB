@@ -16,8 +16,12 @@
     shell: docker context use "{{ project_id }}-ecs"
 
   - name: stand up ecs cluster
-    shell: docker compose up
+    shell: docker compose up > stdout.txt
     register: ecs_up
     tags: ecs_up
 
-  - debug: msg="{{ ecs_up.stdout_lines }}"
+  - name: read stdout
+    shell: cat stdout.txt
+    register: display
+
+  - debug: msg="{{ display.stdout_lines }}"
