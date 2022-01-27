@@ -26,22 +26,24 @@ pipeline {
     }
 
    environment {
-        COMMIT_HASH = sh(
-            script: "git rev-parse --short=8 HEAD",
-            returnStdout: true
-        ).trim()
         S3_BUCKET = params.ProjectId.toLowerCase()
-        REGION = sh(
-            script:'aws configure get region',
-            returnStdout: true
-        ).trim()
     }
 
     stages {
         stage('Plan') {
             steps {
                 dir("terraform") {
-                    sh """cat > terraform.tf << EOF
+                    withCredentials([[
+                        $class: 'AmazonWebServicesCredentialsBinding',
+                        credentialsId: "jenkins",
+                        accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                        secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                    ]]) {
+                        env.REGION = sh(
+                            script:'aws configure get region',
+                            returnStdout: true
+                        ).trim()
+                        sh """cat > terraform.tf << EOF
 terraform {
   backend "s3" {
     bucket  = "$S3_BUCKET"
@@ -51,20 +53,21 @@ terraform {
   }
 }
 EOF
-                    """
-                    sh """cat > terraform.tfvars << EOF
+                        """
+                        sh """cat > terraform.tfvars << EOF
 region = "$REGION"
 project_id = "${params.ProjectId}"
 environment = "${params.Env.toLowerCase()}"
 EOF
-                    """
-                    sh 'terraform init -input=false -migrate-state'
-                    sh "terraform workspace select ${params.Env} || terraform workspace new ${params.Env}"
-                    script {
-                        if(params.Operation == "Apply") {
-                            sh "terraform plan -input=false -out plan.bin"
-                        } else {
-                            sh "terraform plan -destroy -input=false -out plan.bin"
+                        """
+                        sh 'terraform init -input=false -migrate-state'
+                        sh "terraform workspace select ${params.Env} || terraform workspace new ${params.Env}"
+                        script {
+                            if(params.Operation == "Apply") {
+                                sh "terraform plan -input=false -out plan.bin"
+                            } else {
+                                sh "terraform plan -destroy -input=false -out plan.bin"
+                            }
                         }
                     }
                     sh "terraform show plan.bin"
@@ -81,10 +84,17 @@ EOF
 
             steps {
                 dir("terraform") {
-                    sh "terraform apply -input=false plan.bin"
-                    sh 'terraform refresh'
-                    sh "terraform output --json | jq 'with_entries(.value |= .value)' > output.json"
-                    sh "aws s3 cp output.json s3://$S3_BUCKET/env:/${params.Env}/"
+                    withCredentials([[
+                        $class: 'AmazonWebServicesCredentialsBinding',
+                        credentialsId: "jenkins",
+                        accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                        secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                    ]]) {
+                        sh "terraform apply -input=false plan.bin"
+                        sh 'terraform refresh'
+                        sh "terraform output --json | jq 'with_entries(.value |= .value)' > output.json"
+                        sh "aws s3 cp output.json s3://$S3_BUCKET/env:/${params.Env}/"
+                    }
                 }
             }
         }
@@ -98,7 +108,14 @@ EOF
 
             steps {
                 dir("terraform") {
-                    sh "terraform apply -input=false plan.bin"
+                    withCredentials([[
+                        $class: 'AmazonWebServicesCredentialsBinding',
+                        credentialsId: "jenkins",
+                        accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                        secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                    ]]) {
+                        sh "terraform apply -input=false plan.bin"
+                    }
                 }
             }
         }
