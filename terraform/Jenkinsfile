@@ -39,11 +39,12 @@ pipeline {
                         accessKeyVariable: 'AWS_ACCESS_KEY_ID',
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
-                        def region = sh(
-                            script:'aws configure get region',
-                            returnStdout: true
-                        ).trim()
-                        sh """cat > terraform.tf << EOF
+                        script {
+                            def region = sh(
+                                script:'aws configure get region',
+                                returnStdout: true
+                            ).trim()
+                            sh """cat > terraform.tf << EOF
 terraform {
   backend "s3" {
     bucket  = "$S3_BUCKET"
@@ -53,16 +54,15 @@ terraform {
   }
 }
 EOF
-                        """
-                        sh """cat > terraform.tfvars << EOF
+                            """
+                            sh """cat > terraform.tfvars << EOF
 region = "$region"
 project_id = "${params.ProjectId}"
 environment = "${params.Env.toLowerCase()}"
 EOF
                         """
-                        sh 'terraform init -input=false -migrate-state'
-                        sh "terraform workspace select ${params.Env} || terraform workspace new ${params.Env}"
-                        script {
+                            sh 'terraform init -input=false -migrate-state'
+                            sh "terraform workspace select ${params.Env} || terraform workspace new ${params.Env}"
                             if(params.Operation == "Apply") {
                                 sh "terraform plan -input=false -out plan.bin"
                             } else {
