@@ -71,7 +71,7 @@ pipeline {
             steps {
                 sh "ln -fs ecs ${params.ProjectId}-ecs"
                 dir("${params.ProjectId}-ecs") {
-                    sh "ENV=${params.Env} PROJECT_ID=${params.ProjectId} ansible-playbook ../ansible/ecs-up.yaml -f 10"
+                    sh "ENV=${params.Env} PROJECT_ID=${params.ProjectId} ansible-playbook up.yaml -f 10"
                 }
             }
         }
@@ -84,7 +84,7 @@ pipeline {
             }
             steps {
                 dir("${params.ProjectId}-ecs") {
-                    sh "ENV=${params.Env} PROJECT_ID=${params.ProjectId} ansible-playbook ../ansible/ecs-down.yaml -f 10"
+                    sh "ENV=${params.Env} PROJECT_ID=${params.ProjectId} ansible-playbook down.yaml -f 10"
                 }
                 sh "rm -f ${params.ProjectId}-ecs"
             }
