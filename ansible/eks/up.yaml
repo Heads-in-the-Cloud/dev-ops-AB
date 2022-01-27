@@ -9,18 +9,22 @@
 
   tasks:
 
-  - name: use pre-created ecs docker context
-    shell: docker context use "{{ project_id }}-ecs"
+  - name: Create Fargate Profile
+    community.aws.aws_eks_cluster:
+      name: "{{ project_id }}"
+      version: 1.14
+      role_arn: "{{ eks_role_arn }}"
+      subnets: ["{{ private_subnet_ids }}"]
+    register: caller_facts
 
-  - name: stand up ecs cluster
-    shell: docker compose up
-    environment:
-      DB_USERNAME: "{{ secrets.db_username }}"
-      DB_PASSWORD: "{{ secrets.db_password }}"
-      JWT_SECRET: "{{ secrets.jwt_secret }}"
-    register: ecs_up
-    tags: ecs_up
+  - debug: msg="{{ caller_facts }}"
 
-  - debug: msg="{{ ecs_up.stderr }}"
+  - name: Create an EKS cluster
+    community.aws.aws_eks_cluster:
+      name: "{{ project_id }}"
+      version: 1.14
+      role_arn: "{{ eks_role_arn }}"
+      subnets: ["{{ private_subnet_ids }}"]
+    register: caller_facts
 
-  - debug: msg="{{ ecs_up.stdout }}"
+  - debug: msg="{{ caller_facts }}"

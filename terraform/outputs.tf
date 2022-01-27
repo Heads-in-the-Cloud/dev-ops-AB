@@ -16,3 +16,9 @@ output "db_url" {
 output "domain" {
   value = module.networks.domain
 }
+output "eks_endpoint" {
+  value = module.eks.endpoint
+}
+output "kubeconfig_certificate_authority_data" {
+  value = module.eks.kubeconfig_certificate_authority_data
+}

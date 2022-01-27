@@ -3,6 +3,6 @@ resource "aws_cloudwatch_log_group" "eks_cluster" {
   retention_in_days = 30
 
   tags = {
-    Name        = "${var.project_id}-eks-cloudwatch-log-group"
+    Name = "${var.project_id}-eks-cloudwatch-log-group"
   }
 }

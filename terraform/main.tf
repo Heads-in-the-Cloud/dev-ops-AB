@@ -68,12 +68,12 @@ resource "random_shuffle" "bastion_subnet_id" {
 }
 
 module "bastion" {
-  source         = "./modules/bastion"
-  policy_arn     = data.aws_iam_policy.read_s3.arn
-  instance_type  = "t2.micro"
-  vpc_id         = module.networks.vpc_id
-  subnet_id      = random_shuffle.bastion_subnet_id.result[0]
-  user_data      = templatefile("${path.root}/user_data.sh", {
+  source        = "./modules/bastion"
+  policy_arn    = data.aws_iam_policy.read_s3.arn
+  instance_type = "t2.micro"
+  vpc_id        = module.networks.vpc_id
+  subnet_id     = random_shuffle.bastion_subnet_id.result[0]
+  user_data     = templatefile("${path.root}/user_data.sh", {
     s3_bucket        = lower(var.project_id)
     db_host          = module.rds.instance_address
     db_root_username = local.secrets.db_root_username
@@ -83,4 +83,11 @@ module "bastion" {
   })
 
   project_id = var.project_id
+}
+
+module "eks" {
+  source      = "./modules/eks"
+  project_id  = var.project_id
+  environment = var.environment
+  subnet_ids  = module.networks.subnet_ids.private
 }

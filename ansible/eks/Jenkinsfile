@@ -70,7 +70,7 @@ pipeline {
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
                         sh "aws s3 cp s3://$S3_BUCKET/env:/${params.Env}/output.json ."
-                        sh "ansible-playbook up.yaml -f 10 --extra-vars @output.json"
+                        sh "ENV=${params.Env} PROJECT_ID=${params.ProjectId} ansible-playbook up.yaml -f 10 --extra-vars @output.json"
                     }
                 }
             }
@@ -90,7 +90,7 @@ pipeline {
                         accessKeyVariable: 'AWS_ACCESS_KEY_ID',
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
-                        sh "ansible-playbook down.yaml -f 10 --extra-vars @output.json"
+                        sh "ENV=${params.Env} PROJECT_ID=${params.ProjectId} ansible-playbook down.yaml -f 10 --extra-vars @output.json"
                     }
                 }
             }
