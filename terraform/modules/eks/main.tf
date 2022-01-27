@@ -91,11 +91,11 @@ resource "aws_iam_role_policy_attachment" "AmazonEC2ContainerRegistryReadOnly" {
   role       = aws_iam_role.eks_nodes.name
 }
 
-resource "aws_eks_node_group" "node" {
-  cluster_name    = aws_eks_cluster.eks_cluster.name
-  node_group_name = "node_group1"
+resource "aws_eks_node_group" "default" {
+  cluster_name    = aws_eks_cluster.default.name
+  node_group_name = var.project_id
   node_role_arn   = aws_iam_role.eks_nodes.arn
-  subnet_ids      = ["subnet-","subnet-"]
+  subnet_ids      = subnets.eks_node_group
 
   scaling_config {
     desired_size = 1
