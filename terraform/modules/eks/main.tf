@@ -74,7 +74,7 @@ resource "aws_iam_role_policy_attachment" "AmazonEKSCloudWatchMetricsPolicy" {
   role       = aws_iam_role.eks.name
 }
 
-resource "aws_iam_role_policy_attachment" "AmazonEKSCluserNLBPolicy" {
+resource "aws_iam_role_policy_attachment" "AmazonEKSClusterNLBPolicy" {
   policy_arn = aws_iam_policy.AmazonEKSClusterNLBPolicy.arn
   role       = aws_iam_role.eks.name
 }
