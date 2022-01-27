@@ -12,7 +12,7 @@
       aws eks --region "{{ region }}" update-kubeconfig --name "{{ project_id }}"
       kubectl config \
         --kubeconfig="{{ project_id }}" \
-        --set-cluster="{{ project_id }}"  \
+        set-cluster "{{ project_id }}"  \
         --server="{{ eks_endpoint }}" \
         --certificate-authority="{{ kubeconfig_certificate_authority_data }}"
 
