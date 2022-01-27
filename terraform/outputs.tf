@@ -16,6 +16,3 @@ output "db_url" {
 output "domain" {
   value = module.networks.domain
 }
-output "eks_role_arn" {
-  value = aws_iam_role.eks_cluster_role.arn
-}
