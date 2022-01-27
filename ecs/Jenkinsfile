@@ -65,16 +65,15 @@ pipeline {
                     env.DB_URL = "mysql://${tf_output.db_url}/utopia"
                     env.ALB_ID = tf_output.alb_id
 
-                    def repo_prefix = "$ecr_uri/${env.PROJECT_ID.toLowerCase()}"
-                    image_suffixes = {
-                        reverse_proxy: "reverse-proxy:latest",
-                        flights_microservice: "reverse-proxy:latest",
-                        users_microservice: "reverse-proxy:latest",
-                        bookings_microserivice: "reverse-proxy:latest",
-                    }
-                    for(image_suffix in image_suffixes) {
-                        env[image_suffix.key.toUpper_case}] = \
-                            "${repo_prefix.toLowerCase()}-${image_suffix.value}"
+                    def images = [
+                        "reverse-proxy",
+                        "flights-microservice":,
+                        "users-microservice":,
+                        "bookings-microserivice":,
+                    ]
+                    for(image in images) {
+                        def image_url = "$ecr_uri/${env.PROJECT_ID.toLowerCase()}-$image:latest"
+                        env["${image.replace('-', '_').toUpperCase()}_IMAGE"] = image_url
                     }
                 }
             }
