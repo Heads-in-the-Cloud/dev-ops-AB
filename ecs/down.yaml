@@ -6,19 +6,24 @@
     env: "{{ lookup('env', 'ENV') }}"
     project_id: "{{ lookup('env', 'PROJECT_ID') }}"
     secrets: "{{ lookup('amazon.aws.aws_secret', '{{ env | lower }}/{{ project_id }}/default') }}"
-    username: "{{ secrets.user_username }}"
-    password: "{{ secrets.user_password }}"
-    jwt_token: "{{ secrets.jwt_token }}"
 
   tasks:
 
   - name: use pre-created ecs docker context
     shell: docker context use "{{ project_id }}-ecs"
 
-  - name: stand up ecs cluster
-    shell: docker compose down
-    register: ecs_down
-    tags: ecs_down
+  - name: set secrets as environment variables
+    shell:
+      export DB_USERNAME="{{ secrets.db_username }}"
+      export DB_PASSWORD="{{ secrets.db_password }}"
+      export JWT_SECRET="{{ secrets.jwt_secret }}"
 
-  - debug: msg="{{ ecs_down.stdout_lines }}"
+  - name: take down ecs cluster
+    shell: docker compose down
+    register: ecs_up
+    tags: ecs_up
+
+  - debug: msg="{{ ecs_up.stderr }}"
+
+  - debug: msg="{{ ecs_up.stdout }}"
 
