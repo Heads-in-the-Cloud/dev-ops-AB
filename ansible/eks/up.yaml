@@ -11,11 +11,12 @@
     shell: printf "{{ kubeconfig_certificate_authority_data }}">ca_auth
   - name: Connect to EKS cluster
     shell:
-      kubectl config
-        --kubeconfig="{{ project_id }}"
-        set-cluster "{{ project_id }}"
-        --server="{{ eks_endpoint }}"
-        --certificate-authority=ca_auth
+      aws eks --region "{{ region }}" update-kubeconfig --name "{{ project_id }}"
+      #kubectl config
+      #  --kubeconfig="{{ project_id }}"
+      #  set-cluster "{{ project_id }}"
+      #  --server="{{ eks_endpoint }}"
+      #  --certificate-authority=ca_auth
     register: kubeconfig
 
   - debug: msg="{{ kubeconfig.stdout }}"
