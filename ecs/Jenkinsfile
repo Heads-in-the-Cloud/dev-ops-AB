@@ -60,7 +60,7 @@ pipeline {
                         "bookings-microserivice",
                     ]
                     for(image in images) {
-                        def image_url = "$ecr_uri/${env.PROJECT_ID.toLowerCase()}-$image:latest"
+                        def image_url = "$ecr_uri/${params.Env.toLowerCase()}-$image:latest"
                         env["${image.replace('-', '_').toUpperCase()}_IMAGE"] = image_url
                     }
                 }
