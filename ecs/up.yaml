@@ -6,26 +6,17 @@
     env: "{{ lookup('env', 'ENV') }}"
     project_id: "{{ lookup('env', 'PROJECT_ID') }}"
     secrets: "{{ lookup('amazon.aws.aws_secret', '{{ env | lower }}/{{ project_id }}/default') }}"
-    username: "{{ secrets.user_username }}"
-    password: "{{ secrets.user_password }}"
-    jwt_token: "{{ secrets.jwt_token }}"
 
   tasks:
 
   - name: use pre-created ecs docker context
     shell: docker context use "{{ project_id }}-ecs"
 
-  - name: output vars
-    shell: echo "{{ env }}" >>vars.txt
-
-  - name: output vars
-    shell: echo "{{ project_id }}" >>vars.txt
-
-  - name: output vars
-    shell: echo "{{ username }}" >>vars.txt
-
-  - name: output vars
-    shell: echo "{{ password }}" >>vars.txt
+  - name: set secrets as environment variables
+    shell:
+      export DB_USERNAME="{{ secrets.user_username }}"
+      export DB_PASSWORD="{{ secrets.user_password }}"
+      export JWT_TOKEN="{{ secrets.jwt_token }}"
 
   - name: stand up ecs cluster
     shell: docker compose up
