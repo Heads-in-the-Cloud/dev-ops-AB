@@ -15,7 +15,7 @@ resource "aws_iam_role" "fargate_profile" {
 
 resource "aws_iam_role_policy_attachment" "example-AmazonEKSFargatePodExecutionRolePolicy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSFargatePodExecutionRolePolicy"
-  role       = aws_iam_role.fargate.name
+  role       = aws_iam_role.fargate_profile.name
 }
 resource "aws_eks_fargate_profile" "default" {
   cluster_name           = aws_eks_cluster.default.name
