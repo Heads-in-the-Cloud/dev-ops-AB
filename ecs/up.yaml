@@ -19,8 +19,7 @@
       export JWT_SECRET="{{ secrets.jwt_secret }}"
 
   - name: echo pre-existing env var
-    shell:
-    env: "echo {{ lookup('env', 'ALB_ID') }}"
+    shell: "echo {{ lookup('env', 'ALB_ID') }}"
 
   - name: stand up ecs cluster
     shell: docker compose up
