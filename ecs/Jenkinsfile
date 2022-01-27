@@ -70,7 +70,7 @@ pipeline {
         stage('Deploy ECS') {
             when {
                 expression {
-                    !params.Down
+                    params.Operation == "Up"
                 }
             }
             steps {
@@ -84,7 +84,7 @@ pipeline {
         stage('Destroy ECS') {
             when {
                 expression {
-                    params.Down
+                    params.Operation == "Down"
                 }
             }
             steps {
