@@ -18,10 +18,6 @@
       export DB_PASSWORD="{{ secrets.db_password }}"
       export JWT_SECRET="{{ secrets.jwt_secret }}"
 
-  - name: echo pre-existing env var
-    shell: "echo {{ lookup('env', 'ALB_ID') }}"
-    register: test
-
   - debug: msg="{{ test.stdout }}"
   - name: stand up ecs cluster
     shell: docker compose up
