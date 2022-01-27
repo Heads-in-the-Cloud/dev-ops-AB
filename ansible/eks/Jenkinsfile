@@ -94,7 +94,7 @@ pipeline {
                         sh """
                             ansible-playbook down.yaml \
                                 -e @output.json \
-                                -e "region=$REGION env=${params.ENV} project_id=${params.ProjectId}"
+                                -e "region=$REGION env=${params.Env} project_id=${params.ProjectId}"
                         """
                     }
                 }
