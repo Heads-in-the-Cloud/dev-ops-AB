@@ -53,7 +53,7 @@ pipeline {
                     env.ALB_ID = tf_output.alb_id
 
                     def ecr_uri = "https://${AWS_ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com"
-                    def image_prefix = "$ecr_uri/${params.Env.toLowerCase()}"
+                    def image_prefix = "$ecr_uri/${params.ProjectId.toLowerCase()}"
                     env.REVERSE_PROXY_IMAGE = "$image_prefix-reverse-proxy:latest"
                     env.USERS_IMAGE    = "$image_prefix-users-microservice:latest"
                     env.BOOKINGS_IMAGE = "$image_prefix-bookings-microservice:latest"
