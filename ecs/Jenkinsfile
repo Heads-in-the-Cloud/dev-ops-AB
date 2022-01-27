@@ -39,7 +39,6 @@ pipeline {
             returnStdout: true
         ).trim()
 
-        ecr_uri = "https://${AWS_ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com"
    }
 
     stages {
@@ -53,8 +52,9 @@ pipeline {
                     env.DB_URL = "mysql://${tf_output.db_url}/utopia"
                     env.ALB_ID = tf_output.alb_id
 
+                    def ecr_uri = "https://${AWS_ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com"
                     def image_prefix = "$ecr_uri/${params.Env.toLowerCase()}"
-                    env.REVERSE_PROXY_IMAGE   = "$image_prefix-reverse-proxy:latest"
+                    env.REVERSE_PROXY_IMAGE = "$image_prefix-reverse-proxy:latest"
                     env.USERS_IMAGE    = "$image_prefix-users-microservice:latest"
                     env.BOOKINGS_IMAGE = "$image_prefix-bookings-microservice:latest"
                     env.FLIGHTS_IMAGE  = "$image_prefix-flights-microservice:latest"
@@ -71,7 +71,7 @@ pipeline {
             steps {
                 sh "ln -fs ecs ${params.ProjectId}-ecs"
                 dir("${params.ProjectId}-ecs") {
-                    sh "ENV=${params.Env} PROJECT_ID=${params.ProjectId} ansible-playbook ecs-up.yaml -f 10"
+                    sh "ENV=${params.Env} PROJECT_ID=${params.ProjectId} ansible-playbook ../ansible/ecs-up.yaml -f 10"
                 }
             }
         }
@@ -84,7 +84,7 @@ pipeline {
             }
             steps {
                 dir("${params.ProjectId}-ecs") {
-                    sh "ENV=${params.Env} PROJECT_ID=${params.ProjectId} ansible-playbook ecs-down.yaml -f 10"
+                    sh "ENV=${params.Env} PROJECT_ID=${params.ProjectId} ansible-playbook ../ansible/ecs-down.yaml -f 10"
                 }
                 sh "rm -f ${params.ProjectId}-ecs"
             }
