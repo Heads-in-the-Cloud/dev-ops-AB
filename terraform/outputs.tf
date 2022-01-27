@@ -21,4 +21,5 @@ output "eks_endpoint" {
 }
 output "kubeconfig_certificate_authority_data" {
   value = module.eks.kubeconfig_certificate_authority_data
+  sensitive = true
 }
