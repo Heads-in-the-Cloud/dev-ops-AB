@@ -3,9 +3,10 @@
   connection: local
 
   vars:
-    ## Get output.tf from S3
+    ## Get tf output from S3
     project_id: AB-utopia
     vpc_id: vpc-09ba651230e7b79fe
+    environment: Dev
     db_security_group_id: sg-04119c0be0c817ec9
     private_subnet_ids:
       - subnet-0dcbbfb382383795a
@@ -13,40 +14,34 @@
     public_subnet_ids:
       - subnet-03172ec61f12bdd6e
       - subnet-09b4ecefc7812eb31
-    ## Obtain db root & user creds from secrets manager
-    root_username: root
-    root_password: temporary
-    user_username: user
-    user_password: temporary
+    eks_sec_group:
+    ## Obtain db user creds from secrets manager
+    secrets: lookup( \
+      'amazon.aws.aws_secret', \
+      '{{ environment | lower }}/{{ project_id }}/default' \
+    )
+    username: "{{ secrets.user_username }}"
+    password: "{{ secrets.user_password }}"
+    jwt_token: "{{ secrets.jwt_token }}"
 
   tasks:
 
   - name: Get
     amazon.aws.aws_s3:
       bucket: ab-utopia
-      object: s3://terraform/output.tf
+      object: "s3://env:/{{ environment }}/output.txt"
       dest: .
       mode: get
 
-  - name: Set myParam from ini
-    set_fact:
-      myParam: "{{ lookup('ini', 'section=mySection, file='output.tf') }}"
-
   # Create EKS cluster and attach to ALB
 
-  ## Create RDS w/ admin creds
-  - name: Create RDS instance
-    community.aws.rds_instance:
-      id: "{{ project_id | lower }}"
-      allocated_storage: 10
-      engine: mysql
-      port: rds_port
-      engine_version: 8.0
-      db_instance_class: db.t2.micro
-      username: "{{ root_username }}"
-      password: "{{ root_password }}"
-      db_subnet_group_name: "{{ project_id | lower }}"
-      vpc_security_group_ids: "{{ db_security_group_id }}"
+  - name: Create an EKS cluster
+    community.aws.aws_eks_cluster:
+      name: "{{ project_id }}"
+      version: 1.14
+      role_arn: "{{ eks_role_arn }}"
+      subnets: ["{{ private_subnet_ids }}"]
+    register: caller_facts
 
   ## Create Bastion as EC2 instance w/ AMI, SecGroup, & S3 read permissions from IAM
   ## Wait for RDS to become available
