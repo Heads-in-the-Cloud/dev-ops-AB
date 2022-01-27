@@ -2,17 +2,17 @@
 - hosts: 127.0.0.1
   connection: local
 
-vars:
-  environment: Dev
-  secrets: lookup( \
-    'amazon.aws.aws_secret', \
-    '{{ environment | lower }}/{{ project_id }}/default' \
-  )
-  username: "{{ secrets.user_username }}"
-  password: "{{ secrets.user_password }}"
-  jwt_token: "{{ secrets.jwt_token }}"
+  vars:
+    environment: Dev
+    secrets: lookup( \
+      'amazon.aws.aws_secret', \
+      '{{ environment | lower }}/{{ project_id }}/default' \
+    )
+    username: "{{ secrets.user_username }}"
+    password: "{{ secrets.user_password }}"
+    jwt_token: "{{ secrets.jwt_token }}"
 
-tasks:
+  tasks:
 
   - name: cd into soft link
     shell: cd "{{ project_id }}-ecs"
