@@ -53,15 +53,11 @@ pipeline {
                     env.DB_URL = "mysql://${tf_output.db_url}/utopia"
                     env.ALB_ID = tf_output.alb_id
 
-                    def images = [
-                        "reverse-proxy",
-                        "flights-microservice",
-                        "users-microservice",
-                        "bookings-microserivice",
-                    ]
-                    for(image in images) {
-                        def image_url = "$ecr_uri/${params.Env.toLowerCase()}-$image:latest"
-                        env["${image.replace('-', '_').toUpperCase()}_IMAGE"] = image_url
+                    def image_prefix = "$ecr_uri/${params.Env.toLowerCase()}"
+                    env["REVERSE_PROXY_IMAGE"] = "$image_prefix-reverse-proxy:latest"
+                    env["USERS_MICROSERVICE"] = "$image_prefix-users-microservice:latest"
+                    env["BOOKINGS_MICROSERVICE"] = "$image_prefix-bookings-microservice:latest"
+                    env["FLIGHTS_MICROSERVICE"] = "$image_prefix-flights-microservice:latest"
                     }
                 }
             }
