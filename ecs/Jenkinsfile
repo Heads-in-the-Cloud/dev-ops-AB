@@ -58,7 +58,6 @@ pipeline {
                     env["USERS_MICROSERVICE"] = "$image_prefix-users-microservice:latest"
                     env["BOOKINGS_MICROSERVICE"] = "$image_prefix-bookings-microservice:latest"
                     env["FLIGHTS_MICROSERVICE"] = "$image_prefix-flights-microservice:latest"
-                    }
                 }
             }
         }
