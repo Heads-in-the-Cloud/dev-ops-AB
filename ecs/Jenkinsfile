@@ -58,6 +58,18 @@ pipeline {
                     env.USERS_IMAGE    = "$image_prefix-users-microservice:latest"
                     env.BOOKINGS_IMAGE = "$image_prefix-bookings-microservice:latest"
                     env.FLIGHTS_IMAGE  = "$image_prefix-flights-microservice:latest"
+
+                    withCredentials([
+                        string(
+                            credentialsId: "${params.Env.toLowerCase()}/${params.ProjectId}/default",
+                            variable: 'SECRETS'
+                        )
+                    ]) {
+                        def aws_secrets = readJSON text: SECRETS
+                        env.DB_USERNAME = aws_secrets.db_username
+                        env.DB_PASSWORD = aws_secrets.db_password
+                        env.JWT_SECRET  = aws_secrets.jwt_secret
+                    }
                 }
             }
         }
@@ -69,12 +81,11 @@ pipeline {
                 }
             }
             steps {
-                sh "rm -f ${params.ProjectId}-ecs"
-                sh "ln -s ecs ${params.ProjectId}-ecs"
+                sh "ln -sf ecs ${params.ProjectId}-ecs"
                 dir("${params.ProjectId}-ecs") {
-                    sh "echo ${USERS_IMAGE}"
-                    sh "aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com"
-                    sh "ENV=${params.Env} PROJECT_ID=${params.ProjectId} ansible-playbook up.yaml -f 10"
+                    sh "docker context use ${params.Project_id}-ecs"
+                    sh "docker compose up"
+                    sh "docker context default"
                 }
             }
         }
@@ -87,9 +98,10 @@ pipeline {
             }
             steps {
                 dir("${params.ProjectId}-ecs") {
-                    sh "ENV=${params.Env} PROJECT_ID=${params.ProjectId} ansible-playbook down.yaml -f 10"
+                    sh "docker context use ${params.Project_id}-ecs"
+                    sh "docker compose down"
+                    sh "docker context default"
                 }
-                sh "rm -f ${params.ProjectId}-ecs"
             }
         }
     }
