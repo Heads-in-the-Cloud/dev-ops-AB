@@ -8,7 +8,7 @@
   tasks:
 
   - name: Store CA auth in file
-    shell: printf {{ kubeconfig_certificate_authority_data }}">ca_auth
+    shell: printf "{{ kubeconfig_certificate_authority_data }}">ca_auth
   - name: Connect to EKS cluster
     shell:
       aws eks --region "{{ region }}" update-kubeconfig --name "{{ project_id }}"
