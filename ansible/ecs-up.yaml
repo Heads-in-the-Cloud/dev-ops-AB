@@ -20,4 +20,4 @@
     register: ecs_up
     tags: ecs_up
 
-  - debug: msg="{{ ecs_up.stdout }}"
+  - debug: msg="{{ ecs_up.stdout_lines }}"

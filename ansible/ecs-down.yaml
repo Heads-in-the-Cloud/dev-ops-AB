@@ -20,5 +20,5 @@
     register: ecs_down
     tags: ecs_down
 
-  - debug: msg="{{ ecs_down.stdout }}"
+  - debug: msg="{{ ecs_down.stdout_lines }}"
 
