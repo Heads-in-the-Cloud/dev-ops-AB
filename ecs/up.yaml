@@ -21,6 +21,10 @@
       DB_USERNAME: "{{ secrets.db_username }}"
       DB_PASSWORD: "{{ secrets.db_password }}"
       JWT_SECRET: "{{ secrets.jwt_secret }}"
+      REVERSE_PROXY_IMAGE: "{{ lookup('env', 'REVERSE_PROXY_IMAGE') }}"
+      FLIGHTS_IMAGE: "{{ lookup('env', 'FLIGHTS_IMAGE') }}"
+      BOOKINGS_IMAGE: "{{ lookup('env', 'BOOKINGS_IMAGE') }}"
+      USERS_IMAGE: "{{ lookup('env', 'USERS_IMAGE') }}"
     register: ecs_up
     tags: ecs_up
 
