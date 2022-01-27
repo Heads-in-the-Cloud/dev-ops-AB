@@ -17,3 +17,7 @@
 
   - name: stand up ecs cluster
     shell: docker compose up
+    register: ecs_up
+    tags: ecs_up
+
+  - debug: msg="{{ ecs_up.stdout }}"
