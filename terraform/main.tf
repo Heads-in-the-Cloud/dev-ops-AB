@@ -89,5 +89,11 @@ module "eks" {
   source      = "./modules/eks"
   project_id  = var.project_id
   environment = var.environment
-  subnet_ids  = module.networks.subnet_ids.private
+  subnet_ids  = {
+    eks_node_group = module.networks.subnet_ids.private
+    eks            = concat(
+      module.networks.subnet_ids.private,
+      module.networks.subnet_ids.public
+    )
+  }
 }

@@ -1,44 +1,81 @@
-resource "aws_iam_policy" "AmazonEKSClusterCloudWatchMetricsPolicy" {
-  name   = "AmazonEKSClusterCloudWatchMetricsPolicy"
-  policy = <<EOF
+# Creating IAM role for Kubernetes clusters to make calls to other AWS services on your behalf to manage the resources that you use with the service.
+
+resource "aws_iam_role" "default" {
+  name = "${var.project_id}-eks"
+  assume_role_policy = <<POLICY
 {
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Action": [
-                "cloudwatch:PutMetricData"
-            ],
-            "Resource": "*",
-            "Effect": "Allow"
-        }
-    ]
-}
-EOF
+ "Version": "2012-10-17",
+ "Statement": [
+   {
+   "Effect": "Allow",
+   "Principal": {
+    "Service": "eks.amazonaws.com"
+   },
+   "Action": "sts:AssumeRole"
+   }
+  ]
+ }
+POLICY
 }
 
-resource "aws_iam_policy" "AmazonEKSClusterNLBPolicy" {
-  name   = "AmazonEKSClusterNLBPolicy"
-  policy = <<EOF
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Action": [
-                "elasticloadbalancing:*",
-                "ec2:CreateSecurityGroup",
-                "ec2:Describe*"
-            ],
-            "Resource": "*",
-            "Effect": "Allow"
-        }
-    ]
-}
-EOF
+# Attaching the EKS-Cluster policies to the terraformekscluster role.
+
+resource "aws_iam_role_policy_attachment" "AmazonEKSClusterPolicy" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+  role       = aws_iam_role.default.name
 }
 
-resource "aws_iam_role" "eks" {
-  name                  = "${var.project_id}-eks"
-  force_detach_policies = true
+
+# Security group for network traffic to and from AWS EKS Cluster.
+
+resource "aws_security_group" "default" {
+  name        = "${var.project_id}-eks"
+  vpc_id      = var.vpc_id
+
+# Egress allows Outbound traffic from the EKS cluster to the  Internet
+
+  egress {                   # Outbound Rule
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+# Ingress allows Inbound traffic to EKS cluster from the  Internet
+
+  ingress {                  # Inbound Rule
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+}
+
+# Creating the EKS cluster
+
+resource "aws_eks_cluster" "default" {
+  name     = var.project_id
+  role_arn =  aws_iam_role.default.arn
+  version  = "1.19"
+
+# Adding VPC Configuration
+
+  vpc_config {             # Configure EKS with vpc and network settings
+    security_group_ids = [ aws_security_group.default.id ]
+    subnet_ids         = var.subnet_ids.eks
+  }
+
+  depends_on = [
+    aws_iam_role_policy_attachment.AmazonEKSClusterPolicy,
+    aws_iam_role_policy_attachment.AmazonEKSServicePolicy,
+   ]
+}
+
+# Creating IAM role for EKS nodes to work with other AWS Services.
+
+
+resource "aws_iam_role" "eks_nodes" {
+  name = "eks-node-group"
 
   assume_role_policy = <<POLICY
 {
@@ -47,10 +84,7 @@ resource "aws_iam_role" "eks" {
     {
       "Effect": "Allow",
       "Principal": {
-        "Service": [
-          "eks.amazonaws.com",
-          "eks-fargate-pods.amazonaws.com"
-          ]
+        "Service": "ec2.amazonaws.com"
       },
       "Action": "sts:AssumeRole"
     }
@@ -59,40 +93,40 @@ resource "aws_iam_role" "eks" {
 POLICY
 }
 
-resource "aws_iam_role_policy_attachment" "AmazonEKSClusterPolicy" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
-  role       = aws_iam_role.eks.name
+# Attaching the different Policies to Node Members.
+
+resource "aws_iam_role_policy_attachment" "AmazonEKSWorkerNodePolicy" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+  role       = aws_iam_role.eks_nodes.name
 }
 
-resource "aws_iam_role_policy_attachment" "AmazonEKSServicePolicy" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSServicePolicy"
-  role       = aws_iam_role.eks.name
+resource "aws_iam_role_policy_attachment" "AmazonEKS_CNI_Policy" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+  role       = aws_iam_role.eks_nodes.name
 }
 
-resource "aws_iam_role_policy_attachment" "AmazonEKSCloudWatchMetricsPolicy" {
-  policy_arn = aws_iam_policy.AmazonEKSClusterCloudWatchMetricsPolicy.arn
-  role       = aws_iam_role.eks.name
+resource "aws_iam_role_policy_attachment" "AmazonEC2ContainerRegistryReadOnly" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+  role       = aws_iam_role.eks_nodes.name
 }
 
-resource "aws_iam_role_policy_attachment" "AmazonEKSClusterNLBPolicy" {
-  policy_arn = aws_iam_policy.AmazonEKSClusterNLBPolicy.arn
-  role       = aws_iam_role.eks.name
-}
-resource "aws_eks_cluster" "default" {
-  name     = var.project_id
-  role_arn = aws_iam_role.eks.arn
+# Create EKS cluster node group
 
-  vpc_config {
-    subnet_ids = var.subnet_ids
+resource "aws_eks_node_group" "default" {
+  cluster_name    = aws_eks_cluster.default.name
+  node_group_name = "${var.project_id}-default"
+  node_role_arn   = aws_iam_role.default.arn
+  subnet_ids      = var.subnet_ids.eks_node_group
+
+  scaling_config {
+    desired_size = 1
+    max_size     = 1
+    min_size     = 1
   }
 
-  # Ensure that IAM Role permissions are created before and deleted after EKS Cluster handling.
-  # Otherwise, EKS will not be able to properly delete EKS managed EC2 infrastructure such as Security Groups.
   depends_on = [
-    aws_iam_role_policy_attachment.AmazonEKSClusterPolicy,
-    aws_iam_role_policy_attachment.AmazonEKSServicePolicy,
-    aws_iam_role_policy_attachment.AmazonEKSCloudWatchMetricsPolicy,
-    aws_iam_role_policy_attachment.AmazonEKSClusterNLBPolicy,
-    aws_iam_role_policy_attachment.AmazonEKSClusterPolicy,
+    aws_iam_role_policy_attachment.AmazonEKSWorkerNodePolicy,
+    aws_iam_role_policy_attachment.AmazonEKS_CNI_Policy,
+    aws_iam_role_policy_attachment.AmazonEC2ContainerRegistryReadOnly,
   ]
 }

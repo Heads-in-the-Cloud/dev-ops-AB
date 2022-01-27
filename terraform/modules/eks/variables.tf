@@ -8,7 +8,15 @@ variable "environment" {
   default = null
 }
 
+variable "vpc_id" {
+  type    = string
+  default = null
+}
+
 variable "subnet_ids" {
-  type    = list(string)
+  type    = object({
+    eks = list(string)
+    eks_node_group = list(string)
+  })
   default = null
 }
