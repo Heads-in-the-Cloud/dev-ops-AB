@@ -8,12 +8,17 @@
   tasks:
 
   - name: Connect to EKS cluster
-    shell: aws eks --region "{{ region }}" update-kubeconfig --name "{{ project_id }}"
+    shell:
+      aws eks --region "{{ region }}" update-kubeconfig --name "{{ project_id }}"
+      kubectl config \
+        --kubeconfig="{{ project_id }}" \
+        --set-cluster="{{ project_id }}"  \
+        --server="{{ eks_endpoint }}" \
+        --certificate-authority="{{ kubeconfig_certificate_authority_data }}"
 
-  - name: Apply service kube config
-    shell: kubectl apply -f ../../kubernetes/api-service.yml
-
-  - name: Apply paramaterized deployment kube config
-    shell: envsubst < ../../kubernetes/api-deployment.yml | kubectl apply -f -
+  - name: Apply kubectl configs
+    shell:
+      kubectl apply -f ../../kubernetes/api-service.yml
+      envsubst < ../../kubernetes/api-deployment.yml | kubectl apply -f -
 
   #- debug: msg="{{ caller_facts }}"
