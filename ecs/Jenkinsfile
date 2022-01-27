@@ -82,7 +82,8 @@ pipeline {
                 }
             }
             steps {
-                sh "ln -sf ${params.ProjectId}-ecs"
+                sh "rm -f ${params.ProjectId}-ecs"
+                sh "ln -s ${params.ProjectId}-ecs"
                 dir("${params.ProjectId}-ecs") {
                     sh "docker context use ${params.ProjectId}-ecs"
                     sh "docker compose up"
