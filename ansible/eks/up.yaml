@@ -17,10 +17,12 @@
         set-cluster "{{ project_id }}"  \
         --server="{{ eks_endpoint }}" \
         --certificate-authority=ca_auth
+    register: kubeconfig
+
+  - debug: msg="{{ kubeconfig.stdout }}"
 
   - name: Apply kubectl configs
     shell:
       kubectl apply -f ../../kubernetes/api-service.yml
       envsubst < ../../kubernetes/api-deployment.yml | kubectl apply -f -
 
-  #- debug: msg="{{ caller_facts }}"
