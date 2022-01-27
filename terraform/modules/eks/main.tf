@@ -99,7 +99,7 @@ resource "aws_eks_node_group" "default" {
   cluster_name    = aws_eks_cluster.default.name
   node_group_name = var.project_id
   node_role_arn   = aws_iam_role.eks_nodes.arn
-  subnet_ids      = subnets.eks_node_group
+  subnet_ids      = var.subnet_ids.eks_node_group
 
   scaling_config {
     desired_size = 1
