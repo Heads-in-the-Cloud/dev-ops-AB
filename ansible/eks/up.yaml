@@ -9,22 +9,4 @@
 
   tasks:
 
-  - name: Create Fargate Profile
-    community.aws.aws_eks_cluster:
-      name: "{{ project_id }}"
-      version: 1.14
-      role_arn: "{{ eks_role_arn }}"
-      subnets: ["{{ private_subnet_ids }}"]
-    register: caller_facts
-
-  - debug: msg="{{ caller_facts }}"
-
-  - name: Create an EKS cluster
-    community.aws.aws_eks_cluster:
-      name: "{{ project_id }}"
-      version: 1.14
-      role_arn: "{{ eks_role_arn }}"
-      subnets: ["{{ private_subnet_ids }}"]
-    register: caller_facts
-
   - debug: msg="{{ caller_facts }}"
