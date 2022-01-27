@@ -27,23 +27,24 @@ pipeline {
 
    environment {
         S3_BUCKET = params.ProjectId.toLowerCase()
+        withCredentials([[
+            $class: 'AmazonWebServicesCredentialsBinding',
+            credentialsId: "jenkins",
+            accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+            secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+        ]]) {
+            REGION = sh(
+                script:'aws configure get region',
+                returnStdout: true
+            ).trim()
+        }
     }
 
     stages {
         stage('Plan') {
             steps {
                 dir("terraform") {
-                    withCredentials([[
-                        $class: 'AmazonWebServicesCredentialsBinding',
-                        credentialsId: "jenkins",
-                        accessKeyVariable: 'AWS_ACCESS_KEY_ID',
-                        secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
-                    ]]) {
-                        env.REGION = sh(
-                            script:'aws configure get region',
-                            returnStdout: true
-                        ).trim()
-                        sh """cat > terraform.tf << EOF
+                    sh """cat > terraform.tf << EOF
 terraform {
   backend "s3" {
     bucket  = "$S3_BUCKET"
@@ -53,13 +54,19 @@ terraform {
   }
 }
 EOF
-                        """
-                        sh """cat > terraform.tfvars << EOF
+                    """
+                    sh """cat > terraform.tfvars << EOF
 region = "$REGION"
 project_id = "${params.ProjectId}"
 environment = "${params.Env.toLowerCase()}"
 EOF
-                        """
+                    """
+                    withCredentials([[
+                        $class: 'AmazonWebServicesCredentialsBinding',
+                        credentialsId: "jenkins",
+                        accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                        secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                    ]]) {
                         sh 'terraform init -input=false -migrate-state'
                         sh "terraform workspace select ${params.Env} || terraform workspace new ${params.Env}"
                         script {
