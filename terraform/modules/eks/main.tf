@@ -1,4 +1,4 @@
-resource "aws_iam_role" "default" {
+gesource "aws_iam_role" "default" {
   name = "${var.project_id}-eks"
   assume_role_policy = <<POLICY
 {
@@ -21,6 +21,10 @@ resource "aws_iam_role_policy_attachment" "AmazonEKSClusterPolicy" {
   role       = aws_iam_role.default.name
 }
 
+resource "aws_iam_role_policy_attachment" "AmazonEKSServicePolicy" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSServicePolicy"
+  role       = aws_iam_role.default.name
+}
 
 resource "aws_security_group" "default" {
   name        = "${var.project_id}-eks"
