@@ -16,7 +16,7 @@ pipeline {
         choice(
             name: 'Operation',
             choices: ['Up', 'Down'],
-            description: 'Bring up or take down ECS cluster'
+            description: 'Bring up or take down EKS cluster'
         )
     }
 
@@ -45,79 +45,56 @@ pipeline {
         stage('Configure Environment Inputs') {
             steps {
                 script {
-                    sh "aws s3 cp s3://$S3_BUCKET/env:/${params.Env}/output.json ."
-                    def tf_output = readJSON file: 'output.json'
-                    env.DOMAIN = tf_output.domain
-                    env.VPC_ID = tf_output.vpc_id
-                    env.DB_URL = "mysql://${tf_output.db_url}:3306/utopia"
-                    env.ALB_ID = tf_output.alb_id
-
                     def ecr_uri = "${AWS_ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com"
                     def image_prefix = "$ecr_uri/${params.ProjectId.toLowerCase()}"
                     env.REVERSE_PROXY_IMAGE = "$image_prefix-reverse-proxy:latest"
                     env.USERS_IMAGE    = "$image_prefix-users-microservice:latest"
                     env.BOOKINGS_IMAGE = "$image_prefix-bookings-microservice:latest"
                     env.FLIGHTS_IMAGE  = "$image_prefix-flights-microservice:latest"
-
-                    withCredentials([
-                        string(
-                            credentialsId: "${params.Env.toLowerCase()}/${params.ProjectId}/default",
-                            variable: 'SECRETS'
-                        )
-                    ]) {
-                        def aws_secrets = readJSON text: SECRETS
-                        env.DB_USERNAME = aws_secrets.db_username
-                        env.DB_PASSWORD = aws_secrets.db_password
-                        env.JWT_SECRET  = aws_secrets.jwt_secret
-                    }
                 }
             }
         }
 
-        stage('Deploy ECS') {
+        stage('Deploy EKS') {
             when {
                 expression {
                     params.Operation == "Up"
                 }
             }
             steps {
-                dir("ecs") {
+                dir("ansible/eks") {
                     withCredentials([[
                         $class: 'AmazonWebServicesCredentialsBinding',
                         credentialsId: "jenkins",
                         accessKeyVariable: 'AWS_ACCESS_KEY_ID',
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
-                        sh "aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com"
-                        sh "docker context use ${params.ProjectId}-ecs"
-                        sh "docker compose up"
-                        sh "docker context use default"
+                        sh "aws s3 cp s3://$S3_BUCKET/env:/${params.Env}/output.json ."
+                        sh "ansible-playbook up.yaml -f 10 --extra-vars @output.json"
                     }
                 }
             }
         }
 
-        stage('Destroy ECS') {
+        stage('Destroy EKS') {
             when {
                 expression {
                     params.Operation == "Down"
                 }
             }
             steps {
-                dir("ecs") {
+                dir("ansible/eks") {
                     withCredentials([[
                         $class: 'AmazonWebServicesCredentialsBinding',
                         credentialsId: "jenkins",
                         accessKeyVariable: 'AWS_ACCESS_KEY_ID',
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
-                        sh "aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com"
-                        sh "docker context use ${params.ProjectId}-ecs"
-                        sh "docker compose down"
-                        sh "docker context use default"
+                        sh "ansible-playbook down.yaml -f 10 --extra-vars @output.json"
                     }
                 }
             }
         }
     }
 }
+
