@@ -78,29 +78,24 @@ POLICY
 
 resource "aws_iam_role_policy_attachment" "AmazonEKSWorkerNodePolicy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
-  role       = aws_iam_role.default.name
+  role       = aws_iam_role.eks_nodes.name
 }
 
-resource "aws_iam_role_policy_attachment" "AmazonEKSCNIPolicy" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSCNIPolicy"
-  role       = aws_iam_role.default.name
-}
-
-resource "aws_iam_role_policy_attachment" "AmazonEKSServicePolicy" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSServicePolicy"
-  role       = aws_iam_role.default.name
+resource "aws_iam_role_policy_attachment" "AmazonEKS_CNI_Policy" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+  role       = aws_iam_role.eks_nodes.name
 }
 
 resource "aws_iam_role_policy_attachment" "AmazonEC2ContainerRegistryReadOnly" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
-  role       = aws_iam_role.default.name
+  role       = aws_iam_role.eks_nodes.name
 }
 
-resource "aws_eks_node_group" "default" {
-  cluster_name    = aws_eks_cluster.default.name
-  node_group_name = "${var.project_id}-default"
-  node_role_arn   = aws_iam_role.default.arn
-  subnet_ids      = var.subnet_ids.eks_node_group
+resource "aws_eks_node_group" "node" {
+  cluster_name    = aws_eks_cluster.eks_cluster.name
+  node_group_name = "node_group1"
+  node_role_arn   = aws_iam_role.eks_nodes.arn
+  subnet_ids      = ["subnet-","subnet-"]
 
   scaling_config {
     desired_size = 1
@@ -110,8 +105,8 @@ resource "aws_eks_node_group" "default" {
 
   depends_on = [
     aws_iam_role_policy_attachment.AmazonEKSWorkerNodePolicy,
-    aws_iam_role_policy_attachment.AmazonEKSCNIPolicy,
-    aws_iam_role_policy_attachment.AmazonEKSServicePolicy,
+    aws_iam_role_policy_attachment.AmazonEKS_CNI_Policy,
     aws_iam_role_policy_attachment.AmazonEC2ContainerRegistryReadOnly,
   ]
 }
+
