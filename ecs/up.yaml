@@ -18,7 +18,6 @@
       export DB_PASSWORD="{{ secrets.db_password }}"
       export JWT_SECRET="{{ secrets.jwt_secret }}"
 
-  - debug: msg="{{ test.stdout }}"
   - name: stand up ecs cluster
     shell: docker compose up
     register: ecs_up
