@@ -5,8 +5,18 @@
   vars:
     env: "{{ lookup('env', 'ENV') }}"
     project_id: "{{ lookup('env', 'PROJECT_ID') }}"
+    region: "{{ lookup('env', 'REGION') }}"
     secrets: "{{ lookup('amazon.aws.aws_secret', '{{ env | lower }}/{{ project_id }}/default') }}"
 
   tasks:
 
-  - debug: msg="{{ caller_facts }}"
+  - name: Connect to EKS cluster
+    shell: aws eks --region "{{ region }}" update-kubeconfig --name "{{ project_id }}"
+
+  - name: Apply service kube config
+    shell: kubectl apply -f ../../kubernetes/api-service.yml
+
+  - name: Apply paramaterized deployment kube config
+    shell: envsubst < ../../kubernetes/api-deployment.yml | kubectl apply -f -
+
+  #- debug: msg="{{ caller_facts }}"

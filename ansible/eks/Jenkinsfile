@@ -20,37 +20,39 @@ pipeline {
         )
     }
 
-   environment {
-        COMMIT_HASH = sh(
-            returnStdout: true,
-            script: "git rev-parse --short=8 HEAD"
-        ).trim()
+    environment {
         S3_BUCKET = params.ProjectId.toLowerCase()
-        REGION = sh(
-            script: 'aws configure get region',
-            returnStdout: true
-        ).trim()
-        AWS_ACCOUNT_ID = sh(
-            script: '''
-                aws sts get-caller-identity \
-                    --query "Account" \
-                    --output text
-            ''',
-            returnStdout: true
-        ).trim()
-
-   }
+    }
 
     stages {
         stage('Configure Environment Inputs') {
             steps {
                 script {
-                    def ecr_uri = "${AWS_ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com"
-                    def image_prefix = "$ecr_uri/${params.ProjectId.toLowerCase()}"
-                    env.REVERSE_PROXY_IMAGE = "$image_prefix-reverse-proxy:latest"
-                    env.USERS_IMAGE    = "$image_prefix-users-microservice:latest"
-                    env.BOOKINGS_IMAGE = "$image_prefix-bookings-microservice:latest"
-                    env.FLIGHTS_IMAGE  = "$image_prefix-flights-microservice:latest"
+                    withCredentials([[
+                        $class: 'AmazonWebServicesCredentialsBinding',
+                        credentialsId: "jenkins",
+                        accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                        secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                    ]]) {
+                        region = sh(
+                            script: 'aws configure get region',
+                            returnStdout: true
+                        ).trim()
+                        def aws_account_id = sh(
+                            script: '''
+                                aws sts get-caller-identity \
+                                    --query "Account" \
+                                    --output text
+                            ''',
+                            returnStdout: true
+                        ).trim()
+                        def ecr_uri = "${aws_account_id}.dkr.ecr.${region}.amazonaws.com"
+                        def image_prefix = "$ecr_uri/${params.ProjectId.toLowerCase()}"
+                        env.REVERSE_PROXY_IMAGE = "$image_prefix-reverse-proxy:latest"
+                        env.USERS_IMAGE    = "$image_prefix-users-microservice:latest"
+                        env.BOOKINGS_IMAGE = "$image_prefix-bookings-microservice:latest"
+                        env.FLIGHTS_IMAGE  = "$image_prefix-flights-microservice:latest"
+                    }
                 }
             }
         }

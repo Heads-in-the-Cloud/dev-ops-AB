@@ -1,8 +1,54 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  name: reverse-proxy
+  namespace: $ENV
+  labels:
+    app: reverse-proxy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: reverse-proxy
+  template:
+    metadata:
+      labels:
+        app: reverse-proxy
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/arch
+                operator: In
+                values:
+                - amd64
+                - arm64
+      containers:
+      - name: flights-microservice
+        image: $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$PROJECT_ID-flights-microservice:latest
+        imagePullPolicy: Always
+        env:
+          - name: DOMAIN
+            value: $DOMAIN
+          - name: FLIGHTS
+            value: flights-microservice
+          - name: BOOKINGS
+            value: bookings-microservice
+          - name: USERS
+            value: users-microservice
+        ports:
+          - containerPort: 80
+          - nodePort: 80
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
   name: flights-deployment
-  namespace: default
+  namespace: $ENV
   labels:
     app: flights-microservice
 spec:
@@ -27,7 +73,7 @@ spec:
                 - arm64
       containers:
       - name: flights-microservice
-        image: $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/ab-flights-microservice:latest
+        image: $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$PROJECT_ID-flights-microservice:latest
         imagePullPolicy: Always
         env:
           - name: DB_URL
@@ -59,7 +105,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: bookings-deployment
-  namespace: default
+  namespace: $NAMESPACE
   labels:
     app: bookings-microservice
 spec:
@@ -116,7 +162,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: users-deployment
-  namespace: default
+  namespace: $ENV
   labels:
     app: users-microservice
 spec:
