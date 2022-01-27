@@ -16,7 +16,7 @@
     shell: docker context use "{{ project_id }}-ecs"
 
   - name: stand up ecs cluster
-    shell: docker compose up > stdout.txt
+    shell: docker compose up
     register: ecs_up
     tags: ecs_up
 
