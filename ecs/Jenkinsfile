@@ -54,10 +54,10 @@ pipeline {
                     env.ALB_ID = tf_output.alb_id
 
                     def image_prefix = "$ecr_uri/${params.Env.toLowerCase()}"
-                    env["REVERSE_PROXY_IMAGE"] = "$image_prefix-reverse-proxy:latest"
-                    env["USERS_MICROSERVICE"] = "$image_prefix-users-microservice:latest"
-                    env["BOOKINGS_MICROSERVICE"] = "$image_prefix-bookings-microservice:latest"
-                    env["FLIGHTS_MICROSERVICE"] = "$image_prefix-flights-microservice:latest"
+                    env.REVERSE_PROXY_IMAGE   = "$image_prefix-reverse-proxy:latest"
+                    env.USERS_MICROSERVICE_IMAGE    = "$image_prefix-users-microservice:latest"
+                    env.BOOKINGS_MICROSERVICE_IMAGE = "$image_prefix-bookings-microservice:latest"
+                    env.FLIGHTS_MICROSERVICE_IMAGE  = "$image_prefix-flights-microservice:latest"
                 }
             }
         }
