@@ -1,6 +1,6 @@
 # Utopia Airlines Local Deployment Config
 
-[![Terraform Build Status](https://jenkins1.hitwc.link/job/Austin/job/Terraform/badge/icon)](https://jenkins1.hitwc.link/job/Austin/job/Terraform/)
+<a href='https://jenkins1.hitwc.link/job/Austin/job/Terraform/'><img src='https://jenkins1.hitwc.link/job/Austin/job/Terraform/badge/icon'></a>
 
 This includes configurations for standing-up microservices with Docker Compose and Kubernetes along with a data producer microservice.
 
