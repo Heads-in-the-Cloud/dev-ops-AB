@@ -59,12 +59,17 @@ resource "aws_iam_instance_profile" "default" {
   name = "${var.project_id}-bastion"
   role = aws_iam_role.default.name
 }
+resource "aws_key_pair" "default" {
+  key_name = "${var.project_id}-bastion"
+  public_key = var.public_ssh_key
+}
 
 resource "aws_instance" "default" {
   vpc_security_group_ids = [ aws_security_group.ssh.id ]
   iam_instance_profile   = aws_iam_instance_profile.default.name
   instance_type  = var.instance_type
   subnet_id      = var.subnet_id
+  key_name       = aws_key_pair.bastion.key_name
   ami            = data.aws_ami.amazon_linux_2.id
   user_data      = var.user_data
 
