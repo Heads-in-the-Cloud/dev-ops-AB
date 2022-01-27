@@ -34,7 +34,7 @@ pipeline {
                         accessKeyVariable: 'AWS_ACCESS_KEY_ID',
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
-                        region = sh(
+                        env.REGION = sh(
                             script: 'aws configure get region',
                             returnStdout: true
                         ).trim()
@@ -46,7 +46,7 @@ pipeline {
                             ''',
                             returnStdout: true
                         ).trim()
-                        def ecr_uri = "${aws_account_id}.dkr.ecr.${region}.amazonaws.com"
+                        def ecr_uri = "${aws_account_id}.dkr.ecr.${REGION}.amazonaws.com"
                         def image_prefix = "$ecr_uri/${params.ProjectId.toLowerCase()}"
                         env.REVERSE_PROXY_IMAGE = "$image_prefix-reverse-proxy:latest"
                         env.USERS_IMAGE    = "$image_prefix-users-microservice:latest"
