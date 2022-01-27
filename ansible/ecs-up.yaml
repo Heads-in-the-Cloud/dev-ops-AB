@@ -20,8 +20,6 @@
     register: ecs_up
     tags: ecs_up
 
-  - name: read stdout
-    shell: cat stdout.txt
-    register: display
+  - debug: msg="{{ ecs_up.stderr }}"
 
-  - debug: msg="{{ display.stdout_lines }}"
+  - debug: msg="{{ ecs_up.stdout }}"
