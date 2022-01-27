@@ -15,6 +15,18 @@
   - name: use pre-created ecs docker context
     shell: docker context use "{{ project_id }}-ecs"
 
+  - name: output vars
+    shell: echo "{{ env }}" >>vars.txt
+
+  - name: output vars
+    shell: echo "{{ project_id }}" >>vars.txt
+
+  - name: output vars
+    shell: echo "{{ username }}" >>vars.txt
+
+  - name: output vars
+    shell: echo "{{ password }}" >>vars.txt
+
   - name: stand up ecs cluster
     shell: docker compose up
     register: ecs_up
