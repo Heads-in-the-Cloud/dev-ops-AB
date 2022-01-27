@@ -3,9 +3,6 @@
   connection: local
 
   vars:
-    env: "{{ lookup('env', 'ENV') }}"
-    project_id: "{{ lookup('env', 'PROJECT_ID') }}"
-    region: "{{ lookup('env', 'REGION') }}"
     secrets: "{{ lookup('amazon.aws.aws_secret', '{{ env | lower }}/{{ project_id }}/default') }}"
 
   tasks:
