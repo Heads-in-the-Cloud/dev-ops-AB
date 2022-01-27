@@ -1,4 +1,4 @@
-gesource "aws_iam_role" "default" {
+resource "aws_iam_role" "default" {
   name = "${var.project_id}-eks"
   assume_role_policy = <<POLICY
 {
