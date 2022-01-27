@@ -3,11 +3,9 @@
   connection: local
 
   vars:
-    environment: Dev
-    secrets: lookup( \
-      'amazon.aws.aws_secret', \
-      '{{ environment | lower }}/{{ project_id }}/default' \
-    )
+    env: lookup('env', 'ENV')
+    project_id: lookup('env', 'PROJECT_ID')
+    secrets: lookup('amazon.aws.aws_secret', '{{ env | lower }}/{{ project_id }}/default')
     username: "{{ secrets.user_username }}"
     password: "{{ secrets.user_password }}"
     jwt_token: "{{ secrets.jwt_token }}"
