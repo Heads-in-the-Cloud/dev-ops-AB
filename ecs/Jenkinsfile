@@ -46,18 +46,6 @@ pipeline {
         stage('Configure Environment Inputs') {
             steps {
                 script {
-                    withCredentials([
-                        string(
-                            credentialsId: "${params.Env.toLowerCase()}/${params.ProjectId}/default",
-                            variable: 'SECRETS'
-                        )
-                    ]) {
-                        def aws_secrets = readJSON text: SECRETS
-                        env.DB_USERNAME = aws_secrets.db_username
-                        env.DB_PASSWORD = aws_secrets.db_password
-                        env.JWT_SECRET  = aws_secrets.jwt_secret
-                    }
-
                     sh "aws s3 cp s3://$S3_BUCKET/env:/${params.Env}/output.txt ."
                     def tf_output = readProperties file: 'output.txt'
                     env.DOMAIN = tf_output.domain
@@ -88,9 +76,7 @@ pipeline {
             steps {
                 sh "ln -s ecs ${params.ProjectId}-ecs"
                 dir("${params.ProjectId}-ecs") {
-                    sh "docker context use ${params.ProjectId}-ecs"
-                    sh "docker compose up"
-                    sh "docker context use default"
+                    sh "ansible-playbook ../ansible/ecs-up.yaml -f 10"
                 }
             }
         }
@@ -103,9 +89,7 @@ pipeline {
             }
             steps {
                 dir("${params.ProjectId}-ecs") {
-                    sh "docker context use ${params.ProjectId}-ecs"
-                    sh "docker compose down"
-                    sh "docker context use default"
+                    sh "ansible-playbook ../ansible/ecs-down.yaml -f 10"
                 }
                 sh "rm -f ${params.ProjectId}-ecs"
             }
