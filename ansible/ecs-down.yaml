@@ -1,0 +1,24 @@
+---
+- hosts: 127.0.0.1
+  connection: local
+
+  vars:
+    env: "{{ lookup('env', 'ENV') }}"
+    project_id: "{{ lookup('env', 'PROJECT_ID') }}"
+    secrets: "{{ lookup('amazon.aws.aws_secret', '{{ env | lower }}/{{ project_id }}/default') }}"
+    username: "{{ secrets.user_username }}"
+    password: "{{ secrets.user_password }}"
+    jwt_token: "{{ secrets.jwt_token }}"
+
+  tasks:
+
+  - name: use pre-created ecs docker context
+    shell: docker context use "{{ project_id }}-ecs"
+
+  - name: stand up ecs cluster
+    shell: docker compose down
+    register: ecs_down
+    tags: ecs_down
+
+  - debug: msg="{{ ecs_down.stdout_lines }}"
+
