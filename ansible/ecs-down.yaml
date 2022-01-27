@@ -14,9 +14,6 @@
 
   tasks:
 
-  - name: cd into soft link
-    shell: cd "{{ project_id }}-ecs"
-
   - name: use pre-created ecs docker context
     shell: docker context use "{{ project_id }}-ecs"
 

@@ -69,7 +69,7 @@ pipeline {
                 }
             }
             steps {
-                sh "ln -s ecs ${params.ProjectId}-ecs"
+                sh "ln -fs ecs ${params.ProjectId}-ecs"
                 dir("${params.ProjectId}-ecs") {
                     sh "ansible-playbook ../ansible/ecs-up.yaml -f 10"
                 }
