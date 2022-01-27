@@ -45,7 +45,7 @@ pipeline {
         stage('Configure Environment Inputs') {
             steps {
                 script {
-                    sh "aws s3 cp s3://$S3_BUCKET/env:/${params.Env}/output.txt ."
+                    sh "aws s3 cp s3://$S3_BUCKET/env:/${params.Env}/output.json ."
                     def tf_output = readJSON file: 'output.json'
                     env.DOMAIN = tf_output.domain
                     env.VPC_ID = tf_output.vpc_id
