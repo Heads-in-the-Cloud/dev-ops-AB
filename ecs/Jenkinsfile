@@ -67,9 +67,9 @@ pipeline {
 
                     def images = [
                         "reverse-proxy",
-                        "flights-microservice":,
-                        "users-microservice":,
-                        "bookings-microserivice":,
+                        "flights-microservice",
+                        "users-microservice",
+                        "bookings-microserivice",
                     ]
                     for(image in images) {
                         def image_url = "$ecr_uri/${env.PROJECT_ID.toLowerCase()}-$image:latest"
