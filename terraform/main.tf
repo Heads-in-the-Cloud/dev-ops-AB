@@ -85,16 +85,16 @@ module "bastion" {
   project_id = var.project_id
 }
 
-module "eks" {
-  source      = "./modules/eks"
-  project_id  = var.project_id
-  environment = var.environment
-  vpc_id        = module.networks.vpc_id
-  subnet_ids  = {
-    eks_node_group = module.networks.subnet_ids.private
-    eks            = concat(
-      module.networks.subnet_ids.private,
-      module.networks.subnet_ids.public
-    )
-  }
-}
+#module "eks" {
+#  source      = "./modules/eks"
+#  project_id  = var.project_id
+#  environment = var.environment
+#  vpc_id        = module.networks.vpc_id
+#  subnet_ids  = {
+#    eks_node_group = module.networks.subnet_ids.private
+#    eks            = concat(
+#      module.networks.subnet_ids.private,
+#      module.networks.subnet_ids.public
+#    )
+#  }
+#}
