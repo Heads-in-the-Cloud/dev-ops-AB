@@ -78,22 +78,22 @@ POLICY
 
 resource "aws_iam_role_policy_attachment" "AmazonEKSWorkerNodePolicy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
-  role       = aws_iam_role.eks_nodes.name
+  role       = aws_iam_role.default.name
 }
 
 resource "aws_iam_role_policy_attachment" "AmazonEKSCNIPolicy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSCNIPolicy"
-  role       = aws_iam_role.eks_nodes.name
+  role       = aws_iam_role.default.name
 }
 
 resource "aws_iam_role_policy_attachment" "AmazonEKSServicePolicy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSServicePolicy"
-  role       = aws_iam_role.eks_nodes.name
+  role       = aws_iam_role.default.name
 }
 
 resource "aws_iam_role_policy_attachment" "AmazonEC2ContainerRegistryReadOnly" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
-  role       = aws_iam_role.eks_nodes.name
+  role       = aws_iam_role.default.name
 }
 
 resource "aws_eks_node_group" "default" {
@@ -111,6 +111,7 @@ resource "aws_eks_node_group" "default" {
   depends_on = [
     aws_iam_role_policy_attachment.AmazonEKSWorkerNodePolicy,
     aws_iam_role_policy_attachment.AmazonEKSCNIPolicy,
+    aws_iam_role_policy_attachment.AmazonEKSServicePolicy,
     aws_iam_role_policy_attachment.AmazonEC2ContainerRegistryReadOnly,
   ]
 }
