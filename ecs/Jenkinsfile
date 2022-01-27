@@ -82,7 +82,8 @@ pipeline {
                 }
             }
             steps {
-                dir("ecs") {
+                sh "ln -sf ${params.ProjectId}-ecs"
+                dir("${params.ProjectId}-ecs") {
                     sh "docker context use ${params.ProjectId}-ecs"
                     sh "docker compose up"
                     sh "docker context default"
@@ -97,7 +98,7 @@ pipeline {
                 }
             }
             steps {
-                dir("ecs") {
+                dir("${params.ProjectId}-ecs") {
                     sh "docker context use ${params.ProjectId}-ecs"
                     sh "docker compose down"
                     sh "docker context default"
