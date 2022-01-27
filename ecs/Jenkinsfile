@@ -39,7 +39,7 @@ pipeline {
             returnStdout: true
         ).trim()
 
-        ecr_uri = "${AWS_ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com"
+        ecr_uri = "https://${AWS_ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com"
    }
 
     stages {
