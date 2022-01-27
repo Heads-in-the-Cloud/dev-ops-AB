@@ -83,8 +83,8 @@ EOF
                 dir("terraform") {
                     sh "terraform apply -input=false plan.bin"
                     sh 'terraform refresh'
-                    sh 'terraform output | tr -d \'\\\"\\ \' > output.txt'
-                    sh "aws s3 cp output.txt s3://$S3_BUCKET/env:/${params.Env}/"
+                    sh "terraform output --json | jq 'with_entries(.value |= .value)' > output.json"
+                    sh "aws s3 cp output.json s3://$S3_BUCKET/env:/${params.Env}/"
                 }
             }
         }

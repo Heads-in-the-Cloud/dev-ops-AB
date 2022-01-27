@@ -46,7 +46,7 @@ pipeline {
             steps {
                 script {
                     sh "aws s3 cp s3://$S3_BUCKET/env:/${params.Env}/output.txt ."
-                    def tf_output = readProperties file: 'output.txt'
+                    def tf_output = readJSON file: 'output.json'
                     env.DOMAIN = tf_output.domain
                     env.VPC_ID = tf_output.vpc_id
                     env.DB_URL = "mysql://${tf_output.db_url}:3306/utopia"
@@ -83,9 +83,17 @@ pipeline {
             }
             steps {
                 dir("ecs") {
-                    sh "docker context use ${params.ProjectId}-ecs"
-                    sh "docker compose up"
-                    sh "docker context default"
+                    withCredentials([[
+                        $class: 'AmazonWebServicesCredentialsBinding',
+                        credentialsId: "jenkins",
+                        accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                        secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                    ]]) {
+                        sh "aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com"
+                        sh "docker context use ${params.ProjectId}-ecs"
+                        sh "docker compose up"
+                        sh "docker context use default"
+                    }
                 }
             }
         }
@@ -98,9 +106,17 @@ pipeline {
             }
             steps {
                 dir("ecs") {
-                    sh "docker context use ${params.ProjectId}-ecs"
-                    sh "docker compose down"
-                    sh "docker context default"
+                    withCredentials([[
+                        $class: 'AmazonWebServicesCredentialsBinding',
+                        credentialsId: "jenkins",
+                        accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                        secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                    ]]) {
+                        sh "aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com"
+                        sh "docker context use ${params.ProjectId}-ecs"
+                        sh "docker compose down"
+                        sh "docker context use default"
+                    }
                 }
             }
         }

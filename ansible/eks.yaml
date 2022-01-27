@@ -3,10 +3,6 @@
   connection: local
 
   vars:
-    ## Get tf output from S3
-    project_id: AB-utopia
-    vpc_id: vpc-09ba651230e7b79fe
-    environment: Dev
     db_security_group_id: sg-04119c0be0c817ec9
     private_subnet_ids:
       - subnet-0dcbbfb382383795a
@@ -15,23 +11,16 @@
       - subnet-03172ec61f12bdd6e
       - subnet-09b4ecefc7812eb31
     eks_sec_group:
-    ## Obtain db user creds from secrets manager
-    secrets: lookup( \
-      'amazon.aws.aws_secret', \
-      '{{ environment | lower }}/{{ project_id }}/default' \
-    )
+    project_id: "{{ lookup('env', 'PROJECT_ID') }}"
+    vpc_id: "{{ lookup('env', 'VPC_ID') }}"
+    env: "{{ lookup('env', 'ENV') }}"
+    private_subnet_ids: "{{ lookup('env', 'PROJECT_ID') }}"
+    secrets: "{{ lookup('amazon.aws.aws_secret', '{{ env | lower }}/{{ project_id }}/default') }}"
     username: "{{ secrets.user_username }}"
     password: "{{ secrets.user_password }}"
     jwt_token: "{{ secrets.jwt_token }}"
 
   tasks:
-
-  - name: Get
-    amazon.aws.aws_s3:
-      bucket: ab-utopia
-      object: "s3://env:/{{ environment }}/output.txt"
-      dest: .
-      mode: get
 
   # Create EKS cluster and attach to ALB
 
