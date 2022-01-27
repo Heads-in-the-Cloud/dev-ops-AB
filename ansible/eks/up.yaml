@@ -9,20 +9,25 @@
 
   - name: Store CA auth in file
     shell: printf "{{ kubeconfig_certificate_authority_data }}">ca_auth
-      #aws eks --region "{{ region }}" update-kubeconfig --name "{{ project_id }}"
   - name: Connect to EKS cluster
     shell:
-      kubectl config \
-        --kubeconfig="{{ project_id }}" \
-        set-cluster "{{ project_id }}"  \
-        --server="{{ eks_endpoint }}" \
+      kubectl config
+        --kubeconfig="{{ project_id }}"
+        set-cluster "{{ project_id }}"
+        --server="{{ eks_endpoint }}"
         --certificate-authority=ca_auth
     register: kubeconfig
 
   - debug: msg="{{ kubeconfig.stdout }}"
 
-  - name: Apply kubectl configs
+  - name: Apply API service
     shell:
       kubectl apply -f ../../kubernetes/api-service.yml
+  - name: Apply API deployment
+    shell:
       envsubst < ../../kubernetes/api-deployment.yml | kubectl apply -f -
+    environment:
+      DB_USERNAME: "{{ secrets.db_username }}"
+      DB_PASSWORD: "{{ secrets.db_password }}"
+      JWT_SECRET: "{{ secrets.jwt_secret }}"
 
