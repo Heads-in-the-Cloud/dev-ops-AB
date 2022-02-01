@@ -1,0 +1,64 @@
+---
+- hosts: managed_node
+
+  vars:
+    users:
+      jenkins_admin:
+        name: admin
+        password: "{{ lookup('password', 'credentials/jenkins_admin.txt chars=ascii_lowercase,digits length=16') }}"
+      db_admin:
+        name: root
+        password: "{{ lookup('password', 'credentials/db_admin.txt chars=ascii_lowercase,digits length=16') }}"
+      db_user:
+        name: user
+        password: "{{ lookup('password', 'credentials/db_user.txt chars=ascii_lowercase,digits length=16') }}"
+
+  tasks:
+
+  - name: Create python venv
+    shell: python -m venv /tmp
+
+  - name: Install docker compose and localstack
+    shell: pip install docker-compose moto localstack
+
+  - name: Copy docker-compose.yml
+    copy:
+      src: docker-compose.yml
+      dest: /tmp
+
+  - name: Install awscli-local
+    shell: pip install awscli-local[ver1]
+
+  - name: Create jcasc dir
+    file:
+      path: /tmp/jcasc
+      state: directory
+  - name: Copy Dockerfile for Jenkins
+    copy:
+      src: Dockerfile
+      dest: /tmp/jcasc
+  - name: Copy plugins.txt for Jenkins
+    copy:
+      src: plugins.txt
+      dest: /tmp/jcasc
+  - name: Copy casc.yaml for Jenkins
+    copy:
+      src: casc.yaml
+      dest: /tmp/jcasc
+
+  - name: Destroy HTTP proxy for Localstack dashboard
+    local_action: command
+      podman kill nginx
+
+  - name: docker-compose down
+    shell: docker-compose -f /tmp/docker-compose.yml down
+    environment:
+      TMPDIR: /tmp
+      AWS_REGION: us-west-2
+      ANSIBLE_NODE_HOST: cappuccino.local
+      LOCALSTACK_API_KEY: "{{ localstack_api_key }}"
+      JENKINS_ADMIN_ID: "{{ users.jenkins_admin.name }}"
+      JENKINS_ADMIN_PASSWORD: "{{ users.jenkins_admin.password }}"
+
+  - debug:
+      msg: "id: {{ users.jenkins_admin.name }}, password: {{ users.jenkins_admin.password }}"

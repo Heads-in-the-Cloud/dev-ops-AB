@@ -21,20 +21,24 @@ data "aws_secretsmanager_secret_version" "default" {
 }
 
 locals {
-  secrets = jsondecode(data.aws_secretsmanager_secret_version.default.secret_string)
+  secrets            = jsondecode(data.aws_secretsmanager_secret_version.default.secret_string)
   vpc_cidr_block     = "10.0.0.0/16"
   subnet_cidr_blocks = {
-    private = ["10.0.0.0/24", "10.0.1.0/24"]
-    public  = ["10.0.2.0/24", "10.0.3.0/24"]
+      # Private: w/o NAT gateway
+      private     = ["10.0.0.0/24", "10.0.1.0/24"]
+      # Private: w/ NAT gateway
+      nat_private = ["10.0.2.0/24", "10.0.3.0/24"]
+      # Public: w/ Internet gateway
+      public      = ["10.0.4.0/24", "10.0.5.0/24"]
   }
 }
 
-# Creates a private & public subnet per availability zone of the region
+# Selects a random availability zone for each subnet in the given region
 module "networks" {
   source             = "./modules/networks"
   vpc_cidr_block     = local.vpc_cidr_block
   subnet_cidr_blocks = local.subnet_cidr_blocks
-  rt_cidr_block      = "0.0.0.0/0"
+  ig_rt_cidr_block   = "0.0.0.0/0"
   project_id         = var.project_id
 }
 
@@ -52,7 +56,7 @@ module "rds" {
     id         = module.networks.vpc_id
     cidr_block = local.vpc_cidr_block
   }
-  subnet_ids = module.networks.subnet_ids.private
+  subnet_ids = module.networks.subnet_ids.rds
   secret_id  = data.aws_secretsmanager_secret_version.default.secret_id
 }
 

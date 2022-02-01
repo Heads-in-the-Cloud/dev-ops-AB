@@ -3,20 +3,10 @@ pipeline {
     agent any
 
     parameters {
-        string(
-            name: 'ProjectId',
-            defaultValue: 'AB-utopia',
-            description: 'Identifier applied to all names'
-        )
-        choice(
-            name: 'Env',
-            choices: ['Dev', 'Staging', 'Prod'],
-            description: 'Deployment environment'
-        )
-        choice(
-            name: 'Operation',
-            choices: ['Up', 'Down'],
-            description: 'Bring up or take down EKS cluster'
+        booleanParam(
+            name: 'Destroy',
+            defaultValue: false,
+            description: 'Destroy existing build'
         )
     }
 

@@ -3,54 +3,40 @@ pipeline {
     agent any
 
     parameters {
-        string(
-            name: 'ProjectId',
-            defaultValue: 'AB-utopia',
-            description: 'Identifier applied to all names'
-        )
-        choice(
-            name: 'Env',
-            choices: ['Dev', 'Staging', 'Prod'],
-            description: 'Deployment environment'
-        )
-        choice(
-            name: 'Operation',
-            choices: ['Up', 'Down'],
-            description: 'Bring up or take down ECS cluster'
+        booleanParam(
+            name: 'Down',
+            defaultValue: false,
+            description: 'Destroy cluster'
         )
     }
 
-   environment {
-        COMMIT_HASH = sh(
-            returnStdout: true,
-            script: "git rev-parse --short=8 HEAD"
-        ).trim()
-        S3_BUCKET = params.ProjectId.toLowerCase()
-        REGION = sh(
-            script: 'aws configure get region',
-            returnStdout: true
-        ).trim()
-        AWS_ACCOUNT_ID = sh(
-            script: '''
-                aws sts get-caller-identity \
-                    --query "Account" \
-                    --output text
-            ''',
-            returnStdout: true
-        ).trim()
-
-   }
+    environment {
+        PROJECT_ID = "AB-utopia"
+    }
 
     stages {
         stage('Configure Environment Inputs') {
             steps {
                 script {
-                    sh "aws s3 cp s3://$S3_BUCKET/env:/${params.Env}/output.json ."
+                    sh "aws s3 cp s3://${PROJECT_ID.toLowerCase()}/env:/${params.Env}/output.json ."
                     def tf_output = readJSON file: 'output.json'
                     env.DOMAIN = tf_output.domain
                     env.VPC_ID = tf_output.vpc_id
                     env.DB_URL = "mysql://${tf_output.db_url}:3306/utopia"
                     env.ALB_ID = tf_output.alb_id
+
+                    REGION = sh(
+                        script: 'aws configure get region',
+                        returnStdout: true
+                    ).trim()
+                    AWS_ACCOUNT_ID = sh(
+                        script: '''
+                            aws sts get-caller-identity \
+                                --query "Account" \
+                                --output text
+                        ''',
+                        returnStdout: true
+                    ).trim()
 
                     def ecr_uri = "${AWS_ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com"
                     def image_prefix = "$ecr_uri/${params.ProjectId.toLowerCase()}"

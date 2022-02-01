@@ -1,8 +1,10 @@
 variable "subnet_cidr_blocks" {
   type = object({
-    private = list(string)
-    public = list(string)
+      private = list(string)
+      nat_private = list(string)
+      public = list(string)
   })
+  default = null
 }
 
 variable "vpc_cidr_block" {
@@ -10,7 +12,7 @@ variable "vpc_cidr_block" {
   default = null
 }
 
-variable "rt_cidr_block" {
+variable "ig_rt_cidr_block" {
   type = string
   default = null
 }
