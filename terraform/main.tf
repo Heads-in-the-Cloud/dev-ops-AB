@@ -54,10 +54,10 @@ module "rds" {
   engine_version    = "8.0"
   engine            = "mysql"
   vpc               = {
-    id         = module.networks.vpc_id
+    id         = module.network.vpc_id
     cidr_block = local.vpc_cidr_block
   }
-  subnet_ids = module.networks.subnet_ids.private
+  subnet_ids = module.network.subnet_ids.private
   secret_id  = data.aws_secretsmanager_secret_version.default.secret_id
 }
 
@@ -68,7 +68,7 @@ data "aws_iam_policy" "read_s3" {
 }
 
 resource "random_shuffle" "bastion_subnet_id" {
-  input        = module.networks.subnet_ids.public
+  input        = module.network.subnet_ids.public
   result_count = 1
 }
 
@@ -76,7 +76,7 @@ module "bastion" {
   source        = "./modules/bastion"
   policy_arn    = data.aws_iam_policy.read_s3.arn
   instance_type = "t2.micro"
-  vpc_id        = module.networks.vpc_id
+  vpc_id        = module.network.vpc_id
   subnet_id     = random_shuffle.bastion_subnet_id.result[0]
   user_data     = templatefile("${path.root}/user_data.sh", {
     s3_bucket        = lower(var.project_id)
@@ -94,13 +94,13 @@ module "bastion" {
 #  source      = "./modules/eks"
 #  project_id  = var.project_id
 #  environment = var.environment
-#  vpc_id        = module.networks.vpc_id
+#  vpc_id        = module.network.vpc_id
 #  subnet_ids  = {
-#    eks_node_group = module.networks.subnet_ids.private
+#    eks_node_group = module.network.subnet_ids.private
 #    eks            = concat(
-#      module.networks.subnet_ids.private,
-#      module.networks.subnet_ids.nan_private,
-#      module.networks.subnet_ids.public
+#      module.network.subnet_ids.private,
+#      module.network.subnet_ids.nan_private,
+#      module.network.subnet_ids.public
 #    )
 #  }
 #}

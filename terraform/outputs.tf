@@ -1,20 +1,20 @@
 output "vpc_id" {
-  value = module.networks.vpc_id
+  value = module.network.vpc_id
 }
 output "private_subnets" {
-  value = module.networks.subnet_ids.private
+  value = module.network.subnet_ids.private
 }
 output "public_subnets" {
-  value = module.networks.subnet_ids.public
+  value = module.network.subnet_ids.public
 }
 output "alb_id" {
-  value = module.networks.alb_id
+  value = module.network.alb_id
 }
 output "db_url" {
   value = module.rds.instance_address
 }
 output "domain" {
-  value = module.networks.domain
+  value = module.network.domain
 }
 #output "eks_endpoint" {
 #  value = module.eks.endpoint
