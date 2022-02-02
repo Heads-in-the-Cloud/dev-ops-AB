@@ -56,7 +56,6 @@
       listeners:
         - Protocol: HTTP
           Port: 80
-            TODO: configure ssl
             SslPolicy: ELBSecurityPolicy-2015-05
             Certificates:
               - CertificateArn: "{{ cert_upload.certificate.arn }}"
