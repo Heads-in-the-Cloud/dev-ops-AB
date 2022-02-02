@@ -44,7 +44,7 @@ resource "aws_route_table" "private" {
 resource "aws_route_table_association" "private" {
   count          = length(aws_subnet.private)
   subnet_id      = aws_subnet.private[count.index].id
-  route_table_id = aws_route_table.private.id
+  route_table_id = aws_route_table.private[0].id
 }
 
 // Private subnet w/ nat gateway
@@ -83,15 +83,15 @@ resource "aws_route_table" "nat_private" {
 resource "aws_route_table_association" "nat_private" {
   count          = length(aws_subnet.nat_private)
   subnet_id      = aws_subnet.nat_private[count.index].id
-  route_table_id = aws_route_table.nat_private.id
+  route_table_id = aws_route_table.nat_private[0].id
 }
 
 resource "aws_route" "nat_gateway" {
   # Only create this resource if subnets for the nat gateway were specified
   count                  = length(aws_subnet.nat_private) != 0 ? 1 : 0
-  route_table_id         = aws_route_table.nat_private.id
+  route_table_id         = aws_route_table.nat_private[0].id
   destination_cidr_block = "0.0.0.0/0"
-  nat_gateway_id         = aws_nat_gateway.default.id
+  nat_gateway_id         = aws_nat_gateway.default[0].id
 }
 
 // Public subnet w/ internet gateway
@@ -132,7 +132,7 @@ resource "aws_eip" "nat" {
   # Only create this resource if subnets for the nat gateway were specified
   count      = length(aws_subnet.nat_private) != 0 ? 1 : 0
   vpc        = true
-  depends_on = [ aws_internet_gateway.default ]
+  depends_on = [ aws_internet_gateway.default[0] ]
 
   tags = {
     Name     = "${var.project_id}-nat"
@@ -149,9 +149,9 @@ resource "random_shuffle" "nat_public_subnet_id" {
 resource "aws_nat_gateway" "default" {
   # Only create this resource if subnets for the nat gateway were specified
   count         = length(aws_subnet.nat_private) != 0 ? 1 : 0
-  allocation_id = aws_eip.nat.id
-  subnet_id     = random_shuffle.nat_public_subnet_id.result[0]
-  depends_on    = [ aws_internet_gateway.default ]
+  allocation_id = aws_eip.nat[0].id
+  subnet_id     = random_shuffle.nat_public_subnet_id[0].result[0]
+  depends_on    = [ aws_internet_gateway.default[0] ]
 
   tags = {
     Name = var.project_id
@@ -161,7 +161,7 @@ resource "aws_nat_gateway" "default" {
 resource "aws_route_table_association" "public" {
   count          = length(aws_subnet.public)
   subnet_id      = aws_subnet.public[count.index].id
-  route_table_id = aws_route_table.public.id
+  route_table_id = aws_route_table.public[0].id
 }
 
 resource "aws_route_table" "public" {
@@ -170,8 +170,8 @@ resource "aws_route_table" "public" {
   vpc_id = aws_vpc.default.id
 
   route {
-    cidr_block = var.ig_rt_cidr_block
-    gateway_id = aws_internet_gateway.default.id
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.default[0].id
   }
 
   tags = {

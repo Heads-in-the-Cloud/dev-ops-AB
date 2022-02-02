@@ -17,11 +17,6 @@ variable "vpc_cidr_block" {
   default = null
 }
 
-variable "ig_rt_cidr_block" {
-  type = string
-  default = null
-}
-
 variable "project_id" {
   type = string
   default = null
