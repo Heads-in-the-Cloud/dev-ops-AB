@@ -1,4 +1,9 @@
-terraform {
+provider "aws" {
+  region                      = var.region
+}
+
+/* Localstack config:
+ * terraform {
   #required_version = "0.14.10"
 
   backend "local" {}
@@ -32,3 +37,4 @@ provider "aws" {
     stepfunctions  = "http://localhost:4585"
   }
 }
+*/

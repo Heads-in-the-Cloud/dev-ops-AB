@@ -2,6 +2,13 @@
 - hosts: managed_node
 
   vars:
+    project_id: AB-utopia
+    containers:
+      - reverse-proxy
+      - bookings-microservice
+      - flights-microservice
+      - users-microservices
+    jwt_secret: "{{ lookup('password', 'credentials/jwt_secret.txt chars=ascii_lowercase,digits length=32') }}"
     users:
       jenkins_admin:
         name: admin
@@ -15,37 +22,6 @@
 
   tasks:
 
-  - name: Create python venv
-    shell: python -m venv /tmp
-
-  - name: Install docker compose and localstack
-    shell: pip install docker-compose moto localstack
-
-  - name: Copy docker-compose.yml
-    copy:
-      src: docker-compose.yml
-      dest: /tmp
-
-  - name: Install awscli-local
-    shell: pip install awscli-local[ver1]
-
-  - name: Create jcasc dir
-    file:
-      path: /tmp/jcasc
-      state: directory
-  - name: Copy Dockerfile for Jenkins
-    copy:
-      src: Dockerfile
-      dest: /tmp/jcasc
-  - name: Copy plugins.txt for Jenkins
-    copy:
-      src: plugins.txt
-      dest: /tmp/jcasc
-  - name: Copy casc.yaml for Jenkins
-    copy:
-      src: casc.yaml
-      dest: /tmp/jcasc
-
   - name: docker-compose up
     shell: docker-compose -f /tmp/docker-compose.yml up -d --force-recreate
     environment:
@@ -57,32 +33,37 @@
       JENKINS_ADMIN_PASSWORD: "{{ users.jenkins_admin.password }}"
 
   - name: Create HTTP proxy for Localstack dashboard
-    local_action: command
-      podman run -d
-        --name=nginx
-        -v /home/sheep/work/utopia/devops/JCasC/nginx.conf:/etc/nginx/templates/nginx.conf.template:ro
-        -p 4566:4566
-        --env DOMAIN=localhost
-        --env ANSIBLE_NODE_HOST="{{ inventory_hostname }}"
-        --add-host "{{ inventory_hostname }}":"{{ ansible_default_ipv4.address }}"
-        docker.io/nginx
+    containers.podman.podman_container:
+      name: nginx
+      image: docker.io/nginx
+      recreate: yes
+      volume:
+        - /home/sheep/work/utopia/devops/JCasC/nginx.conf:/etc/nginx/templates/nginx.conf.template:ro
+      ports:
+        - "4566:4566"
+      env:
+        DOMAIN: localhost
+        ANSIBLE_NODE_HOST: "{{ inventory_hostname }}"
+      etc_hosts: "{{ inventory_hostname }}={{ ansible_default_ipv4.address }}"
+      state: started
+    delegate_to: localhost
 
-      #  - name: Start localstack
-      #    shell: python3 -m localstack.cli.main start -d
-      #    environment:
-      #      DEFAULT_REGION: us-west-2
-      #      EDGE_BIND_HOST: 192.168.0.4
-      #      LOCALSTACK_API_KEY: "{{ localstack_api_key }}"
+  - name: Create S3 bucket for Terraform state file
+    shell: awslocal s3api create-bucket --bucket "{{ project_id | lower }}"
 
-        #  - name: Wait for container to start
-        #    shell: python3 -m localstack.cli.main wait
+  - name: Create ECR repositories
+    shell: awslocal ecr create-repository --registry-id {{ project_id | replace("-", "_" ) }} --repository-name "{{ project_id | lower }}-{{ item }}"
+    with_items: "{{ containers }}"
+    environment:
+      AWS_REGION: us-west-2
+      AWS_ACCESS_KEY_ID: local
+      AWS_SECRET_ACCESS_KEY: local
 
-       #  - name: Create S3 bucket for Terraform state file
-       #    shell: awslocal s3api create-bucket --bucket ab-utopia
-       #    environment:
-       #      AWS_REGION: us-west-2
-       #      AWS_ACCESS_KEY_ID: local
-       #      AWS_SECRET_ACCESS_KEY: local
+  - name: Create secret string with Key/Value items
+    shell:
+      awslocal secretsmanager create-secret
+        --name dev/"{{ project_id }}"/default
+        --secret-string "{\"db_root_username\":"{{ users.db_admin.name }}",\"db_root_password\":"{{ users.db_admin.password }}",\"db_username\":"{{ users.db_user.name }}",\"db_password\":"{{ users.db_user.password }}",\"jwt_secret\":"{{ jwt_secret }}"}"
 
   - debug:
       msg: "id: {{ users.jenkins_admin.name }}, password: {{ users.jenkins_admin.password }}"

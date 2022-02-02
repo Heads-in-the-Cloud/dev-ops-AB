@@ -4,37 +4,14 @@ services:
 
   localstack:
     image: "docker.io/localstack/localstack:latest"
-    container_name: localstack
+    container_name: localstack_main
     ports:
       - "4510:4510"
+      - "4514:4514"
       - "4566:4566"
       - "4571:4571"
-      - "4567:4567"
-      - "4581:4581"
-      - "4582:4582"
-      - "4569:4569"
-      - "4570:4570"
-      - "4597:4597"
-      - "4578:4578"
-      - "4573:4573"
-      - "4593:4593"
-      - "4568:4568"
-      - "4599:4599"
-      - "4574:4574"
-      - "4586:4586"
-      - "4577:4577"
-      - "4580:4580"
-      - "4572:4572"
-      - "4584:4584"
-      - "4579:4579"
-      - "4575:4575"
-      - "4576:4576"
-      - "4583:4583"
-      - "4592:4592"
-      - "4587:4587"
-      - "4585:4585"
     environment:
-      SERVICES: "dynamodb,s3"
+      SERVICES: "dynamodb,s3,ecr,secretsmanager"
       HOST_TMP_FOLDER: ${TMPDIR:-/tmp/}localstack
       DOCKER_HOST: unix:///var/run/docker.sock
       DEFAULT_REGION: ${AWS_REGION:-local}
