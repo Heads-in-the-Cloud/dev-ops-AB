@@ -59,7 +59,7 @@
           SslPolicy: ELBSecurityPolicy-2015-05
           Certificates:
             - CertificateArn: "{{ cert_upload.certificate.arn }}"
-        DefaultActions:
-          - Type: forward
-            TargetGroupName: "{{ target_group.name }}"
+          DefaultActions:
+            - Type: forward
+              TargetGroupName: "{{ target_group.name }}"
       state: present
