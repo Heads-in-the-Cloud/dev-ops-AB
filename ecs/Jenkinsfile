@@ -55,7 +55,7 @@ pipeline {
 
                     withCredentials([
                         string(
-                            credentialsId: "${params.Env.toLowerCase()}/$PROJECT_ID/default",
+                            credentialsId: "${ENV.toLowerCase()}/$PROJECT_ID/default",
                             variable: 'SECRETS'
                         )
                     ]) {
