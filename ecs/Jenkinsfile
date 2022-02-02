@@ -85,7 +85,7 @@ pipeline {
                         script {
                             sh """
                                 ansible-playbook deploy.yaml \
-                                    -e @output.json \
+                                    -e @../output.json \
                                     -e "region=$REGION env=$ENV project_id=$PROJECT_ID"
                             """
                             def ecr_uri = "${AWS_ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com"
