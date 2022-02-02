@@ -34,12 +34,13 @@ locals {
 }
 
 # Selects a random availability zone for each subnet in the given region
-module "networks" {
-  source             = "./modules/networks"
+module "network" {
+  source             = "./modules/network"
   vpc_cidr_block     = local.vpc_cidr_block
   subnet_cidr_blocks = local.subnet_cidr_blocks
   ig_rt_cidr_block   = "0.0.0.0/0"
   project_id         = var.project_id
+  support_eks        = true
 }
 
 # RDS instance

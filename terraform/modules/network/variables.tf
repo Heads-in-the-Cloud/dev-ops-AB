@@ -1,3 +1,8 @@
+variable "support_eks" {
+  type = bool
+  default = false
+}
+
 variable "subnet_cidr_blocks" {
   type = object({
       private = list(string)
