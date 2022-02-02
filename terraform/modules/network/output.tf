@@ -17,3 +17,7 @@ output "vpc_id" {
 output "alb_id" {
   value = aws_lb.default.name
 }
+
+output "alb_sec_group_id" {
+  value = aws_security_group.default.id
+}

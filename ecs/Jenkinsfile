@@ -11,6 +11,7 @@ pipeline {
     }
 
     environment {
+        ENV = "dev"
         PROJECT_ID = "AB-utopia"
     }
 
@@ -18,28 +19,35 @@ pipeline {
         stage('Configure Environment Inputs') {
             steps {
                 script {
-                    sh "aws s3 cp s3://${PROJECT_ID.toLowerCase()}/env:/${params.Env}/output.json ."
-                    def tf_output = readJSON file: 'output.json'
-                    env.DOMAIN = tf_output.domain
-                    env.VPC_ID = tf_output.vpc_id
-                    env.DB_URL = "mysql://${tf_output.db_url}:3306/utopia"
-                    env.ALB_ID = tf_output.alb_id
+                    withCredentials([[
+                        $class: 'AmazonWebServicesCredentialsBinding',
+                        credentialsId: "jenkins",
+                        accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                        secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                    ]]) {
+                        sh "aws s3 cp s3://${PROJECT_ID.toLowerCase()}/env:/$ENV/output.json ."
+                        def tf_output = readJSON file: 'output.json'
+                        env.DOMAIN = tf_output.domain
+                        env.VPC_ID = tf_output.vpc_id
+                        env.DB_URL = "mysql://$tf_output.db_url:3306/utopia"
+                        env.ALB_ID = tf_output.alb_id
 
-                    REGION = sh(
-                        script: 'aws configure get region',
-                        returnStdout: true
-                    ).trim()
-                    AWS_ACCOUNT_ID = sh(
-                        script: '''
-                            aws sts get-caller-identity \
-                                --query "Account" \
-                                --output text
-                        ''',
-                        returnStdout: true
-                    ).trim()
+                        REGION = sh(
+                            script: 'aws configure get region',
+                            returnStdout: true
+                        ).trim()
+                        AWS_ACCOUNT_ID = sh(
+                            script: '''
+                                aws sts get-caller-identity \
+                                    --query "Account" \
+                                    --output text
+                            ''',
+                            returnStdout: true
+                        ).trim()
+                    }
 
                     def ecr_uri = "${AWS_ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com"
-                    def image_prefix = "$ecr_uri/${params.ProjectId.toLowerCase()}"
+                    def image_prefix = "$ecr_uri/${PROJECT_ID.toLowerCase()}"
                     env.REVERSE_PROXY_IMAGE = "$image_prefix-reverse-proxy:latest"
                     env.USERS_IMAGE    = "$image_prefix-users-microservice:latest"
                     env.BOOKINGS_IMAGE = "$image_prefix-bookings-microservice:latest"
@@ -47,7 +55,7 @@ pipeline {
 
                     withCredentials([
                         string(
-                            credentialsId: "${params.Env.toLowerCase()}/${params.ProjectId}/default",
+                            credentialsId: "${params.Env.toLowerCase()}/$PROJECT_ID/default",
                             variable: 'SECRETS'
                         )
                     ]) {
@@ -74,8 +82,16 @@ pipeline {
                         accessKeyVariable: 'AWS_ACCESS_KEY_ID',
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
-                        sh "aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com"
-                        sh "docker context use ${params.ProjectId}-ecs"
+                        script {
+                            sh """
+                                ansible-playbook deploy.yaml \
+                                    -e @output.json \
+                                    -e "region=$REGION env=$ENV project_id=$PROJECT_ID"
+                            """
+                            def ecr_uri = "${AWS_ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com"
+                            sh "aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $ecr_uri"
+                        }
+                        sh "docker context use $PROJECT_ID-ecs"
                         sh "docker compose up"
                         sh "docker context use default"
                     }
@@ -97,8 +113,16 @@ pipeline {
                         accessKeyVariable: 'AWS_ACCESS_KEY_ID',
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
-                        sh "aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com"
-                        sh "docker context use ${params.ProjectId}-ecs"
+                        script {
+                            sh """
+                                ansible-playbook deploy.yaml \
+                                    -e @output.json \
+                                    -e "region=$REGION env=$ENV project_id=$PROJECT_ID"
+                            """
+                            def ecr_uri = "${AWS_ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com"
+                            sh "aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $ecr_uri"
+                        }
+                        sh "docker context use $PROJECT_ID-ecs"
                         sh "docker compose down"
                         sh "docker context use default"
                     }
