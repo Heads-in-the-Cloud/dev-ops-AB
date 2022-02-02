@@ -1,6 +1,7 @@
 output "subnet_ids" {
   value = {
     private = aws_subnet.private[*].id
+    nat_private = aws_subnet.nat_private[*].id
     public  = aws_subnet.public[*].id
   }
 }

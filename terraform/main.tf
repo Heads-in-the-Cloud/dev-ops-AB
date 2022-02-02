@@ -56,7 +56,7 @@ module "rds" {
     id         = module.networks.vpc_id
     cidr_block = local.vpc_cidr_block
   }
-  subnet_ids = module.networks.subnet_ids.rds
+  subnet_ids = module.networks.subnet_ids.private
   secret_id  = data.aws_secretsmanager_secret_version.default.secret_id
 }
 
@@ -98,6 +98,7 @@ module "bastion" {
 #    eks_node_group = module.networks.subnet_ids.private
 #    eks            = concat(
 #      module.networks.subnet_ids.private,
+#      module.networks.subnet_ids.nan_private,
 #      module.networks.subnet_ids.public
 #    )
 #  }
