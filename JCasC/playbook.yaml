@@ -1,69 +1,26 @@
 ---
-- hosts: managed_node
+- hosts: 127.0.0.1
+  connection: local
 
   vars:
-    project_id: AB-utopia
-    containers:
-      - reverse-proxy
-      - bookings-microservice
-      - flights-microservice
-      - users-microservices
-    jwt_secret: "{{ lookup('password', 'credentials/jwt_secret.txt chars=ascii_lowercase,digits length=32') }}"
+
     users:
       jenkins_admin:
         name: admin
         password: "{{ lookup('password', 'credentials/jenkins_admin.txt chars=ascii_lowercase,digits length=16') }}"
-      db_admin:
-        name: root
-        password: "{{ lookup('password', 'credentials/db_admin.txt chars=ascii_lowercase,digits length=16') }}"
-      db_user:
-        name: user
-        password: "{{ lookup('password', 'credentials/db_user.txt chars=ascii_lowercase,digits length=16') }}"
+    tmp_dir: /tmp
 
   tasks:
 
-  - name: docker-compose up
-    shell: docker-compose -f /tmp/docker-compose.yml up -d --force-recreate
-    environment:
-      TMPDIR: /tmp
-      AWS_REGION: us-west-2
-      ANSIBLE_NODE_HOST: "{{ inventory_hostname }}"
-      LOCALSTACK_API_KEY: "{{ localstack_api_key }}"
-      JENKINS_ADMIN_ID: "{{ users.jenkins_admin.name }}"
-      JENKINS_ADMIN_PASSWORD: "{{ users.jenkins_admin.password }}"
-
-  - name: Create HTTP proxy for Localstack dashboard
+  - name: Start jenkins container
     containers.podman.podman_container:
-      name: nginx
-      image: docker.io/nginx
-      recreate: yes
-      volume:
-        - /home/sheep/work/utopia/devops/JCasC/nginx.conf:/etc/nginx/templates/nginx.conf.template:ro
+      name: jenkins
+      build: "{{ tmp_dir }}/jcasc"
       ports:
-        - "4566:4566"
+        - "80:8080"
       env:
-        DOMAIN: localhost
-        ANSIBLE_NODE_HOST: "{{ inventory_hostname }}"
-      etc_hosts: "{{ inventory_hostname }}={{ ansible_default_ipv4.address }}"
-      state: started
-    delegate_to: localhost
-
-  - name: Create S3 bucket for Terraform state file
-    shell: awslocal s3api create-bucket --bucket "{{ project_id | lower }}"
-
-  - name: Create ECR repositories
-    shell: awslocal ecr create-repository --registry-id {{ project_id | replace("-", "_" ) }} --repository-name "{{ project_id | lower }}-{{ item }}"
-    with_items: "{{ containers }}"
-    environment:
-      AWS_REGION: us-west-2
-      AWS_ACCESS_KEY_ID: local
-      AWS_SECRET_ACCESS_KEY: local
-
-  - name: Create secret string with Key/Value items
-    shell:
-      awslocal secretsmanager create-secret
-        --name dev/"{{ project_id }}"/default
-        --secret-string "{\"db_root_username\":"{{ users.db_admin.name }}",\"db_root_password\":"{{ users.db_admin.password }}",\"db_username\":"{{ users.db_user.name }}",\"db_password\":"{{ users.db_user.password }}",\"jwt_secret\":"{{ jwt_secret }}"}"
+        JENKINS_ADMIN_ID: "{{ users.jenkins_admin.name }}"
+        JENKINS_ADMIN_PASSWORD: "{{ users.jenkins_admin.password }}"
 
   - debug:
       msg: "id: {{ users.jenkins_admin.name }}, password: {{ users.jenkins_admin.password }}"

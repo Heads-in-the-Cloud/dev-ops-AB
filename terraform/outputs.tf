@@ -7,14 +7,14 @@ output "private_subnets" {
 output "public_subnets" {
   value = module.network.subnet_ids.public
 }
-output "alb_id" {
-  value = module.network.alb_id
-}
 output "alb_sec_group_id" {
   value = module.network.alb_sec_group_id
 }
 output "db_url" {
   value = module.rds.instance_address
+}
+output "alb_id" {
+  value = module.network.alb_id
 }
 output "domain" {
   value = module.network.domain

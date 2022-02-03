@@ -36,12 +36,16 @@ resource "aws_lb" "default" {
   }
 }
 
-data "aws_route53_zone" "default" {
+resource "aws_route53_zone" "default" {
   name = "hitwc.link"
+
+  vpc {
+    vpc_id = aws_vpc.default.id
+  }
 }
 
 resource "aws_route53_record" "default" {
-  zone_id = data.aws_route53_zone.default.zone_id
+  zone_id = aws_route53_zone.default.zone_id
   name    = format("%s.hitwc.link", lower(var.project_id))
   type    = "CNAME"
   ttl     = "20"

@@ -1,11 +1,11 @@
-data "aws_ami" "amazon_linux_2" {
-  most_recent = true
-  owners      = [ "amazon" ]
-  filter {
-    name   = "name"
-    values = [ "amzn2-ami-hvm*" ]
-  }
-}
+# data "aws_ami" "amazon_linux_2" {
+#   most_recent = true
+#   owners      = [ "amazon" ]
+#   filter {
+#     name   = "name"
+#     values = [ "amzn2-ami-hvm*" ]
+#   }
+# }
 
 resource "aws_security_group" "ssh" {
   name        = "${var.project_id}-ssh"
@@ -65,7 +65,7 @@ resource "aws_instance" "default" {
   iam_instance_profile   = aws_iam_instance_profile.default.name
   instance_type  = var.instance_type
   subnet_id      = var.subnet_id
-  ami            = data.aws_ami.amazon_linux_2.id
+  ami            = "ami-0b3456eff9b6f87f1" # data.aws_ami.amazon_linux_2.id
   user_data      = var.user_data
 
   tags = {

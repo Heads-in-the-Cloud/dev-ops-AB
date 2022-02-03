@@ -115,7 +115,7 @@ pipeline {
                     ]]) {
                         script {
                             sh """
-                                ansible-playbook deploy.yaml \
+                                ansible-playbook destroy.yaml \
                                     -e @../output.json \
                                     -e "region=$REGION env=$ENV project_id=$PROJECT_ID"
                             """

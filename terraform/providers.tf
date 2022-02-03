@@ -1,15 +1,7 @@
 provider "aws" {
-  region                      = var.region
-}
 
-/* Localstack config:
- * terraform {
-  #required_version = "0.14.10"
-
-  backend "local" {}
-}
-
-provider "aws" {
+  access_key                  = "local"
+  secret_key                  = "local"
   region                      = var.region
   s3_force_path_style         = true
   skip_credentials_validation = true
@@ -17,24 +9,30 @@ provider "aws" {
   skip_requesting_account_id  = true
 
   endpoints {
-    cloudformation = "http://localhost:4581"
-    cloudwatch     = "http://localhost:4582"
-    dynamodb       = "http://localhost:4569"
-    ec2            = "http://localhost:4597"
-    ecr            = "http://localhost:4510"
-    iam            = "http://localhost:4593"
-    kinesis        = "http://localhost:4568"
-    kms            = "http://localhost:4599"
-    lambda         = "http://localhost:4574"
-    redshift       = "http://localhost:4577"
-    route53        = "http://localhost:4580"
-    s3             = "http://localhost:4572"
-    ses            = "http://localhost:4579"
-    sns            = "http://localhost:4575"
-    sqs            = "http://localhost:4576"
-    ssm            = "http://localhost:4583"
-    sts            = "http://localhost:4592"
-    stepfunctions  = "http://localhost:4585"
+    apigateway     = "http://localhost:4566"
+    apigatewayv2   = "http://localhost:4566"
+    cloudformation = "http://localhost:4566"
+    cloudwatch     = "http://localhost:4566"
+    dynamodb       = "http://localhost:4566"
+    ec2            = "http://localhost:4566"
+    ecr            = "http://localhost:4566"
+    elbv2          = "http://localhost:4566"
+    es             = "http://localhost:4566"
+    elasticache    = "http://localhost:4566"
+    firehose       = "http://localhost:4566"
+    iam            = "http://localhost:4566"
+    kinesis        = "http://localhost:4566"
+    lambda         = "http://localhost:4566"
+    rds            = "http://localhost:4566"
+    redshift       = "http://localhost:4566"
+    route53        = "http://localhost:4566"
+    s3             = "http://localhost:4566"
+    secretsmanager = "http://localhost:4566"
+    ses            = "http://localhost:4566"
+    sns            = "http://localhost:4566"
+    sqs            = "http://localhost:4566"
+    ssm            = "http://localhost:4566"
+    stepfunctions  = "http://localhost:4566"
+    sts            = "http://localhost:4566"
   }
 }
-*/
