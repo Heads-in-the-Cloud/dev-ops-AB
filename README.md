@@ -17,10 +17,10 @@
  - Instance created with Terraform and provisioned with a bastion using `user_data` to create the database schema and create a database user
 
 ## Terraform: Base Infrastructure
-[![Build Status](https://jenkins1.hitwc.link/job/Austin/job/Terraform/badge/icon)](https://jenkins1.hitwc.link/job/Austin/job/Terraform/)
+[![Build Status](https://jenkins1.hitwc.link/buildStatus/icon?job=Austin%2FTerraform)](https://jenkins1.hitwc.link/job/Austin/job/Terraform/)
 
 ## ECS: Cluster deployed using Docker context
-[![Build Status](https://jenkins1.hitwc.link/job/Austin/job/ECS/badge/icon)](https://jenkins1.hitwc.link/job/Austin/job/ECS/)
+[![Build Status](https://jenkins1.hitwc.link/buildStatus/icon?job=Austin%2FECS)](https://jenkins1.hitwc.link/job/Austin/job/ECS/)
 
 ## EKS: Cluster declared using Terraform and provisioned using Ansible
-[![Build Status](https://jenkins1.hitwc.link/job/Austin/job/EKS/badge/icon)](https://jenkins1.hitwc.link/job/Austin/job/EKS/)
+[![Build Status](https://jenkins1.hitwc.link/buildStatus/icon?job=Austin%2FEKS)](https://jenkins1.hitwc.link/job/Austin/job/EKS/)

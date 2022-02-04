@@ -1,4 +1,3 @@
-antisamy-markup-formatter:latest
 authorize-project:latest
 build-timeout:latest
 cloudbees-folder:latest
@@ -17,3 +16,13 @@ ssh-slaves:latest
 timestamper:latest
 workflow-aggregator:latest
 ws-cleanup:latest
+# Include jobs pre-built
+job-dsl:latest
+# Authenticate IAM access key and secret key
+aws-credentials:latest
+# Access AWS secretsmanager values from jenkins creds
+aws-secrets-manager-credentials-provider:latest
+# Format AnsiColor appropriately in console output
+ansicolor:latest
+# Allow for formatting in textboxes for jenkins items
+antisamy-markup-formatter:latest

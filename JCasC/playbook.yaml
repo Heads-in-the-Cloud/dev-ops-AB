@@ -1,6 +1,8 @@
+# ---------------------------------------------------------------------------- #
+#             Deploy pre-configured Jenkins instance for deveopment            #
+# ---------------------------------------------------------------------------- #
 ---
-- hosts: 127.0.0.1
-  connection: local
+- hosts: managed_node
 
   vars:
 
@@ -12,13 +14,41 @@
 
   tasks:
 
+  - name: Create jcasc dir
+    file:
+      dest: "{{ tmp_dir }}/jcasc"
+      state: directory
+  - name: Sync Dockerfile for Jenkins
+    synchronize:
+      src: Dockerfile
+      dest: "{{ tmp_dir }}/jcasc"
+  - name: Sync plugins.txt for Jenkins
+    synchronize:
+      src: plugins.txt
+      dest: "{{ tmp_dir }}/jcasc"
+  - name: Sync casc.yaml for Jenkins
+    synchronize:
+      src: casc.yaml
+      dest: "{{ tmp_dir }}/jcasc"
+
+  - name: Build jenkins image
+    containers.podman.podman_image:
+      name: jenkins-ab
+      path: "{{ tmp_dir }}/jcasc"
+      force: yes
+      build:
+        format: docker
+
   - name: Start jenkins container
     containers.podman.podman_container:
       name: jenkins
-      build: "{{ tmp_dir }}/jcasc"
+      image: jenkins-ab
+      recreate: yes
       ports:
-        - "80:8080"
+        - "8080:8080"
       env:
+        AWS_ACCESS_KEY: local
+        AWS_SECRET_ACCESS_KEY: local
         JENKINS_ADMIN_ID: "{{ users.jenkins_admin.name }}"
         JENKINS_ADMIN_PASSWORD: "{{ users.jenkins_admin.password }}"
 

@@ -1,3 +1,7 @@
+# ---------------------------------------------------------------------------- #
+#             playbook for creating storage resources on localstack            #
+#                  (which the base-infrastructure depends on)                  #
+# ---------------------------------------------------------------------------- #
 ---
 - hosts: managed_node
 
@@ -26,6 +30,10 @@
 
   tasks:
 
+# ---------------------------------------------------------------------------- #
+#                                Use virtualenv                                #
+# ---------------------------------------------------------------------------- #
+
   - name: Get python3 path
     shell: which python3
     register: python3
@@ -39,6 +47,10 @@
     register: command_result
     failed_when: command_result.stdout == ""
 
+# ---------------------------------------------------------------------------- #
+#                               Start Localstack                               #
+# ---------------------------------------------------------------------------- #
+
   - name: Run localstack
     shell: |
       localstack start -d
@@ -51,6 +63,26 @@
 
   - debug:
       msg: "value={{ localstack.stderr }}"
+
+  - name: Create HTTP proxy for Localstack dashboard
+    containers.podman.podman_container:
+      name: nginx
+      image: docker.io/nginx
+      recreate: yes
+      volume:
+        - "{{ playbook_dir }}/nginx.conf:/etc/nginx/templates/nginx.conf.template:ro"
+      ports:
+        - "4566:4566"
+      env:
+        DOMAIN: localhost
+        ANSIBLE_NODE_HOST: "{{ inventory_hostname }}"
+      etc_hosts: "{{ inventory_hostname }}={{ ansible_default_ipv4.address }}"
+      state: started
+    delegate_to: localhost
+
+# ---------------------------------------------------------------------------- #
+#                           Create storage resources                           #
+# ---------------------------------------------------------------------------- #
 
   - name: Create S3 bucket for Terraform state file
     amazon.aws.s3_bucket:
@@ -88,19 +120,3 @@
   - name: Go back to original python interpreter
     set_fact:
       ansible_python_interpreter: "{{ python3.stdout }}"
-
-  - name: Create HTTP proxy for Localstack dashboard
-    containers.podman.podman_container:
-      name: nginx
-      image: docker.io/nginx
-      recreate: yes
-      volume:
-        - "{{ playbook_dir }}/nginx.conf:/etc/nginx/templates/nginx.conf.template:ro"
-      ports:
-        - "4566:4566"
-      env:
-        DOMAIN: localhost
-        ANSIBLE_NODE_HOST: "{{ inventory_hostname }}"
-      etc_hosts: "{{ inventory_hostname }}={{ ansible_default_ipv4.address }}"
-      state: started
-    delegate_to: localhost

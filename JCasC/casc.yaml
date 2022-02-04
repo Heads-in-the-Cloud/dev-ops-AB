@@ -9,7 +9,7 @@ jenkins:
     globalMatrix:
       permissions:
         - "Overall/Read:authenticated"
-          #- "Overall/Administer:admin"
+        - "Overall/Administer:admin"
   remotingSecurity:
     enabled: true
 security:
@@ -20,4 +20,40 @@ security:
 unclassified:
   location:
     url: http://127.0.0.1:8080/
+credentials:
+  system:
+    domainCredentials:
+      - credentials:
+        - aws:
+            scope: GLOBAL
+            id: "jenkins"
+            accessKey: "${AWS_ACCESS_KEY}"
+            secretKey: "${AWS_SECRET_ACCESS_KEY}"
+            description: "AWS Credentials"
+jobs:
+  - script: >
+      folder('Austin') {
+        description("Austin's Pipelines")
+      }
+  - script: >
+      pipelineJob('Austin/Terraform') {
+        definition {
+          cpsScm {
+            scm {
+              git {
+                remote {
+                  url('https://github.com/Heads-in-The-Cloud/devops-AB.git')
+                }
+                branch('*/feature-eks')
+              }
+              scriptPath('terraform/Jenkinsfile')
+            }
+
+            triggers {
+                scm('H/15 * * * *')
+            }
+            lightweight()
+          }
+        }
+      }
 
