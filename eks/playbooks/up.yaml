@@ -49,7 +49,7 @@
     register: elb_endpoint
 
   - debug:
-    msg: "{{ elb_endpoint.stdout }}, {{ elb_endpoint.stderr }}"
+      msg: "{{ elb_endpoint.stdout }}, {{ elb_endpoint.stderr }}"
 
   - name: Upsert Route53 record
     community.aws.route53:
