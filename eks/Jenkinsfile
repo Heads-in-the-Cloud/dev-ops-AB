@@ -11,34 +11,9 @@ pipeline {
     }
 
     environment {
-        S3_BUCKET = params.ProjectId.toLowerCase()
-        withCredentials([[
-            $class: 'AmazonWebServicesCredentialsBinding',
-            credentialsId: "jenkins",
-            accessKeyVariable: 'AWS_ACCESS_KEY_ID',
-            secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
-        ]]) {
-
-            def aws_account_id = sh(
-                script: '''
-                    aws sts get-caller-identity \
-                        --query "Account" \
-                        --output text
-                ''',
-                returnStdout: true
-            ).trim()
-            REGION = sh(
-                script: 'aws configure get region',
-                returnStdout: true
-            ).trim()
-
-            def ecr_uri = "${aws_account_id}.dkr.ecr.${REGION}.amazonaws.com"
-            def image_prefix = "$ecr_uri/${params.ProjectId.toLowerCase()}"
-            REVERSE_PROXY_IMAGE = "$image_prefix-reverse-proxy:latest"
-            USERS_IMAGE    = "$image_prefix-users-microservice:latest"
-            BOOKINGS_IMAGE = "$image_prefix-bookings-microservice:latest"
-            FLIGHTS_IMAGE  = "$image_prefix-flights-microservice:latest"
-        }
+        PROJECT_ID = "AB-utopia"
+        ENV = "dev"
+        S3_BUCKET = PROJECT_ID.toLowerCase()
     }
 
     stages {
@@ -56,11 +31,11 @@ pipeline {
                         accessKeyVariable: 'AWS_ACCESS_KEY_ID',
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
-                        sh "aws s3 cp s3://$S3_BUCKET/env:/${params.Env}/output.json ."
+                        sh "aws s3 cp s3://$S3_BUCKET/env:/$ENV/output.json ."
                         sh """
                             ansible-playbook playbooks/up.yaml \
                                 -e @output.json \
-                                -e "access_key=$AWS_ACCESS_KEY_ID secret_key=$AWS_SECRET_ACCESS_KEY env=${params.Env} project_id=${params.ProjectId}"
+                                -e "access_key=$AWS_ACCESS_KEY_ID secret_key=$AWS_SECRET_ACCESS_KEY env=$ENV project_id=$PROJECT_ID"
                         """
                     }
                 }
@@ -84,7 +59,7 @@ pipeline {
                         sh """
                             ansible-playbook playbooks/down.yaml \
                                 -e @output.json \
-                                -e "region=$REGION env=${params.Env} project_id=${params.ProjectId}"
+                                -e "env=$ENV project_id=$PROJECT_ID"
                         """
                     }
                 }
