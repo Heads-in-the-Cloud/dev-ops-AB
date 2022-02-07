@@ -45,7 +45,7 @@ pipeline {
         stage('Deploy EKS') {
             when {
                 expression {
-                    params.Operation == "Up"
+                    !params.Destroy
                 }
             }
             steps {
@@ -58,9 +58,9 @@ pipeline {
                     ]]) {
                         sh "aws s3 cp s3://$S3_BUCKET/env:/${params.Env}/output.json ."
                         sh """
-                            ansible-playbook up.yaml \
+                            ansible-playbook playbooks/up.yaml \
                                 -e @output.json \
-                                -e "region=$REGION env=${params.Env} project_id=${params.ProjectId}"
+                                -e "access_key=$AWS_ACCESS_KEY_ID secret_key=$AWS_SECRET_ACCESS_KEY env=${params.Env} project_id=${params.ProjectId}"
                         """
                     }
                 }
@@ -70,7 +70,7 @@ pipeline {
         stage('Destroy EKS') {
             when {
                 expression {
-                    params.Operation == "Down"
+                    params.Destroy
                 }
             }
             steps {
@@ -82,7 +82,7 @@ pipeline {
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
                         sh """
-                            ansible-playbook down.yaml \
+                            ansible-playbook playbooks/down.yaml \
                                 -e @output.json \
                                 -e "region=$REGION env=${params.Env} project_id=${params.ProjectId}"
                         """
