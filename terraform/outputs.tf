@@ -13,6 +13,3 @@ output "db_url" {
 output "alb_names" {
   value = module.network.alb_names
 }
-output "tls_cert_arn" {
-  value = module.network.tls_cert_arn
-}

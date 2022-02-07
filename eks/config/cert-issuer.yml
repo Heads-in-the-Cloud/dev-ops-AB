@@ -1,8 +1,26 @@
----
-apiVersion: awspca.cert-manager.io/v1beta1
-kind: AWSPCAClusterIssuer
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
 metadata:
-  name: root-ca
+  name: lets-encrypt
+  namespace: cert-manager
 spec:
-  arn: $TLS_CERT_ARN
-  region: $AWS_REGION
+  acme:
+    # The ACME server URL
+    server: https://acme-v02.api.letsencrypt.org/directory
+    # Email address used for ACME registration
+    email: $EMAIL
+    # Name of a secret used to store the ACME account private key
+    privateKeySecretRef:
+      name: lets-encrypt
+    # Enable the HTTP-01 challenge provider
+    solvers:
+    - selector:
+        dnsZones:
+          - $DOMAIN
+      dns01:
+        route53:
+          region: $AWS_REGION
+          accessKeyID: $AWS_ACCESS_KEY_ID
+          secretAccessKeySecretRef:
+            name: aws-creds
+            key: secret-key

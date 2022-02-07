@@ -33,7 +33,7 @@ resource "aws_eks_node_group" "default" {
   node_group_name   = "${var.project_id}-default"
   cluster_name      = aws_eks_cluster.default.name
   node_role_arn     = aws_iam_role.node_group.arn
-  subnet_ids        = var.node_group_subnet_ids
+  subnet_ids        = var.subnet_ids
 
   instance_types    = [ var.node_instance_type ]
 

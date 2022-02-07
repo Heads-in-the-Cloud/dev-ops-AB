@@ -6,15 +6,15 @@ variable "vpc_id" {
   type = string
   default = null
 }
+variable "use_fargate" {
+  type = bool
+  default = true
+}
 variable "node_instance_type" {
   type = string
   default = null
 }
-variable "cluster_subnet_ids" {
-  type = list(string)
-  default = null
-}
-variable "node_group_subnet_ids" {
+variable "subnet_ids" {
   type = list(string)
   default = null
 }

@@ -16,6 +16,3 @@ output "alb_names" {
 output "alb_sec_group_id" {
   value = aws_security_group.default.id
 }
-output "tls_cert_arn" {
-  value = aws_acm_certificate.default.arn
-}

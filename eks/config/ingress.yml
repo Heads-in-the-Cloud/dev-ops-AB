@@ -6,15 +6,17 @@ metadata:
   namespace: microservices
   labels:
     app: utopia-ingress
+  annotations:
+    cert-manager.io/issuer: "lets-encrypt"
 spec:
   ingressClassName: nginx
   tls:
   - hosts:
     - $DOMAIN
-    secretName: tls-cert-2048
+    secretName: cert
   rules:
   - host: $DOMAIN
-  - http:
+    http:
       paths:
         - path: /api/airplanes
           pathType: Prefix
@@ -121,4 +123,3 @@ spec:
               name: users-service
               port:
                 number: 80
-

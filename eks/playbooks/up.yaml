@@ -3,9 +3,9 @@
   connection: local
 
   vars:
-    vpc_cidr_block: 10.0.0.0\/16
     project_id: AB-utopia
     env: dev
+    email: austin.baugh@smoothstack.com
     microservices:
       - flights-microservice
       - bookings-microservice
@@ -32,67 +32,70 @@
 # ---------------------------------------------------------------------------- #
 #                        Setup nginx ingress controller                        #
 # ---------------------------------------------------------------------------- #
-  - name: Add updated ingress-nginx Helm repository
+
+  #- name: Add updated ingress-nginx Helm repository
+  #  shell:
+  #    helm upgrade
+  #      --install ingress-nginx ingress-nginx
+  #      --repo https://kubernetes.github.io/ingress-nginx
+  #      --namespace ingress-nginx --create-namespace
+  #- name: Wait for ingress controller
+  #  shell:
+  #    kubectl wait --namespace ingress-nginx
+  #      --for=condition=ready pod
+  #      --selector=app.kubernetes.io/component=controller
+  #      --timeout=120s
+
+  #- name: Get AWS elb endpoint
+  #  shell: kubectl get svc --namespace=ingress-nginx | awk 'NR==2{print $4}'
+  #  register: elb_endpoint
+
+  #- name: Upsert Route53 record
+  #  community.aws.route53:
+  #    state: present
+  #    zone: "{{ domain_zone }}"
+  #    record: "{{ domain_record }}"
+  #    type: CNAME
+  #    overwrite: true
+  #    ttl: 60
+  #    value: "{{ elb_endpoint.stdout }}"
+
+# #---------------------------------------------------------------------------- #
+# #                      Setup cert-manager w/ CA issuer                        #
+# #---------------------------------------------------------------------------- #
+
+  #- name: Install cert-manager
+  #  shell:
+  #    helm upgrade
+  #      --install cert-manager cert-manager
+  #      --repo https://charts.jetstack.io
+  #      --version v1.7.1
+  #      --namespace cert-manager --create-namespace
+  #      --set installCRDs=true
+  #- name: Create k8s secret with AWS secret access key
+  #  shell:
+  #    kubectl create secret generic aws-creds
+  #      -n cert-manager
+  #      --from-literal secret-key="{{ secret_key }}"
+  #- name: Apply cert issuer
+  #  shell:
+  #    envsubst < ../config/cert-issuer.yml | kubectl apply -f -
+  #  environment:
+  #    EMAIL: "{{ email }}"
+  #    DOMAIN: "{{ domain_record }}"
+  #    AWS_REGION: "{{ aws_region.stdout }}"
+  #    AWS_ACCESS_KEY_ID: "{{ access_key }}"
+  #    AWS_SECRET_ACCESS_KEY: "{{ secret_key }}"
+
+# #---------------------------------------------------------------------------- #
+# #                            Deploy microservices                             #
+# #---------------------------------------------------------------------------- #
+
+  #- name: Create namespace for microservices
+  #  shell: kubectl create ns microservices
+  - name: Create cert secret
     shell:
-      helm upgrade
-        --install ingress-nginx ingress-nginx
-        --repo https://kubernetes.github.io/ingress-nginx
-        --namespace ingress-nginx --create-namespace
-  - name: Wait for ingress controller
-    shell:
-      kubectl wait --namespace ingress-nginx
-        --for=condition=ready pod
-        --selector=app.kubernetes.io/component=controller
-        --timeout=120s
-
-  - name: Get AWS elb endpoint
-    shell: kubectl get svc --namespace=ingress-nginx | awk 'NR==2{print $4}'
-    register: elb_endpoint
-
-  - name: Upsert Route53 record
-    community.aws.route53:
-      state: present
-      zone: "{{ domain_zone }}"
-      record: "{{ domain_record }}"
-      type: CNAME
-      overwrite: true
-      ttl: 60
-      value: "{{ elb_endpoint.stdout }}"
-
-# ---------------------------------------------------------------------------- #
-#                         Setup cert-manager w/ issuer                         #
-# ---------------------------------------------------------------------------- #
-  - name: Add cert-manager Helm repository
-    shell: |
-      helm repo add jetstack https://charts.jetstack.io
-      helm repo update
-      helm install \
-        cert-manager jetstack/cert-manager \
-        --namespace cert-manager \
-        --create-namespace \
-        --version v1.7.1
-  - name: Install AWS PCA issuer
-    shell: |
-      kubectl create namespace aws-pca-issuer
-
-      helm repo add awspca https://cert-manager.github.io/aws-privateca-issuer
-      helm repo update
-      helm install awspca/aws-privateca-issuer  --generate-name --namespace aws-pca-issuer
-  - name: Apply cert issuer
-    shell:
-      envsubst < ../config/cert-issuer.yml | kubectl apply -f -
-    environment:
-      TLS_CERT_ARN: "{{ tls_cert_arn }}"
-      AWS_REGION: "{{ aws_region.stdout }}"
-
-# ---------------------------------------------------------------------------- #
-#                             Deploy microservices                             #
-# ---------------------------------------------------------------------------- #
-  - name: Create namespace for microservices
-    shell: kubectl create ns microservices
-  - name: Create TLS cert secret
-    shell:
-      envsubst < ../config/tls-cert.yml | kubectl apply -f -
+      envsubst < ../config/cert.yml | kubectl apply -f -
     environment:
       DOMAIN: "{{ domain_record }}"
   - name: Set k8s secrets from stdin literals
