@@ -21,3 +21,8 @@ variable "project_id" {
   type = string
   default = null
 }
+
+variable "alb_names" {
+  type = list(string)
+  default = null
+}

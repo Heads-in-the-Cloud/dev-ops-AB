@@ -1,0 +1,8 @@
+---
+apiVersion: awspca.cert-manager.io/v1beta1
+kind: AWSPCAClusterIssuer
+metadata:
+  name: root-ca
+spec:
+  arn: $TLS_CERT_ARN
+  region: $AWS_REGION

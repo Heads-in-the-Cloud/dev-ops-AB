@@ -10,12 +10,12 @@ output "vpc_id" {
   value = aws_vpc.default.id
 }
 
-output "domain" {
-  value = aws_route53_record.default.name
-}
-output "alb_id" {
-  value = aws_lb.default.name
+output "alb_names" {
+  value = aws_lb.default[*].name
 }
 output "alb_sec_group_id" {
   value = aws_security_group.default.id
+}
+output "tls_cert_arn" {
+  value = aws_acm_certificate.default.arn
 }

@@ -1,0 +1,120 @@
+---
+- hosts: 127.0.0.1
+  connection: local
+
+  vars:
+    vpc_cidr_block: 10.0.0.0\/16
+    project_id: AB-utopia
+    env: dev
+    microservices:
+      - flights-microservice
+      - bookings-microservice
+      - users-microservice
+    secrets: "{{ lookup('amazon.aws.aws_secret', '{{ env | lower }}/{{ project_id }}/default') }}"
+    domain_zone: "hitwc.link"
+    domain_record: "{{ project_id | lower }}.hitwc.link"
+
+  tasks:
+
+  - name: Get AWS account id
+    shell:
+      aws sts get-caller-identity
+        --query "Account"
+        --output text
+    register: aws_account_id
+  - name: Get AWS region
+    shell: aws configure get region
+    register: aws_region
+
+  - name: Connect to EKS cluster
+    shell: aws eks --region "{{ aws_region.stdout }}" update-kubeconfig --name "{{ project_id }}"
+
+# ---------------------------------------------------------------------------- #
+#                        Setup nginx ingress controller                        #
+# ---------------------------------------------------------------------------- #
+  - name: Add updated ingress-nginx Helm repository
+    shell:
+      helm upgrade
+        --install ingress-nginx ingress-nginx
+        --repo https://kubernetes.github.io/ingress-nginx
+        --namespace ingress-nginx --create-namespace
+  - name: Wait for ingress controller
+    shell:
+      kubectl wait --namespace ingress-nginx
+        --for=condition=ready pod
+        --selector=app.kubernetes.io/component=controller
+        --timeout=120s
+
+  - name: Get AWS elb endpoint
+    shell: kubectl get svc --namespace=ingress-nginx | awk 'NR==2{print $4}'
+    register: elb_endpoint
+
+  - name: Upsert Route53 record
+    community.aws.route53:
+      state: present
+      zone: "{{ domain_zone }}"
+      record: "{{ domain_record }}"
+      type: CNAME
+      overwrite: true
+      ttl: 60
+      value: "{{ elb_endpoint.stdout }}"
+
+# ---------------------------------------------------------------------------- #
+#                         Setup cert-manager w/ issuer                         #
+# ---------------------------------------------------------------------------- #
+  - name: Add cert-manager Helm repository
+    shell: |
+      helm repo add jetstack https://charts.jetstack.io
+      helm repo update
+      helm install \
+        cert-manager jetstack/cert-manager \
+        --namespace cert-manager \
+        --create-namespace \
+        --version v1.7.1
+  - name: Install AWS PCA issuer
+    shell: |
+      kubectl create namespace aws-pca-issuer
+
+      helm repo add awspca https://cert-manager.github.io/aws-privateca-issuer
+      helm repo update
+      helm install awspca/aws-privateca-issuer  --generate-name --namespace aws-pca-issuer
+  - name: Apply cert issuer
+    shell:
+      envsubst < ../config/cert-issuer.yml | kubectl apply -f -
+    environment:
+      TLS_CERT_ARN: "{{ tls_cert_arn }}"
+      AWS_REGION: "{{ aws_region.stdout }}"
+
+# ---------------------------------------------------------------------------- #
+#                             Deploy microservices                             #
+# ---------------------------------------------------------------------------- #
+  - name: Create namespace for microservices
+    shell: kubectl create ns microservices
+  - name: Create TLS cert secret
+    shell:
+      envsubst < ../config/tls-cert.yml | kubectl apply -f -
+    environment:
+      DOMAIN: "{{ domain_record }}"
+  - name: Set k8s secrets from stdin literals
+    shell: |
+      kubectl create secret generic db-info \
+        -n microservices \
+        --from-literal db-url="mysql://{{ db_url }}:3306/utopia" \
+        --from-literal db-user="{{ secrets.db_username }}" \
+        --from-literal db-password="{{ secrets.db_password }}"
+      kubectl create secret generic jwt-secret \
+        -n microservices \
+        --from-literal jwt-secret="{{ secrets.jwt_secret }}"
+  - name: Deploy microservices
+    shell:
+      envsubst < "../config/{{ item }}.yml" | kubectl apply -f -
+    environment:
+      PROJECT_ID: "{{ project_id | lower }}"
+      AWS_ACCOUNT_ID: "{{ aws_account_id.stdout }}"
+      AWS_REGION: "{{ aws_region.stdout }}"
+    with_items: "{{ microservices }}"
+  - name: Apply ingress rules
+    shell:
+      envsubst < ../config/ingress.yml | kubectl apply -f -
+    environment:
+      DOMAIN: "{{ domain_record }}"

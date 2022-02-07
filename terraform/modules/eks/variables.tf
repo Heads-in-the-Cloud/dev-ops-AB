@@ -1,22 +1,20 @@
 variable "project_id" {
-  type    = string
+  type = string
   default = null
 }
-
-variable "environment" {
-  type    = string
-  default = null
-}
-
 variable "vpc_id" {
-  type    = string
+  type = string
   default = null
 }
-
-variable "subnet_ids" {
-  type    = object({
-    eks = list(string)
-    eks_node_group = list(string)
-  })
+variable "node_instance_type" {
+  type = string
+  default = null
+}
+variable "cluster_subnet_ids" {
+  type = list(string)
+  default = null
+}
+variable "node_group_subnet_ids" {
+  type = list(string)
   default = null
 }

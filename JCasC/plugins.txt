@@ -26,3 +26,5 @@ aws-secrets-manager-credentials-provider:latest
 ansicolor:latest
 # Allow for formatting in textboxes for jenkins items
 antisamy-markup-formatter:latest
+# Specifying terraform location
+terraform:latest

@@ -25,11 +25,11 @@ locals {
   vpc_cidr_block     = "10.0.0.0/16"
   subnet_cidr_blocks = {
       # Private: w/o NAT gateway
-      private     = ["10.0.0.0/24", "10.0.1.0/24"]
+      private     = ["10.0.0.0/24", "10.1.0.0/24"]
       # Private: w/ NAT gateway
-      nat_private = ["10.0.2.0/24", "10.0.3.0/24"]
+      nat_private = ["10.2.0.0/24", "10.3.0.0/24"]
       # Public: w/ Internet gateway
-      public      = ["10.0.4.0/24", "10.0.5.0/24"]
+      public      = ["10.4.0.0/24", "10.5.0.0/24"]
   }
 }
 
@@ -40,6 +40,7 @@ module "network" {
   vpc_cidr_block     = local.vpc_cidr_block
   subnet_cidr_blocks = local.subnet_cidr_blocks
   support_eks        = true
+  alb_names          = []
 }
 
 # RDS instance
@@ -89,17 +90,11 @@ module "bastion" {
   project_id = var.project_id
 }
 
-#module "eks" {
-#  source      = "./modules/eks"
-#  project_id  = var.project_id
-#  environment = var.environment
-#  vpc_id        = module.network.vpc_id
-#  subnet_ids  = {
-#    eks_node_group = module.network.subnet_ids.private
-#    eks            = concat(
-#      module.network.subnet_ids.private,
-#      module.network.subnet_ids.nan_private,
-#      module.network.subnet_ids.public
-#    )
-#  }
-#}
+module "eks" {
+  source = "./modules/eks"
+  project_id = var.project_id
+  vpc_id = module.network.vpc_id
+  node_group_subnet_ids = module.network.subnet_ids.public
+  cluster_subnet_ids = concat(module.network.subnet_ids.public, module.network.subnet_ids.nat_private)
+  node_instance_type = "t3.micro"
+}

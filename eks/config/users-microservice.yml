@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: users-deployment
+  namespace: microservices
+  labels:
+    app: users-microservice
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: users-microservice
+  template:
+    metadata:
+      labels:
+        app: users-microservice
+    spec:
+      containers:
+      - name: users-microservice
+        image: $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$PROJECT_ID-users-microservice:latest
+        imagePullPolicy: Always
+        env:
+          - name: DB_URL
+            valueFrom:
+              secretKeyRef:
+                key: db-url
+                name: db-info
+          - name: DB_USERNAME
+            valueFrom:
+              secretKeyRef:
+                key: db-user
+                name: db-info
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: db-password
+                name: db-info
+          - name: JWT_SECRET
+            valueFrom:
+              secretKeyRef:
+                key: jwt-secret
+                name: jwt-secret
+        ports:
+          - containerPort: 8080
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: users-service
+  namespace: microservices
+  labels:
+    app: users-microservice
+  annotations:
+    alb.ingress.kubernetes.io/target-type: ip
+spec:
+  selector:
+    app: users-microservice
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+      name: http

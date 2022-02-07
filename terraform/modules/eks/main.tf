@@ -1,131 +1,79 @@
-data "tls_certificate" "oidc" {
-  url = aws_eks_cluster.default.identity[0].oidc[0].issuer
-}
-
-resource "aws_iam_openid_connect_provider" "default" {
-  client_id_list  = [ "sts.amazonaws.com" ]
-  thumbprint_list = [ data.tls_certificate.oidc.certificates[0].sha1_fingerprint ]
-  url             = aws_eks_cluster.default.identity[0].oidc[0].issuer
-}
-
-data "aws_iam_policy_document" "oidc" {
+data "aws_iam_policy_document" "cluster" {
+  version = "2012-10-17"
   statement {
-    actions = ["sts:AssumeRoleWithWebIdentity"]
-    effect  = "Allow"
-
-    condition {
-      test     = "StringEquals"
-      variable = "${replace(aws_iam_openid_connect_provider.default.url, "https://", "")}:sub"
-      values   = ["system:serviceaccount:kube-system:aws-node"]
-    }
-
+    effect = "Allow"
+    actions = ["sts:AssumeRole"]
     principals {
-      identifiers = [ aws_iam_openid_connect_provider.default.arn ]
-      type        = "Federated"
+      identifiers = ["eks.amazonaws.com"]
+      type = "Service"
     }
   }
 }
 
-resource "aws_iam_role" "default" {
-  assume_role_policy = data.aws_iam_policy_document.oidc.json
-  name               = "${var.project_id}-eks"
+resource "aws_iam_role" "cluster" {
+  name = "${var.project_id}-eks-cluster"
+  assume_role_policy = data.aws_iam_policy_document.cluster.json
 }
 
-resource "aws_iam_role_policy_attachment" "AmazonEKSClusterPolicy" {
+resource "aws_iam_role_policy_attachment" "cluster" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
-  role       = aws_iam_role.default.name
+  role       = aws_iam_role.cluster.name
 }
 
-resource "aws_iam_role_policy_attachment" "AmazonEKSServicePolicy" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSServicePolicy"
-  role       = aws_iam_role.default.name
+resource "aws_iam_role_policy_attachment" "VPC" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSVPCResourceController"
+  role       = aws_iam_role.cluster.name
 }
 
-resource "aws_security_group" "default" {
-  name        = "${var.project_id}-eks"
-  vpc_id      = var.vpc_id
+resource "aws_security_group" "cluster" {
+  name = "${var.project_id}-eks-cluster"
+  vpc_id = var.vpc_id
+
+  # HTTP
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # HTTPS
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 
   egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+    from_port     = 0
+    to_port       = 0
+    protocol      = "-1"
+    cidr_blocks   = ["0.0.0.0/0"]
   }
 
-  ingress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+  tags = {
+    Name = "${var.project_id}-eks"
   }
 }
 
 resource "aws_eks_cluster" "default" {
-  name     = var.project_id
-  role_arn =  aws_iam_role.default.arn
-  version  = "1.19"
+  name      = var.project_id
+  role_arn  = aws_iam_role.cluster.arn
 
   vpc_config {
-    security_group_ids = [ aws_security_group.default.id ]
-    subnet_ids         = var.subnet_ids.eks
+    subnet_ids              = var.cluster_subnet_ids
+    security_group_ids      = [aws_security_group.cluster.id]
+    endpoint_private_access = true
+    endpoint_public_access  = true
   }
 
   depends_on = [
-    aws_iam_role_policy_attachment.AmazonEKSClusterPolicy,
-    aws_iam_role_policy_attachment.AmazonEKSServicePolicy,
-   ]
-}
-
-resource "aws_iam_role" "eks_nodes" {
-  name = "eks-node-group"
-
-  assume_role_policy = <<POLICY
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "ec2.amazonaws.com"
-      },
-      "Action": "sts:AssumeRole"
-    }
+    aws_iam_role_policy_attachment.cluster,
+    aws_iam_role_policy_attachment.VPC
   ]
-}
-POLICY
-}
 
-resource "aws_iam_role_policy_attachment" "AmazonEKSWorkerNodePolicy" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
-  role       = aws_iam_role.eks_nodes.name
-}
-
-resource "aws_iam_role_policy_attachment" "AmazonEKS_CNI_Policy" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
-  role       = aws_iam_role.eks_nodes.name
-}
-
-resource "aws_iam_role_policy_attachment" "AmazonEC2ContainerRegistryReadOnly" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
-  role       = aws_iam_role.eks_nodes.name
-}
-
-resource "aws_eks_node_group" "default" {
-  cluster_name    = aws_eks_cluster.default.name
-  node_group_name = var.project_id
-  node_role_arn   = aws_iam_role.eks_nodes.arn
-  subnet_ids      = var.subnet_ids.eks_node_group
-
-  scaling_config {
-    desired_size = 1
-    max_size     = 1
-    min_size     = 1
+  tags = {
+    Name = "${var.project_id}-default"
   }
-
-  depends_on = [
-    aws_iam_role_policy_attachment.AmazonEKSWorkerNodePolicy,
-    aws_iam_role_policy_attachment.AmazonEKS_CNI_Policy,
-    aws_iam_role_policy_attachment.AmazonEC2ContainerRegistryReadOnly,
-  ]
 }
-g

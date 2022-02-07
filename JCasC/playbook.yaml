@@ -51,6 +51,7 @@
         AWS_SECRET_ACCESS_KEY: local
         JENKINS_ADMIN_ID: "{{ users.jenkins_admin.name }}"
         JENKINS_ADMIN_PASSWORD: "{{ users.jenkins_admin.password }}"
+      etc_hosts: "{{ inventory_hostname }}={{ ansible_default_ipv4.address }}"
 
   - debug:
       msg: "id: {{ users.jenkins_admin.name }}, password: {{ users.jenkins_admin.password }}"

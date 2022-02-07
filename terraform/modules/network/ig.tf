@@ -1,3 +1,13 @@
+resource "aws_internet_gateway" "default" {
+  # Only create this resource if public subnets were specified
+  count = length(aws_subnet.public) != 0 ? 1 : 0
+  vpc_id = aws_vpc.default.id
+
+  tags = {
+    Name = var.project_id
+  }
+}
+
 // Application Load Balancer
 resource "aws_security_group" "default" {
   name        = "${var.project_id}-alb"
@@ -25,29 +35,15 @@ resource "aws_security_group" "default" {
 }
 
 resource "aws_lb" "default" {
-  name               = var.project_id
+  count              = length(var.alb_names)
+  name               = var.alb_names[count.index]
   internal           = false
   load_balancer_type = "application"
   subnets            = aws_subnet.public[*].id
   security_groups    = [ aws_security_group.default.id ]
+  depends_on         = [ aws_internet_gateway.default[0] ]
 
   tags = {
     Name = var.project_id
   }
-}
-
-resource "aws_route53_zone" "default" {
-  name = "hitwc.link"
-
-  vpc {
-    vpc_id = aws_vpc.default.id
-  }
-}
-
-resource "aws_route53_record" "default" {
-  zone_id = aws_route53_zone.default.zone_id
-  name    = format("%s.hitwc.link", lower(var.project_id))
-  type    = "CNAME"
-  ttl     = "20"
-  records = [ aws_lb.default.dns_name ]
 }

@@ -1,0 +1,19 @@
+{
+  "db_url": "ab-utopia.cfld1kyecklc.us-west-2.rds.amazonaws.com",
+  "subnet_ids": {
+    "nat_private": [
+      "subnet-004b8a819878a141d",
+      "subnet-02aadd348c6446afc"
+    ],
+    "private": [
+      "subnet-0c20b60e27047dcde",
+      "subnet-0aea227018be90523"
+    ],
+    "public": [
+      "subnet-063b5091e8ce40952",
+      "subnet-0caeaf880a0f57c3d"
+    ]
+  },
+  "tls_cert_arn": "arn:aws:acm:us-west-2:026390315914:certificate/62a04c65-1361-4a29-827a-7f9c2621b017",
+  "vpc_id": "vpc-0c942f75c5ec097ca"
+}
