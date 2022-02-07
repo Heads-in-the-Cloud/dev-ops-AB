@@ -24,7 +24,7 @@ pipeline {
                 }
             }
             steps {
-                dir("ansible/eks") {
+                dir("eks") {
                     withCredentials([[
                         $class: 'AmazonWebServicesCredentialsBinding',
                         credentialsId: "jenkins",
@@ -49,7 +49,7 @@ pipeline {
                 }
             }
             steps {
-                dir("ansible/eks") {
+                dir("eks") {
                     withCredentials([[
                         $class: 'AmazonWebServicesCredentialsBinding',
                         credentialsId: "jenkins",
