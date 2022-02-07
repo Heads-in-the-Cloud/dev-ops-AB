@@ -48,6 +48,9 @@
     shell: kubectl get svc --namespace=ingress-nginx | awk 'NR==2{print $4}'
     register: elb_endpoint
 
+  - debug: Print elb endpoint
+    msg: "{{ elb_endpoint.stdout }}, {{ elb_endpoint.stderr }}"
+
   - name: Upsert Route53 record
     community.aws.route53:
       state: present
