@@ -3,14 +3,16 @@
   connection: local
 
   vars:
+    project_id: "{{ lookup('env', 'PROJECT_ID') }}"
+    env: "{{ lookup('env', 'ENV') }}"
     email: austin.baugh@smoothstack.com
+    domain_zone: "hitwc.link"
+    domain_record: "{{ project_id | lower }}.hitwc.link"
     microservices:
       - flights-microservice
       - bookings-microservice
       - users-microservice
     secrets: "{{ lookup('amazon.aws.aws_secret', '{{ env | lower }}/{{ project_id }}/default') }}"
-    domain_zone: "hitwc.link"
-    domain_record: "{{ project_id | lower }}.hitwc.link"
 
   tasks:
 
@@ -86,8 +88,6 @@
       EMAIL: "{{ email }}"
       DOMAIN: "{{ domain_record }}"
       AWS_REGION: "{{ aws_region.stdout }}"
-      AWS_ACCESS_KEY_ID: "{{ access_key }}"
-      AWS_SECRET_ACCESS_KEY: "{{ secret_key }}"
 
 # ---------------------------------------------------------------------------- #
 #                             Deploy microservices                             #

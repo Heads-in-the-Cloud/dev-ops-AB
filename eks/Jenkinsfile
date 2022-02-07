@@ -32,11 +32,7 @@ pipeline {
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
                         sh "aws s3 cp s3://$S3_BUCKET/env:/$ENV/output.json ."
-                        sh '''
-                            ansible-playbook playbooks/up.yaml \
-                                -e @output.json \
-                                -e 'access_key=$AWS_ACCESS_KEY_ID secret_key=$AWS_SECRET_ACCESS_KEY env=$ENV project_id=$PROJECT_ID'
-                        '''
+                        sh 'ansible-playbook playbooks/up.yaml -e @output.json'
                     }
                 }
             }
