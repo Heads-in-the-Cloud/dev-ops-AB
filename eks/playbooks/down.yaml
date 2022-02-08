@@ -36,13 +36,19 @@
     shell: kubectl -n microservices delete secret db-info
 
   - name: Delete microservices namespace
-    shell: kubectl delete all --all -n microservices
+    shell: |
+      kubectl delete all --all -n microservices
+      kubectl delete ns microservices
 
   - name: Delete aws-creds secret
     shell: kubectl -n cert-manager delete secret aws-creds
 
   - name: Delete cert-manager namespace
-    shell: kubectl delete all --all -n cert-manager
+    shell: |
+      kubectl delete all --all -n cert-manager
+      kubectl delete ns cert-manager
 
   - name: Delete ingress-nginx namespace
-    shell: kubectl delete all --all -n ingress-nginx
+    shell: |
+      kubectl delete all --all -n ingress-nginx
+      kubectl delete ns ingress-nginx
