@@ -12,11 +12,6 @@ jenkins:
         - "Overall/Administer:admin"
   remotingSecurity:
     enabled: true
-  globalNodeProperties:
-    - envVars:
-        env:
-          - key: PATH
-            value: '$HOME/tools/terraform-0.11:$PATH'
 security:
   queueItemAuthenticator:
     authenticators:
@@ -35,16 +30,6 @@ credentials:
             accessKey: "${AWS_ACCESS_KEY}"
             secretKey: "${AWS_SECRET_ACCESS_KEY}"
             description: "AWS Credentials"
-tool:
-  terraform:
-    installations:
-      - name: "terraform"
-        home: "terraform-0.11"
-        properties:
-          - installSource:
-              installers:
-                - terraformInstaller:
-                    id: "0.11.9-linux-amd64"
 jobs:
   - script: >
       folder('Austin') {
