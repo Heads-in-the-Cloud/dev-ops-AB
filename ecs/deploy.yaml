@@ -1,0 +1,66 @@
+---
+- hosts: 127.0.0.1
+  connection: local
+
+  tasks:
+
+  - name: Install openssl package
+    yum: name=openssl state=latest
+
+  # Generate private key by using a "openssl_privatekey" module
+  - name: Generate Private key
+    openssl_privatekey: path="/etc/ssl/{{ project_id }}/ecs.key"
+
+  # Generate csr with the help of "openssl_csr" module
+  - name: Generate CSR
+    openssl_csr:
+     path: "/etc/ssl/{{ project_id }}/ecs.csr"
+     privatekey_path: "/etc/ssl/{{ project_id }}/ecs-key.pem"
+     common_name: "{{ domain }}"
+     country_name: "{{ country_name }}"
+     email_address: "{{ email }}"
+
+  # Generate certificate using  "openssl_certificate" module
+  - name: Generate a self signed certificate
+    openssl_certificate:
+     csr_path: "/etc/ssl/{{ project_id }}/ecs.csr"
+     path: "/etc/ssl/{{ project_id }}/ecs-crt.pem"
+     privatekey_path: "/etc/ssl/{{ project_id }}/ecs-key.pem"
+     provider: selfsigned
+
+  - name: Upload certificate to ACM
+    community.aws.aws_acm:
+      certificate: "{{ lookup('file', '/etc/ssl/{{ project_id }}/ecs-crt.pem' ) }}"
+      privateKey: "{{ lookup('file', '/etc/ssl/{{ project_id }}/ecs-key.pem' ) }}"
+      name_tag: "{{ project_id }}-ecs"
+      region: "{{ region }}"
+    register: cert_upload
+
+  - name: Create a target group with a default health check
+    community.aws.elb_target_group:
+      name: "{{ project_id }}-ecs"
+      protocol: http
+      port: 80
+      vpc_id: "{{ vpc_id }}"
+      state: present
+    register: target_group
+
+  # Create an ELB and attach a listener with logging enabled
+  - community.aws.elb_application_lb:
+      access_logs_enabled: yes
+      access_logs_s3_bucket: "{{ project_id | lower }}"
+      access_logs_s3_prefix: "logs"
+      name: myelb
+      security_groups:
+        - "{{ alb_sec_group_id }}"
+      subnets: "{{ subnets }}"
+      listeners:
+        - Protocol: HTTP
+          Port: 80
+          SslPolicy: ELBSecurityPolicy-2015-05
+          Certificates:
+            - CertificateArn: "{{ cert_upload.certificate.arn }}"
+          DefaultActions:
+            - Type: forward
+              TargetGroupName: "{{ target_group.name }}"
+      state: present

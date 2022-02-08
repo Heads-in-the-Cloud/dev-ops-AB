@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: cert
+  namespace: microservices
+spec:
+  secretName: cert
+  dnsNames:
+  - $DOMAIN
+  issuerRef:
+    name: lets-encrypt
+    kind: ClusterIssuer

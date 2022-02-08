@@ -1,26 +1,26 @@
-# Utopia Airlines Local Deployment Config
+# Utopia Airlines Cloud Deployment Config
 
-This includes configurations for standing-up microservices with Docker Compose and Kubernetes along with a data producer microservice.
+## Cloud Storage
+### S3 buckets
+- Allows for a Terraform state file of the current Terraform workspace to be stored and re-used on the apply and destroy stages
+  `s3://<bucket>/:env/<Dev|Staging|Prod>/terraform.tfstate`
+- The outputs provided after applying Terraform are stored in a json file for the specified environment
+  `s3://<bucket>/:env/<Dev|Staging|Prod>/output.json`
+### AWS Secrets Manager
+ - Stores the root and user database credentials along with the JWT secret in a key-value type secret
+   - `db_root_username`
+   - `db_root_password`
+   - `db_username`
+   - `db_password`
+   - `jwt_token`
+### RDS
+ - Instance created with Terraform and provisioned with a bastion using `user_data` to create the database schema and create a database user
 
-## DB
-A Docker Compose configuration for standing-up a MySQL instance of the utopia database is available in `db.yml` file.
+## Terraform: Base Infrastructure
+[![Build Status](https://jenkins1.hitwc.link/buildStatus/icon?job=Austin%2FTerraform)](https://jenkins1.hitwc.link/job/Austin/job/Terraform/)
 
-## Secrets
-- Docker Compose: create an .env file in the root of this repository with the following contents:
-```sh
-DB_URL=mysql://<db-host>:<db-port>/<db-name>
-DB_USERNAME=<db-username>
-DB_PASSWORD=<db-password>
-JWT_SECRET=<jwt-secret>
-```
-- Kubernetes: generate secret files by running the following shell commands:
-```sh
-echo -n mysql://<db-host>:<db-port>/<db-name> > secrets/mysql_url.txt
-echo -n <db-username> > secrets/mysql_username.txt
-echo -n <db-password> > secrets/mysql_password.txt
-echo -n <jwt-secret> > secrets/jwt_secret.txt
-```
-- DB: run the same commands used for generating the database credentials above, along with:
-```sh
-echo -n <db-root-password> > secrets/mysql_root_password.txt
-```
+## ECS: Cluster deployed using Docker context
+[![Build Status](https://jenkins1.hitwc.link/buildStatus/icon?job=Austin%2FECS)](https://jenkins1.hitwc.link/job/Austin/job/ECS/)
+
+## EKS: Cluster declared using Terraform and provisioned using Ansible
+[![Build Status](https://jenkins1.hitwc.link/buildStatus/icon?job=Austin%2FEKS)](https://jenkins1.hitwc.link/job/Austin/job/EKS/)
