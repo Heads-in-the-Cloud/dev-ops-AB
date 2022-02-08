@@ -26,6 +26,7 @@
     community.aws.route53:
       zone: "{{ domain_zone }}"
       record: "{{ domain_record }}"
+      type: CNAME
       state: absent
 
   - name: Delete microservices
