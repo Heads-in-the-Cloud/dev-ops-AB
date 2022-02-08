@@ -50,6 +50,9 @@
     shell: kubectl get svc --namespace=ingress-nginx | awk 'NR==2{print $4}'
     register: elb_endpoint
 
+  - debug:
+      msg: "{{ elb_endpoint }}"
+
   - name: Upsert Route53 record
     community.aws.route53:
       state: present
@@ -60,9 +63,6 @@
       ttl: 60
       value: "{{ elb_endpoint.stdout }}"
     register: r53_record
-
-  - debug:
-      msg: "{{ r53_record.stdout }}, {{ r53_record.stderr }}"
 
 # ---------------------------------------------------------------------------- #
 #                       Setup cert-manager w/ CA issuer                        #
