@@ -52,8 +52,6 @@ metadata:
   namespace: microservices
   labels:
     app: users-microservice
-  annotations:
-    alb.ingress.kubernetes.io/target-type: ip
 spec:
   selector:
     app: users-microservice

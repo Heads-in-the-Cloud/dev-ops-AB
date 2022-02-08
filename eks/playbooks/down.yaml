@@ -3,34 +3,36 @@
   connection: local
 
   vars:
-    #env: "{{ lookup('env', 'ENV') }}"
-    #project_id: "{{ lookup('env', 'PROJECT_ID') }}"
-    secrets: "{{ lookup('amazon.aws.aws_secret', '{{ env | lower }}/{{ project_id }}/default') }}"
+    project_id: "{{ lookup('env', 'PROJECT_ID') }}"
+    domain_zone: "hitwc.link"
+    domain_record: "{{ project_id | lower }}.hitwc.link"
 
   tasks:
 
-  - name: Destroy EKS cluster
-    community.aws.aws_eks_cluster:
-      name: "{{ project_id }}"
-      wait: yes
-      state: absent
-    register: cluster
+  - name: Get AWS account id
+    shell:
+      aws sts get-caller-identity
+        --query "Account"
+        --output text
+    register: aws_account_id
+  - name: Get AWS region
+    shell: aws configure get region
+    register: aws_region
 
-      #  - name: use pre-created ecs docker context
-      #    shell: docker context use "{{ project_id }}-ecs"
-      #
-      #  - name: set secrets as environment variables
-      #    shell:
-      #      export DB_USERNAME="{{ secrets.db_username }}"
-      #      export DB_PASSWORD="{{ secrets.db_password }}"
-      #      export JWT_SECRET="{{ secrets.jwt_secret }}"
-      #
-      #  - name: take down ecs cluster
-      #    shell: docker compose down
-      #    register: ecs_up
-      #    tags: ecs_up
-      #
-      #  - debug: msg="{{ ecs_up.stderr }}"
-      #
-      #  - debug: msg="{{ ecs_up.stdout }}"
-      #
+  - name: Connect to EKS cluster
+    shell: aws eks --region "{{ aws_region.stdout }}" update-kubeconfig --name "{{ project_id }}"
+
+  - name: Remove Route53 record
+    community.aws.route53:
+      zone: "{{ domain_zone }}"
+      record: "{{ domain_record }}"
+      state: absent
+
+  - name: Delete microservices
+    shell: kubectl delete all --all -n microservices
+
+  - name: Delete cert-manager
+    shell: kubectl delete all --all -n cert-manager
+
+  - name: Delete ingress-nginx namespace
+    shell: kubectl delete all --all -n ingress-nginx

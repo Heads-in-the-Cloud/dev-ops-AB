@@ -52,8 +52,6 @@ metadata:
   namespace: microservices
   labels:
     app: flights-microservice
-  annotations:
-    alb.ingress.kubernetes.io/target-type: ip
 spec:
   selector:
     app: flights-microservice
