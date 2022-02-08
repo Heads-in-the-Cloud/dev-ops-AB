@@ -29,17 +29,6 @@
       type: CNAME
       state: absent
 
-  - name: Delete cert secret
-    shell: kubectl -n microservices delete secret cert
-
-  - name: Delete db-info secret
-    shell: kubectl -n microservices delete secret db-info
-
-  - name: Delete microservices namespace
-    shell: |
-      kubectl delete all --all -n microservices
-      kubectl delete ns microservices
-
   - name: Delete aws-creds secret
     shell: kubectl -n cert-manager delete secret aws-creds
 
@@ -52,3 +41,14 @@
     shell: |
       kubectl delete all --all -n ingress-nginx
       kubectl delete ns ingress-nginx
+
+  - name: Delete cert secret
+    shell: kubectl -n microservices delete secret cert
+
+  - name: Delete db-info secret
+    shell: kubectl -n microservices delete secret db-info
+
+  - name: Delete microservices namespace
+    shell: |
+      kubectl delete all --all -n microservices
+      kubectl delete ns microservices
