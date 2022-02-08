@@ -80,7 +80,7 @@
     shell:
       kubectl create secret generic aws-creds
         -n cert-manager
-        --from-literal secret-key="{{ secret_key }}"
+        --from-literal secret-key="{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}"
   - name: Apply cert issuer
     shell:
       envsubst < ../config/cert-issuer.yml | kubectl apply -f -
