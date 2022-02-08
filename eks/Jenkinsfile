@@ -31,15 +31,17 @@ pipeline {
                         accessKeyVariable: 'AWS_ACCESS_KEY_ID',
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
-                        sh "aws s3 cp s3://$S3_BUCKET/env:/$ENV/output.json ."
-                        def py3_path = sh(script: 'which python3', returnStdout:true)
-                        sh '''
-                            python3 -m venv tmp/
-                            . tmp/bin/activate
-                            pip3 install ansible
-                            ansible-playbook playbooks/up.yaml -e @output.json
-                            . $py3_path
-                        '''
+                        script {
+                            sh "aws s3 cp s3://$S3_BUCKET/env:/$ENV/output.json ."
+                            def py3_path = sh(script: 'which python3', returnStdout:true)
+                            sh '''
+                                python3 -m venv tmp/
+                                . tmp/bin/activate
+                                pip3 install ansible
+                                ansible-playbook playbooks/up.yaml -e @output.json
+                                . $py3_path
+                            '''
+                        }
                     }
                 }
             }
