@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: data-producer
+spec:
+  selector:
+    matchLabels:
+      run: data-producer
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        run: data-producer
+    spec:
+      containers:
+      - name: data-producer
+        image: docker.io/austinbaugh/utopia-data-producer:0.0.2-SNAPSHOT
+        ports:
+          - containerPort: 5000
+        env:
+          - name: UTOPIA_API_URL
+            value: http://utopia-ingress:8080
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: data-producer
+  labels:
+    app: data-producer
+spec:
+  type: NodePort
+  selector:
+    app: data-producer
+  ports:
+    - protocol: TCP
+      port: 5000
+      name: http
+

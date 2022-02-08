@@ -1,0 +1,125 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: utopia-ingress
+  namespace: microservices
+  labels:
+    app: utopia-ingress
+  annotations:
+    cert-manager.io/issuer: "lets-encrypt"
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - $DOMAIN
+    secretName: cert
+  rules:
+  - host: $DOMAIN
+    http:
+      paths:
+        - path: /api/airplanes
+          pathType: Prefix
+          backend:
+            service:
+              name: flights-service
+              port:
+                number: 80
+        - path: /api/airplane-types
+          pathType: Prefix
+          backend:
+            service:
+              name: flights-service
+              port:
+                number: 80
+        - path: /api/airports
+          pathType: Prefix
+          backend:
+            service:
+              name: flights-service
+              port:
+                number: 80
+        - path: /api/flights
+          pathType: Prefix
+          backend:
+            service:
+              name: flights-service
+              port:
+                number: 80
+        - path: /api/routes
+          pathType: Prefix
+          backend:
+            service:
+              name: flights-service
+              port:
+                number: 80
+        - path: /api/bookings
+          pathType: Prefix
+          backend:
+            service:
+              name: bookings-service
+              port:
+                number: 80
+        - path: /api/booking-agents
+          pathType: Prefix
+          backend:
+            service:
+              name: bookings-service
+              port:
+                number: 80
+        - path: /api/booking-users
+          pathType: Prefix
+          backend:
+            service:
+              name: bookings-service
+              port:
+                number: 80
+        - path: /api/booking-guests
+          pathType: Prefix
+          backend:
+            service:
+              name: bookings-service
+              port:
+                number: 80
+        - path: /api/booking-payments
+          pathType: Prefix
+          backend:
+            service:
+              name: bookings-service
+              port:
+                number: 80
+        - path: /api/passengers
+          pathType: Prefix
+          backend:
+            service:
+              name: bookings-service
+              port:
+                number: 80
+        - path: /api/flight-bookings
+          pathType: Prefix
+          backend:
+            service:
+              name: bookings-service
+              port:
+                number: 80
+        - path: /api/login
+          pathType: Prefix
+          backend:
+            service:
+              name: users-service
+              port:
+                number: 80
+        - path: /api/users
+          pathType: Prefix
+          backend:
+            service:
+              name: users-service
+              port:
+                number: 80
+        - path: /api/user-roles
+          pathType: Prefix
+          backend:
+            service:
+              name: users-service
+              port:
+                number: 80
