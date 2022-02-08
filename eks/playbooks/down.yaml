@@ -30,16 +30,16 @@
       state: absent
 
   - name: Delete cert secret
-    shell: kubectl -n microservices delete secret generic cert
+    shell: kubectl -n microservices delete secret cert
 
   - name: Delete db-info secret
-    shell: kubectl -n microservices delete secret generic db-info
+    shell: kubectl -n microservices delete secret db-info
 
   - name: Delete microservices namespace
     shell: kubectl delete all --all -n microservices
 
   - name: Delete aws-creds secret
-    shell: kubectl -n cert-manager delete secret generic aws-creds
+    shell: kubectl -n cert-manager delete secret aws-creds
 
   - name: Delete cert-manager namespace
     shell: kubectl delete all --all -n cert-manager
