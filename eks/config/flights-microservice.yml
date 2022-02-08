@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: flights-deployment
+  name: flights-microservice
   namespace: microservices
   labels:
     app: flights-microservice
@@ -48,7 +48,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: flights-service
+  name: flights-microservice
   namespace: microservices
   labels:
     app: flights-microservice

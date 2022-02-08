@@ -39,7 +39,7 @@ pipeline {
                                 . tmp/bin/activate
                                 pip3 install ansible boto3 botocore
                                 ansible-playbook playbooks/up.yaml -e @output.json
-                                . $py3_path
+                                . "$py3_path"
                             '''
                         }
                     }

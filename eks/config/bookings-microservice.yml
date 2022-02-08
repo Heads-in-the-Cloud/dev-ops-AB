@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: bookings-deployment
+  name: bookings-microservice
   namespace: microservices
   labels:
     app: bookings-microservice
@@ -48,7 +48,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: bookings-service
+  name: bookings-microservice
   namespace: microservices
   labels:
     app: bookings-microservice

@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: users-deployment
+  name: users-microservice
   namespace: microservices
   labels:
     app: users-microservice
@@ -48,7 +48,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: users-service
+  name: users-microservice
   namespace: microservices
   labels:
     app: users-microservice
