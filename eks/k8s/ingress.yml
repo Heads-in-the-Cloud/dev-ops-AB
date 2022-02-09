@@ -1,4 +1,3 @@
----
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -7,119 +6,132 @@ metadata:
   labels:
     app: utopia-ingress
   annotations:
-    cert-manager.io/issuer: "lets-encrypt"
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS":443}]'
+    alb.ingress.kubernetes.io/actions.ssl-redirect: '{"Type": "redirect", "RedirectConfig": { "Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}'
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:$AWS_REGION:$AWS_ACCOUNT_ID:certificate/$ACM_CERT_ID
 spec:
-  ingressClassName: nginx
   tls:
   - hosts:
     - $DOMAIN
-    secretName: cert
   rules:
   - host: $DOMAIN
     http:
       paths:
+
+        # This first path should perform an ssl-redirect as below
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: ssl-redirect
+              # Configured via the redirect settings in the annotations
+              port:
+                name: use-annotation
+
         - path: /api/airplanes
           pathType: Prefix
           backend:
             service:
-              name: flights-service
+              name: flights-microservice
               port:
                 number: 80
         - path: /api/airplane-types
           pathType: Prefix
           backend:
             service:
-              name: flights-service
+              name: flights-microservice
               port:
                 number: 80
         - path: /api/airports
           pathType: Prefix
           backend:
             service:
-              name: flights-service
+              name: flights-microservice
               port:
                 number: 80
         - path: /api/flights
           pathType: Prefix
           backend:
             service:
-              name: flights-service
+              name: flights-microservice
               port:
                 number: 80
         - path: /api/routes
           pathType: Prefix
           backend:
             service:
-              name: flights-service
+              name: flights-microservice
               port:
                 number: 80
         - path: /api/bookings
           pathType: Prefix
           backend:
             service:
-              name: bookings-service
+              name: bookings-microservice
               port:
                 number: 80
         - path: /api/booking-agents
           pathType: Prefix
           backend:
             service:
-              name: bookings-service
+              name: bookings-microservice
               port:
                 number: 80
         - path: /api/booking-users
           pathType: Prefix
           backend:
             service:
-              name: bookings-service
+              name: bookings-microservice
               port:
                 number: 80
         - path: /api/booking-guests
           pathType: Prefix
           backend:
             service:
-              name: bookings-service
+              name: bookings-microservice
               port:
                 number: 80
         - path: /api/booking-payments
           pathType: Prefix
           backend:
             service:
-              name: bookings-service
+              name: bookings-microservice
               port:
                 number: 80
         - path: /api/passengers
           pathType: Prefix
           backend:
             service:
-              name: bookings-service
+              name: bookings-microservice
               port:
                 number: 80
         - path: /api/flight-bookings
           pathType: Prefix
           backend:
             service:
-              name: bookings-service
+              name: bookings-microservice
               port:
                 number: 80
         - path: /api/login
           pathType: Prefix
           backend:
             service:
-              name: users-service
+              name: users-microservice
               port:
                 number: 80
         - path: /api/users
           pathType: Prefix
           backend:
             service:
-              name: users-service
+              name: users-microservice
               port:
                 number: 80
         - path: /api/user-roles
           pathType: Prefix
           backend:
             service:
-              name: users-service
+              name: users-microservice
               port:
                 number: 80

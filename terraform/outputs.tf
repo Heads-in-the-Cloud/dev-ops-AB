@@ -13,3 +13,6 @@ output "db_url" {
 output "alb_names" {
   value = module.network.alb_names
 }
+output "acm_cert_id" {
+  value = module.network.acm_cert_id
+}

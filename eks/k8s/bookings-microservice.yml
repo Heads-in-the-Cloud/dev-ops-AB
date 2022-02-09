@@ -1,23 +1,33 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: users-microservice
+  name: bookings-microservice
   namespace: microservices
   labels:
-    app: users-microservice
+    app: bookings-microservice
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: users-microservice
+      app: bookings-microservice
   template:
     metadata:
       labels:
-        app: users-microservice
+        app: bookings-microservice
     spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/arch
+                operator: In
+                values:
+                - amd64
+                - arm64
       containers:
-      - name: users-microservice
-        image: $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$PROJECT_ID-users-microservice:latest
+      - name: bookings-microservice
+        image: $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$PROJECT_ID-bookings-microservice:latest
         imagePullPolicy: Always
         env:
           - name: DB_URL
@@ -48,13 +58,15 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: users-microservice
+  name: bookings-microservice
   namespace: microservices
   labels:
-    app: users-microservice
+    app: bookings-microservice
+  annotations:
+    alb.ingress.kubernetes.io/target-type: ip
 spec:
   selector:
-    app: users-microservice
+    app: bookings-microservice
   ports:
     - protocol: TCP
       port: 80
