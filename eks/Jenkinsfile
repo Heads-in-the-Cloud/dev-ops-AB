@@ -182,7 +182,8 @@ pipeline {
                             for(microservice in [
                                 "flights-microservice",
                                 "bookings-microservice",
-                                "users-microservice"
+                                "users-microservice",
+                                "data-producer"
                             ]) {
                                 sh """
                                     PROJECT_ID="${PROJECT_ID.toLowerCase()}" \
@@ -270,7 +271,7 @@ pipeline {
                         script {
                             // Get tf output
                             sh "aws s3 cp s3://$S3_BUCKET/env:/$ENV/output.json ."
-                            // tear-down eks cluster
+                            // teardown eks cluster
                             def region = sh(
                                 script: 'aws configure get region',
                                 returnStdout: true
