@@ -173,7 +173,7 @@ pipeline {
                             }
 
                             // Deploy microservices
-                            for(microservice : [
+                            for(microservice in [
                                 "flights-microservice",
                                 "bookings-microservice",
                                 "users-microservice"
