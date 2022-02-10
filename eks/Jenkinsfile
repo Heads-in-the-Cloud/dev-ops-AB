@@ -103,7 +103,7 @@ pipeline {
                             sh """
                                 eksctl create iamserviceaccount
                                     --name=aws-load-balancer-controller
-                                    --cluster $PROJECT_ID
+                                    --cluster=$PROJECT_ID
                                     --namespace=kube-system
                                     --attach-policy-arn="arn:aws:iam::$aws_account_id:policy/AWSLoadBalancerControllerIAMPolicy"
                                     --attach-policy-arn="arn:aws:iam::$aws_account_id:policy/AWSLoadBalancerControllerAdditionalIAMPolicy"
@@ -230,7 +230,7 @@ pipeline {
                             sh """
                                 eksctl create iamserviceaccount \
                                     --name=external-dns \
-                                    --cluster $PROJECT_ID \
+                                    --cluster=$PROJECT_ID \
                                     --namespace=default \
                                     --attach-policy-arn=arn:aws:iam::$aws_account_id:policy/AllowExternalDNSUpdates \
                                     --override-existing-serviceaccounts \
