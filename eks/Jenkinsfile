@@ -50,6 +50,8 @@ pipeline {
                                 script: 'aws configure get region',
                                 returnStdout: true
                             ).trim()
+                            def public_subnets = tf_output.subnet_ids.public.join(',')
+                            def private_subnets = tf_output.subnet_ids.nat_private.join(',')
                             sh """
                                 eksctl create cluster \
                                     --name $PROJECT_ID \
@@ -57,8 +59,8 @@ pipeline {
                                     --nodes 2 \
                                     --node-type t3.small \
                                     --alb-ingress-access \
-                                    --vpc-public-subnets ${tf_output.subnet_ids.public.join(',')} \
-                                    --vpc-private-subnets ${tf_output.subnet_ids.nat_private.join(',')}
+                                    --vpc-public-subnets $public_subnets \
+                                    --vpc-private-subnets $private_subnets
                             """
                         }
                     }
