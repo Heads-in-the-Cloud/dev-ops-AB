@@ -32,6 +32,13 @@ spec:
               port:
                 name: use-annotation
 
+        - path: /data-producer
+          pathType: Prefix
+          backend:
+            service:
+              name: data-producer
+              port:
+                number: 80
         - path: /api/airplanes
           pathType: Prefix
           backend:
