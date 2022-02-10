@@ -17,7 +17,7 @@ pipeline {
     }
 
     stages {
-        stage('Deploy EKS') {
+        stage('Create cluster') {
             when {
                 expression {
                     !params.Destroy
@@ -32,12 +32,214 @@ pipeline {
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
                         script {
+                            // get tf output
                             sh "aws s3 cp s3://$S3_BUCKET/env:/$ENV/output.json ."
+                            def tf_output = readJSON file: 'output.json'
+                            env.VPC_ID = tf_output.vpc_id
+                            env.DOMAIN_RECORD = tf_output.domain_record
+                            env.DOMAIN_ZONE = tf_output.domain_zone
+                            env.DB_URL = tf_output.db_url
+                            env.ACM_CERT_ARN = tf_output.acm_cert_arn
+                            env.R53_ZONE_ID = tf_output.r53_zone_id
+                            // create eks cluster
+                            def aws_account_id = sh(
+                                script: 'aws sts get-caller-identity --query "Account" --output text',
+                                returnStdout: true
+                            ).trim()
+                            def region = sh(
+                                script: 'aws configure get region',
+                                returnStdout: true
+                            ).trim()
                             sh """
-                                python3 -m venv tmp/
-                                . tmp/bin/activate
-                                pip3 install ansible boto3 botocore
-                                ansible-playbook playbooks/up.yaml -e @output.json
+                                eksctl create cluster \
+                                    --name $PROJECT_ID \
+                                    --region $region \
+                                    --nodes 2 \
+                                    --node-type t3.small \
+                                    --alb-ingress-access \
+                                    --vpc-public-subnets ${tf_output.subnet_ids.public.join(',')} \
+                                    --vpc-private-subnets ${tf_output.subnet_ids.nat_private.join(',')}
+                            """
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Setup AWS load balancer ingress controller') {
+            when {
+                expression {
+                    !params.Destroy
+                }
+            }
+            steps {
+                dir("eks") {
+                    withCredentials([[
+                        $class: 'AmazonWebServicesCredentialsBinding',
+                        credentialsId: "jenkins",
+                        accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                        secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                    ]]) {
+                        script {
+                            def aws_account_id = sh(
+                                script: 'aws sts get-caller-identity --query "Account" --output text',
+                                returnStdout: true
+                            ).trim()
+                            def region = sh(
+                                script: 'aws configure get region',
+                                returnStdout: true
+                            ).trim()
+                            // Associate IAM OIDC provider for ALB
+                            sh """
+                                eksctl utils associate-iam-oidc-provider \
+                                    --region $region \
+                                    --cluster $PROJECT_ID \
+                                    --approve
+                            """
+
+                            // Create IAM service account w/ role & attached policies for ALB
+                            sh """
+                                eksctl create iamserviceaccount
+                                    --name=aws-load-balancer-controller
+                                    --cluster $PROJECT_ID
+                                    --namespace=kube-system
+                                    --attach-policy-arn="arn:aws:iam::$aws_account_id:policy/AWSLoadBalancerControllerIAMPolicy"
+                                    --attach-policy-arn="arn:aws:iam::$aws_account_id:policy/AWSLoadBalancerControllerAdditionalIAMPolicy"
+                                    --override-existing-serviceaccounts
+                                    --approve
+                            """
+
+                            // Install the TargetGroupBinding custom resource definitions
+                            sh "kubectl apply -k 'github.com/aws/eks-charts/stable/aws-load-balancer-controller//crds?ref=master'"
+
+                            // Install AWS load balancer controller
+                            sh """
+                                helm upgrade
+                                    -i aws-load-balancer-controller aws-load-balancer-controller
+                                    --repo https://aws.github.io/eks-charts
+                                    --set clusterName=$PROJECT_ID
+                                    --set vpcId=$VPC_ID
+                                    --set region=$region
+                                    --set serviceAccount.create=false
+                                    --set serviceAccount.name=aws-load-balancer-controller
+                                    -n kube-system
+                            """
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Deploy microservices') {
+            when {
+                expression {
+                    !params.Destroy
+                }
+            }
+            steps {
+                dir("eks") {
+                    withCredentials([[
+                        $class: 'AmazonWebServicesCredentialsBinding',
+                        credentialsId: "jenkins",
+                        accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                        secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                    ]]) {
+                        script {
+                            def aws_account_id = sh(
+                                script: 'aws sts get-caller-identity --query "Account" --output text',
+                                returnStdout: true
+                            ).trim()
+                            def region = sh(
+                                script: 'aws configure get region',
+                                returnStdout: true
+                            ).trim()
+                            // Set k8s secrets from stdin literals
+                            withCredentials([
+                                string(
+                                    credentialsId: "${ENV.toLowerCase()}/$PROJECT_ID/default",
+                                    variable: 'SECRETS'
+                                )
+                            ]) {
+                                sh """
+                                    kubectl create secret generic db-info \
+                                        -n microservices \
+                                        --from-literal db-url="mysql://$DB_URL:3306/utopia" \
+                                        --from-literal db-user="$SECRETS.db_username" \
+                                        --from-literal db-password="$SECRETS.db_password"
+                                    kubectl create secret generic jwt-secret \
+                                        -n microservices \
+                                        --from-literal jwt-secret="$SECRETS.jwt_secret"
+                                """
+                            }
+
+                            // Deploy microservices
+                            for(microservice : [
+                                "flights-microservice",
+                                "bookings-microservice",
+                                "users-microservice"
+                            ]) {
+                                sh """
+                                    PROJECT_ID=${PROJECT_ID.toLowerCase()} \
+                                    AWS_ACCOUNT_ID=$aws_account_id \
+                                    AWS_REGION=$region \
+                                        envsubst < "../k8s/${microservice}.yml" | kubectl apply -f -
+                                """
+                            }
+                            // Apply ingress rules
+                            sh """
+                                DOMAIN=$DOMAIN_RECORD \
+                                AWS_REGION=$region \
+                                AWS_ACCOUNT_ID=$aws_account_id \
+                                ACM_CERT_ARN=$ACM_CERT_ARN \
+                                    envsubst < ../k8s/ingress.yml | kubectl apply -f -
+                            """
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Update R53 record w/ external-dns') {
+            when {
+                expression {
+                    !params.Destroy
+                }
+            }
+            steps {
+                dir("eks") {
+                    withCredentials([[
+                        $class: 'AmazonWebServicesCredentialsBinding',
+                        credentialsId: "jenkins",
+                        accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                        secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                    ]]) {
+                        script {
+                            def aws_account_id = sh(
+                                script: 'aws sts get-caller-identity --query "Account" --output text',
+                                returnStdout: true
+                            ).trim()
+                            def region = sh(
+                                script: 'aws configure get region',
+                                returnStdout: true
+                            ).trim()
+                            // Create IAM service account w/ role & attached policies for external-dns
+                            sh """
+                                eksctl create iamserviceaccount \
+                                    --name=external-dns \
+                                    --cluster $PROJECT_ID \
+                                    --namespace=default \
+                                    --attach-policy-arn=arn:aws:iam::$aws_account_id:policy/AllowExternalDNSUpdates \
+                                    --override-existing-serviceaccounts \
+                                    --approve
+                            """
+
+                            // Apply external-dns deployment manifest
+                            sh """
+                                DOMAIN="$DOMAIN_ZONE" \
+                                AWS_ACCOUNT_ID="$aws_account_id" \
+                                R53_ZONE_ID="$R53_ZONE_ID" \
+                                IAM_SERVICE_ROLE_NAME="$PROJECT_ID-external-dns" \
+                                    envsubst < ../k8s/external-dns.yml | kubectl apply -f -
                             """
                         }
                     }
@@ -60,13 +262,14 @@ pipeline {
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
                         script {
+                            // Get tf output
                             sh "aws s3 cp s3://$S3_BUCKET/env:/$ENV/output.json ."
-                            sh """
-                                python3 -m venv tmp/
-                                . tmp/bin/activate
-                                pip3 install ansible boto3 botocore
-                                ansible-playbook playbooks/down.yaml -e @output.json
-                            """
+                            // tear-down eks cluster
+                            def region = sh(
+                                script: 'aws configure get region',
+                                returnStdout: true
+                            ).trim()
+                            sh "eksctl delete cluster --name $PROJECT_ID --region $region"
                         }
                     }
                 }
