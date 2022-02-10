@@ -90,11 +90,7 @@ module "bastion" {
   project_id = var.project_id
 }
 
-module "eks" {
-  source = "./modules/eks"
-  project_id = var.project_id
-  use_fargate = false #TODO: implement xD
-  vpc_id = module.network.vpc_id
-  subnet_ids = concat(module.network.subnet_ids.public, module.network.subnet_ids.nat_private)
-  node_instance_type = "t3.small"
-}
+#module "eks" {
+#  source = "./modules/eks"
+#  project_id = var.project_id
+#}

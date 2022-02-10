@@ -13,3 +13,9 @@ output "db_url" {
 output "alb_names" {
   value = module.network.alb_names
 }
+output "acm_cert_arn" {
+  value = module.network.acm_cert_arn
+}
+output "r53_zone_id" {
+ value = module.network.r53_zone_id
+}

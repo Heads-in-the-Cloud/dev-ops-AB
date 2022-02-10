@@ -1,6 +1,12 @@
-FROM docker.io/jenkins/jenkins:latest
-ENV JAVA_OPTS -Djenkins.install.runSetupWizard=false
-ENV CASC_JENKINS_CONFIG /var/jenkins_home/casc.yaml
-COPY plugins.txt /usr/share/jenkins/ref/plugins.txt
-RUN /usr/local/bin/install-plugins.sh < /usr/share/jenkins/ref/plugins.txt
-COPY casc.yaml /var/jenkins_home/casc.yaml
+FROM docker.io/fedora:35
+
+RUN yum update -y
+RUN yum install -y --skip-broken openssh-server
+RUN yum clean all
+
+RUN systemctl start sshd
+RUN systemctl enable sshd
+RUN systemctl status sshd
+EXPOSE  22
+
+WORKDIR /opt/app

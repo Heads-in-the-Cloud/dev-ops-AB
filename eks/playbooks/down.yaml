@@ -42,9 +42,6 @@
       kubectl delete all --all -n ingress-nginx
       kubectl delete ns ingress-nginx
 
-  - name: Delete cert secret
-    shell: kubectl -n microservices delete secret cert
-
   - name: Delete db-info secret
     shell: kubectl -n microservices delete secret db-info
 

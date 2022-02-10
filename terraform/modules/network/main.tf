@@ -64,9 +64,11 @@ resource "aws_subnet" "nat_private" {
     {
       Name = format("%s-nat-private-%d", var.project_id, count.index + 1)
     },
-    #TODO: set on deployment from ansible
-    #"kubernetes.io/cluster/${var.project_id}" = "shared"
-    [var.support_eks ? {"kubernetes.io/role/internal-elb" = 1} : null]...
+    [var.support_eks ? {
+      "kubernetes.io/role/internal-elb" = 1,
+    #TODO: set on deployment
+      "kubernetes.io/cluster/${var.project_id}" = "shared"
+    } : null]...
   )
 }
 
@@ -112,9 +114,11 @@ resource "aws_subnet" "public" {
     {
       Name = format("%s-public-%d", var.project_id, count.index + 1)
     },
-    #TODO: set on deployment from ansible
-    #"kubernetes.io/cluster/${var.project_id}" = "shared"
-    [var.support_eks ? {"kubernetes.io/role/elb" = 1} : null]...
+    [var.support_eks ? {
+      "kubernetes.io/role/elb" = 1,
+      #TODO: set on deployment
+      "kubernetes.io/cluster/${var.project_id}" = "shared"
+    } : null]...
   )
 }
 
