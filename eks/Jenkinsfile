@@ -50,8 +50,8 @@ pipeline {
                                 script: 'aws configure get region',
                                 returnStdout: true
                             ).trim()
-                            def public_subnets = tf_output.subnet_ids.public.join(',')
-                            def private_subnets = tf_output.subnet_ids.nat_private.join(',')
+                            def public_subnets = tf_output.subnet_ids.public.toList().join(',')
+                            def private_subnets = tf_output.subnet_ids.nat_private.toList().join(',')
                             sh """
                                 eksctl create cluster \
                                     --name $PROJECT_ID \
