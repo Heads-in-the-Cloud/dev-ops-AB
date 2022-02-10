@@ -13,6 +13,9 @@ pipeline {
     environment {
         PROJECT_ID = "AB-utopia"
         ENV = "dev"
+
+        DOMAIN_ZONE = "hitwc.link"
+        DOMAIN_RECORD = "${PROJECT_ID.toLowerCase()}.hitwc.link"
         S3_BUCKET = PROJECT_ID.toLowerCase()
     }
 
@@ -36,8 +39,6 @@ pipeline {
                             sh "aws s3 cp s3://$S3_BUCKET/env:/$ENV/output.json ."
                             def tf_output = readJSON file: 'output.json'
                             env.VPC_ID = tf_output.vpc_id
-                            env.DOMAIN_RECORD = tf_output.domain_record
-                            env.DOMAIN_ZONE = tf_output.domain_zone
                             env.DB_URL = tf_output.db_url
                             env.ACM_CERT_ARN = tf_output.acm_cert_arn
                             env.R53_ZONE_ID = tf_output.r53_zone_id
