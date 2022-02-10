@@ -155,6 +155,8 @@ pipeline {
                                 script: 'aws configure get region',
                                 returnStdout: true
                             ).trim()
+                            // Make sure microservices namespace is present
+                            sh "kubectl apply -f k8s/namespace.yml"
                             // Set k8s secrets from stdin literals
                             withCredentials([
                                 string(
