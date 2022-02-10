@@ -166,16 +166,16 @@ pipeline {
                                 )
                             ]) {
                                 def aws_secrets = readJSON text: SECRETS
-                                sh """
-                                    kubectl create secret generic db-info \
-                                        -n microservices \
-                                        --from-literal db-url="mysql://$DB_URL:3306/utopia" \
-                                        --from-literal db-user="${aws_secrets.db_username}" \
-                                        --from-literal db-password="${aws_secrets.db_password}"
-                                    kubectl create secret generic jwt-secret \
-                                        -n microservices \
-                                        --from-literal jwt-secret="${aws_secrets.jwt_secret}"
-                                """
+                                //sh """
+                                //    kubectl create secret generic db-info \
+                                //        -n microservices \
+                                //        --from-literal db-url="mysql://$DB_URL:3306/utopia" \
+                                //        --from-literal db-user="${aws_secrets.db_username}" \
+                                //        --from-literal db-password="${aws_secrets.db_password}"
+                                //    kubectl create secret generic jwt-secret \
+                                //        -n microservices \
+                                //        --from-literal jwt-secret="${aws_secrets.jwt_secret}"
+                                //"""
                             }
 
                             // Deploy microservices
