@@ -186,7 +186,7 @@ pipeline {
                                     PROJECT_ID="${PROJECT_ID.toLowerCase()}" \
                                     AWS_ACCOUNT_ID="$aws_account_id" \
                                     AWS_REGION="$region" \
-                                        envsubst < "../k8s/${microservice}.yml" | kubectl apply -f -
+                                        envsubst < "k8s/${microservice}.yml" | kubectl apply -f -
                                 """
                             }
                             // Apply ingress rules
@@ -195,7 +195,7 @@ pipeline {
                                 AWS_REGION="$region" \
                                 AWS_ACCOUNT_ID="$aws_account_id" \
                                 ACM_CERT_ARN="$ACM_CERT_ARN" \
-                                    envsubst < ../k8s/ingress.yml | kubectl apply -f -
+                                    envsubst < k8s/ingress.yml | kubectl apply -f -
                             """
                         }
                     }
@@ -243,7 +243,7 @@ pipeline {
                                 AWS_ACCOUNT_ID="$aws_account_id" \
                                 R53_ZONE_ID="$R53_ZONE_ID" \
                                 IAM_SERVICE_ROLE_NAME="$PROJECT_ID-external-dns" \
-                                    envsubst < ../k8s/external-dns.yml | kubectl apply -f -
+                                    envsubst < k8s/external-dns.yml | kubectl apply -f -
                             """
                         }
                     }
