@@ -53,16 +53,16 @@ pipeline {
                             ).trim()
                             def public_subnets = tf_output.subnet_ids.public.toList().join(',')
                             def private_subnets = tf_output.subnet_ids.nat_private.toList().join(',')
-                            //sh """
-                            //    eksctl create cluster \
-                            //        --name $PROJECT_ID \
-                            //        --region $region \
-                            //        --nodes 2 \
-                            //        --node-type t3.small \
-                            //        --alb-ingress-access \
-                            //        --vpc-public-subnets $public_subnets \
-                            //        --vpc-private-subnets $private_subnets
-                            //"""
+                            sh """
+                                eksctl create cluster \
+                                    --name $PROJECT_ID \
+                                    --region $region \
+                                    --nodes 2 \
+                                    --node-type t3.small \
+                                    --alb-ingress-access \
+                                    --vpc-public-subnets $public_subnets \
+                                    --vpc-private-subnets $private_subnets
+                            """
                         }
                     }
                 }
@@ -166,16 +166,16 @@ pipeline {
                                 )
                             ]) {
                                 def aws_secrets = readJSON text: SECRETS
-                                //sh """
-                                //    kubectl create secret generic db-info \
-                                //        -n microservices \
-                                //        --from-literal db-url="mysql://$DB_URL:3306/utopia" \
-                                //        --from-literal db-user="${aws_secrets.db_username}" \
-                                //        --from-literal db-password="${aws_secrets.db_password}"
-                                //    kubectl create secret generic jwt-secret \
-                                //        -n microservices \
-                                //        --from-literal jwt-secret="${aws_secrets.jwt_secret}"
-                                //"""
+                                sh """
+                                    kubectl create secret generic db-info \
+                                        -n microservices \
+                                        --from-literal db-url="mysql://$DB_URL:3306/utopia" \
+                                        --from-literal db-user="${aws_secrets.db_username}" \
+                                        --from-literal db-password="${aws_secrets.db_password}"
+                                    kubectl create secret generic jwt-secret \
+                                        -n microservices \
+                                        --from-literal jwt-secret="${aws_secrets.jwt_secret}"
+                                """
                             }
 
                             // Deploy microservices
