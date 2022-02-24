@@ -93,6 +93,7 @@ pipeline {
                                 returnStdout: true
                             ).trim()
                             // Associate IAM OIDC provider for ALB
+                            SH "aws eks update-kubeconfig --region $region --name $PROJECT_ID"
                             sh """
                                 eksctl utils associate-iam-oidc-provider \
                                     --region "$region" \
