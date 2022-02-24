@@ -36,7 +36,6 @@ pipeline {
                     ]]) {
                         script {
                             // get tf output
-                            sh "aws s3 cp s3://$S3_BUCKET/env:/$ENV/output.json ."
                             def tf_output = readJSON file: 'output.json'
                             env.VPC_ID = tf_output.vpc_id
                             env.DB_URL = tf_output.db_url
@@ -53,6 +52,7 @@ pipeline {
                             ).trim()
                             def public_subnets = tf_output.subnet_ids.public.toList().join(',')
                             def private_subnets = tf_output.subnet_ids.nat_private.toList().join(',')
+                            sh "aws s3 cp s3://$S3_BUCKET/env:/$ENV/output.json ."
                             //sh """
                             //    eksctl create cluster \
                             //        --name $PROJECT_ID \
