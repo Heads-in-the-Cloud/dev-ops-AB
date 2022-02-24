@@ -183,8 +183,7 @@ pipeline {
                             for(microservice in [
                                 "flights-microservice",
                                 "bookings-microservice",
-                                "users-microservice",
-                                "data-producer"
+                                "users-microservice"
                             ]) {
                                 sh """
                                     PROJECT_ID="${PROJECT_ID.toLowerCase()}" \
