@@ -60,7 +60,6 @@ pipeline {
                                     --nodes 2 \
                                     --node-type t3.small \
                                     --alb-ingress-access \
-                                    --vpc-public-subnets $public_subnets \
                                     --vpc-private-subnets $private_subnets
                             """
                         }
