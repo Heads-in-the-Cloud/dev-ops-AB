@@ -12,7 +12,7 @@ pipeline {
     }
 
     environment {
-        ENV = "Development"
+        ENV = "dev"
         PROJECT_ID = "AB-utopia"
     }
 

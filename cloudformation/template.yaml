@@ -5,6 +5,7 @@ Parameters:
     Type: String
   Environment:
     Type: String
+    Default: Development
     AllowedValues:
     - Development
     - Staging
