@@ -16,8 +16,14 @@ pipeline {
         PROJECT_ID = "AB-utopia"
     }
 
-    steps {
-        step("Create Stack") {
+    stages {
+        when {
+            expression {
+                !params.Destroy
+            }
+        }
+
+        stage("Create Stack") {
             dir("cloudformation") {
                 withCredentials([[
                     $class: 'AmazonWebServicesCredentialsBinding',
@@ -55,7 +61,13 @@ pipeline {
             }
         }
 
-        step("Destroy Stack") {
+        stage("Destroy Stack") {
+            when {
+                expression {
+                    params.Destroy
+                }
+            }
+
             dir("cloudformation") {
                 withCredentials([[
                     $class: 'AmazonWebServicesCredentialsBinding',
