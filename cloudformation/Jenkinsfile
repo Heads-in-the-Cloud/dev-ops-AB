@@ -65,10 +65,10 @@ EOF
                                 script: "aws cloudformation describe-stacks --query 'Stacks[?StackName==`$STACK_NAME`].Outputs[0]' --output json",
                                 returnStdout: true
                             )
-                            def result = {
+                            def result = [
                                 public_subnets: [],
                                 private_subnets: []
-                            }
+                            ]
                             for(output in output_values) {
                                 if(output.OutputKey == "RDSEndpoint") {
                                     result.db_url = output.OutputValue
