@@ -211,6 +211,18 @@ Resources:
         Value: !Sub ${ProjectId}-db
       - Key: Environment
         Value: !Ref Environment
+  RDSSecurityGroup:
+    Type: AWS::RDS::DBSecurityGroup
+    Properties:
+      GroupDescription: Allow Access to RDS Instance over 3306
+      EC2VpcId: !Ref DefaultVPC
+      DBSecurityGroupIngress:
+        - EC2SecurityGroupId: !Ref DBSecurityGroup
+      Tags:
+      - Key: Name
+        Value: !Sub ${ProjectId}-default
+      - Key: Environment
+        Value: !Ref Environment
 
   RDS:
     Type: AWS::RDS::DBInstance
@@ -224,7 +236,7 @@ Resources:
       MasterUsername: !Ref DBRootUsername
       MasterUserPassword: !Ref DBRootPassword
       DBSecurityGroups:
-      - !Ref DBSecurityGroup
+      - !Ref RDSSecurityGroup
       Tags:
       - Key: Name
         Value: !Sub ${ProjectId}-default
