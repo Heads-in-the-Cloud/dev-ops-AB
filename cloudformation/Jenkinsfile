@@ -34,7 +34,7 @@ pipeline {
                     ]]) {
                         script {
                             def hosted_zone_id = sh(
-                              script: "aws route53 list-hosted-zones | jq '.HostedZones[0].Id'",
+                              script: "aws route53 list-hosted-zones | jq '.HostedZones[0].Id' | sed 's/\/hostedzone\///'",
                               returnStdout: true
                             ).trim()
                             echo "$hosted_zone_id"
