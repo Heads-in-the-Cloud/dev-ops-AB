@@ -341,10 +341,10 @@ Outputs:
     Value: !Ref NATPrivateSubnet2
   PublicSubnetId1:
     Description: Ids of subnets w/ internet gateway
-    Values: !Ref PublicSubnet1
+    Value: !Ref PublicSubnet1
   PublicSubnetId2:
     Description: Ids of subnets w/ internet gateway
-    Values: !Ref PublicSubnet2
+    Value: !Ref PublicSubnet2
   RDSEndpoint:
     Description: RDS URI
     Value: !GetAtt RDS.Endpoint.Address
