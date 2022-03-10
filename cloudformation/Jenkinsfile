@@ -1,0 +1,71 @@
+#!groovy
+
+pipeline {
+    agent any
+
+    parameters {
+        booleanParam(
+            name: 'Destroy',
+            defaultValue: false,
+            description: 'Destroy existing build'
+        )
+    }
+
+    environment {
+        ENV = "Development"
+        PROJECT_ID = "AB-utopia"
+    }
+
+    steps {
+        step("Create Stack") {
+            dir("cloudformation") {
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: "jenkins",
+                    accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                    secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                ]]) {
+                    hosted_zone_id = sh(
+                      script: "aws route53 list-hosted-zones | jq .HostedZones[0].id",
+                      returnStdout: true
+                    ).trim()
+                    echo "$hosted_zone_id"
+                    withCredentials([
+                        string(
+                            credentialsId: "${ENV.toLowerCase()}/$PROJECT_ID/default",
+                            variable: 'SECRETS'
+                        )
+                    ]) {
+                        def aws_secrets = readJSON text: SECRETS
+                        sh """cat > parameters.json << EOF
+        [
+          {"ParameterKey":"ProjectId",     "ParameterValue":$PROJECT_ID},
+          {"ParameterKey":"Development",   "ParameterValue":$ENVIRONMENT},
+          {"ParameterKey":"HostedZoneID",  "ParameterValue":$hosted_zone_id},
+          {"ParameterKey":"DBUserUsername","ParameterValue":${SECRETS.db_username}},
+          {"ParameterKey":"DBUserPassword","ParameterValue":${SECRETS.db_password}},
+          {"ParameterKey":"DBRootUsername","ParameterValue":${SECRETS.db_root_username}},
+          {"ParameterKey":"DBRootPassword","ParameterValue":${SECRETS.db_root_password}}
+        ]
+        EOF
+                        """
+                    }
+                    sh "aws cloudformation create-stack --stack-name $PROJECT_ID --template-body file://template.yaml --parameters file://parameters.json --capabilities CAPABILITY_NAMED_IAM"
+                }
+            }
+        }
+
+        step("Destroy Stack") {
+            dir("cloudformation") {
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: "jenkins",
+                    accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                    secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                ]]) {
+                    sh "aws cloudformation delete-stack --stack-name $PROJECT_ID"
+                }
+            }
+        }
+    }
+}

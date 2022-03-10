@@ -1,0 +1,319 @@
+Description: Utopia Airlines stack
+
+Parameters:
+  ProjectId:
+    Type: String
+  Environment:
+    Type: String
+    AllowedValues:
+    - Development
+    - Staging
+    - Production
+  VPCCIDRBlock:
+    Type: String
+    Default: 10.0.0.0/16
+  PrivSubnetCIDRBlock1:
+    Type: String
+    Default: 10.0.1.0/24
+  PrivSubnetCIDRBlock2:
+    Type: String
+    Default: 10.0.2.0/24
+  NATPrivSubnetCIDRBlock1:
+    Type: String
+    Default: 10.0.3.0/24
+  NATPrivSubnetCIDRBlock2:
+    Type: String
+    Default: 10.0.4.0/24
+  PubSubnetCIDRBlock1:
+    Type: String
+    Default: 10.0.5.0/24
+  PubSubnetCIDRBlock2:
+    Type: String
+    Default: 10.0.6.0/24
+  BastionAmiID:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
+  DBRootUsername:
+    Type: String
+    NoEcho: true
+  DBRootPassword:
+    Type: String
+    NoEcho: true
+  DBUserUsername:
+    Type: String
+    NoEcho: true
+  DBUserPassword:
+    Type: String
+    NoEcho: true
+  HostedZoneID:
+    Type: String
+  DomainRecord:
+    Type: String
+    Default: ab-utopia.hitwc.link
+
+Resources:
+
+  DefaultVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VPCCIDRBlock
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+      - Key: Name
+        Value: !Sub ${ProjectId}-default
+      - Key: Environment
+        Value: !Ref Environment
+
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref DefaultVPC
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      CidrBlock: !Ref PrivSubnetCIDRBlock1
+      MapPublicIpOnLaunch: true
+      Tags:
+      - Key: Name
+        Value: !Sub ${ProjectId}-private-1
+      - Key: Environment
+        Value: !Ref Environment
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref DefaultVPC
+      AvailabilityZone: !Select [ 1, !GetAZs '' ]
+      CidrBlock: !Ref PrivSubnetCIDRBlock2
+      MapPublicIpOnLaunch: true
+      Tags:
+      - Key: Name
+        Value: !Sub ${ProjectId}-private-2
+      - Key: Environment
+        Value: !Ref Environment
+
+  NATPrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref DefaultVPC
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      CidrBlock: !Ref NATPrivSubnetCIDRBlock1
+      MapPublicIpOnLaunch: true
+      Tags:
+      - Key: Name
+        Value: !Sub ${ProjectId}-nat-private-1
+      - Key: Environment
+        Value: !Ref Environment
+  NATPrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref DefaultVPC
+      AvailabilityZone: !Select [ 1, !GetAZs '' ]
+      CidrBlock: !Ref NATPrivSubnetCIDRBlock2
+      MapPublicIpOnLaunch: true
+      Tags:
+      - Key: Name
+        Value: !Sub ${ProjectId}-nat-private-2
+      - Key: Environment
+        Value: !Ref Environment
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref DefaultVPC
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      CidrBlock: !Ref PubSubnetCIDRBlock1
+      MapPublicIpOnLaunch: true
+      Tags:
+      - Key: Name
+        Value: !Sub ${ProjectId}-public-1
+      - Key: Environment
+        Value: !Ref Environment
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref DefaultVPC
+      AvailabilityZone: !Select [ 1, !GetAZs '' ]
+      CidrBlock: !Ref PubSubnetCIDRBlock2
+      MapPublicIpOnLaunch: true
+      Tags:
+      - Key: Name
+        Value: !Sub ${ProjectId}-public-2
+      - Key: Environment
+        Value: !Ref Environment
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+      - Key: Name
+        Value: !Sub ${ProjectId}-default
+      - Key: Environment
+        Value: !Ref Environment
+  InternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref DefaultVPC
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref DefaultVPC
+      Tags:
+      - Key: Name
+        Value: !Sub ${ProjectId}-public
+      - Key: Environment
+        Value: !Ref Environment
+  PublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+  PublicRouteAssociation1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet1
+  PublicRouteAssociation2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet2
+
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Private subnets w/o NAT gateway
+      DBSubnetGroupName: !Sub ${ProjectId}-default
+      SubnetIds:
+      - !Ref PrivateSubnet1
+      - !Ref PrivateSubnet2
+      Tags:
+      - Key: Name
+        Value: !Sub ${ProjectId}-default
+      - Key: Environment
+        Value: !Ref Environment
+
+  DBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow Access to RDS Instance over 3306
+      GroupName: !Sub ${ProjectId}-db
+      VpcId: !Ref DefaultVPC
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 3306
+        ToPort: 3306
+        CidrIp: !Ref VPCCIDRBlock
+      Tags:
+      - Key: Name
+        Value: !Sub ${ProjectId}-db
+      - Key: Environment
+        Value: !Ref Environment
+
+  RDS:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      AllocatedStorage: 10
+      Engine: mysql
+      EngineVersion: 8.0.23
+      DBInstanceClass: db.t3.micro
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      DBName: utopia
+      MasterUsername: !Ref DBRootUsername
+      MasterUserPassword: !Ref DBRootPassword
+      DBSecurityGroups:
+      - !Ref DBSecurityGroup
+      Tags:
+      - Key: Name
+        Value: !Sub ${ProjectId}-default
+      - Key: Environment
+        Value: !Ref Environment
+
+  BastionIAMProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: !Sub ${ProjectId}-bastion
+      Path: /
+      Roles:
+      - !Ref BastionIAMRole
+  BastionIAMRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'sts:AssumeRole'
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+      RoleName: !Sub ${ProjectId}-bastion
+      Path: /
+  BastionRolePolicies:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub ${ProjectId}-s3-access
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Action: 's3:*'
+          Resource: '*'
+      Roles:
+      - !Ref BastionIAMRole
+
+  BastionHost:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref BastionAmiID
+      InstanceType: t3.micro
+      IamInstanceProfile: !Ref BastionIAMProfile
+      NetworkInterfaces:
+      - AssociatePublicIpAddress: true
+        DeviceIndex: 0
+        GroupSet:
+        - !Ref DBSecurityGroup
+        SubnetId: !Ref PublicSubnet1
+      KeyName: AB-key
+      UserData:
+        Fn::Base64: !Sub
+        - |
+          #!/bin/sh
+
+          yum update -y
+          yum install -y mysql
+
+          aws s3 cp --recursive s3://${s3_bucket}/mysql .
+          mysql -h "${db_host}" -u "${db_root_username}" -p"${db_root_password}" << EOF
+          $(cat schema.sql)
+
+          -- Microservice user
+          CREATE USER '${db_username}'@'%' IDENTIFIED BY '${db_password}';
+          GRANT SELECT, INSERT, UPDATE, DELETE ON utopia.* TO '${db_username}'@'%';
+          FLUSH PRIVILEGES;
+
+          $(cat data.sql)
+          EOF
+          rm *.sql
+
+          poweroff
+
+        - db_host: !GetAtt RDS.Endpoint.Address
+          s3_bucket: ab-utopia
+          db_root_username: !Ref DBRootUsername
+          db_root_password: !Ref DBRootPassword
+          db_username: !Ref DBUserUsername
+          db_password: !Ref DBUserPassword
+      Tags:
+      - Key: Name
+        Value: !Sub ${ProjectId}-bastion
+
+Outputs:
+  VPCId:
+    Description: Default VPC ID
+    Value: !Ref DefaultVPC
+  RDSEndpoint:
+    Description: RDS URI
+    Value: !GetAtt RDS.Endpoint.Address
