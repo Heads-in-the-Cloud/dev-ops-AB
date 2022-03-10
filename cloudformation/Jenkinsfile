@@ -62,7 +62,7 @@ EOF
                             //sh "aws cloudformation create-stack --stack-name $STACK_NAME --template-body file://template.yaml --parameters file://parameters.json --capabilities CAPABILITY_NAMED_IAM"
                             //sh "aws cloudformation wait stack-create-complete --stack-name $STACK_NAME"
                             def output_values = readJSON text: sh(
-                                script: "aws cloudformation describe-stacks --query 'Stacks[?StackName==`$STACK_NAME`].Outputs[0]' --output json",
+                                script: "aws cloudformation describe-stacks --query 'Stacks[?StackName==`$STACK_NAME`].Outputs[]' --output json",
                                 returnStdout: true
                             )
                             def result = [
