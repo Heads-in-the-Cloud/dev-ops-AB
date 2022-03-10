@@ -66,6 +66,8 @@ EOF
                                 returnStdout: true
                             )
                             def result = [
+                                db_url: null,
+                                vpc_id: null,
                                 public_subnets: [],
                                 private_subnets: []
                             ]
