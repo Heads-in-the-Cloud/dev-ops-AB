@@ -46,12 +46,12 @@ pipeline {
                                 def aws_secrets = readJSON text: SECRETS
                                 sh """cat > parameters.json << EOF
 [
-  {"ParameterKey":"ProjectId",     "ParameterValue":$PROJECT_ID},
+  {"ParameterKey":"ProjectId",     "ParameterValue":"$PROJECT_ID"},
   {"ParameterKey":"HostedZoneID",  "ParameterValue":$hosted_zone_id},
-  {"ParameterKey":"DBUserUsername","ParameterValue":${aws_secrets.db_username}},
-  {"ParameterKey":"DBUserPassword","ParameterValue":${aws_secrets.db_password}},
-  {"ParameterKey":"DBRootUsername","ParameterValue":${aws_secrets.db_root_username}},
-  {"ParameterKey":"DBRootPassword","ParameterValue":${aws_secrets.db_root_password}}
+  {"ParameterKey":"DBUserUsername","ParameterValue":"${aws_secrets.db_username}"},
+  {"ParameterKey":"DBUserPassword","ParameterValue":"${aws_secrets.db_password}"},
+  {"ParameterKey":"DBRootUsername","ParameterValue":"${aws_secrets.db_root_username}"},
+  {"ParameterKey":"DBRootPassword","ParameterValue":"${aws_secrets.db_root_password}"}
 ]
 EOF
                                 """
