@@ -17,13 +17,13 @@ pipeline {
     }
 
     stages {
-        when {
-            expression {
-                !params.Destroy
-            }
-        }
-
         stage("Create Stack") {
+            when {
+                expression {
+                    !params.Destroy
+                }
+            }
+
             dir("cloudformation") {
                 withCredentials([[
                     $class: 'AmazonWebServicesCredentialsBinding',
