@@ -327,21 +327,24 @@ Outputs:
   VPCId:
     Description: Default VPC ID
     Value: !Ref DefaultVPC
-  PrivateSubnetIds:
+  PrivateSubnetId1:
     Description: Ids of subnets w/o NAT gateway
-    Value:
-    - !Ref PrivateSubnet1
-    - !Ref PrivateSubnet2
-  NATPrivateSubnetIds:
+    Value: !Ref PrivateSubnet1
+  PrivateSubnetId2:
+    Description: Ids of subnets w/o NAT gateway
+    Value: !Ref PrivateSubnet2
+  NATPrivateSubnetId1:
     Description: Ids of subnets w/ NAT gateway
-    Value:
-    - !Ref NATPrivateSubnet1
-    - !Ref NATPrivateSubnet2
-  PublicSubnetIds:
+    Value: !Ref NATPrivateSubnet1
+  NATPrivateSubnetId2:
+    Description: Ids of subnets w/ NAT gateway
+    Value: !Ref NATPrivateSubnet2
+  PublicSubnetId1:
     Description: Ids of subnets w/ internet gateway
-    Values:
-    - !Ref PublicSubnet1
-    - !Ref PublicSubnet2
+    Values: !Ref PublicSubnet1
+  PublicSubnetId2:
+    Description: Ids of subnets w/ internet gateway
+    Values: !Ref PublicSubnet2
   RDSEndpoint:
     Description: RDS URI
     Value: !GetAtt RDS.Endpoint.Address
