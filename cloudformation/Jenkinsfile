@@ -15,6 +15,8 @@ pipeline {
         ENV = "dev"
         PROJECT_ID = "AB-utopia"
         STACK_NAME = "AB"
+
+        S3_BUCKET = PROJECT_ID.toLowerCase()
     }
 
     stages {
@@ -60,7 +62,7 @@ EOF
                             sh "aws cloudformation create-stack --stack-name $STACK_NAME --template-body file://template.yaml --parameters file://parameters.json --capabilities CAPABILITY_NAMED_IAM"
                             sh "aws cloudformation wait stack-create-complete --stack-name $STACK_NAME"
                             sh "aws cloudformation describe-stacks --query 'Stacks[?StackName=='$STACK_NAME'][].Outputs' --output json > output.json"
-                            sh "aws s3 cp output.json s3://$s3_bucket/env:/$ENV/"
+                            sh "aws s3 cp output.json s3://$S3_BUCKET/env:/$ENV/"
                         }
                     }
                 }
