@@ -60,7 +60,7 @@ module "network" {
 # RDS instance
 module "rds" {
   source            = "./modules/rds"
-  name_prefix        = var.name_prefix
+  name_prefix       = var.name_prefix
   allocated_storage = 10
   instance_class    = "db.t2.micro"
   name              = "utopia"
@@ -70,8 +70,9 @@ module "rds" {
     id         = module.network.vpc_id
     cidr_block = var.vpc_cidr_block
   }
-  subnet_ids = module.network.private_subnet_ids
-  secret_id  = data.aws_secretsmanager_secret_version.default.secret_id
+  subnet_ids    = module.network.private_subnet_ids
+  root_username = local.secrets.db_root_username
+  root_password = local.secrets.db_root_password
 }
 
 # Bastion host on public subnet that initially connects to RDS instance to create schema and add the microservice user

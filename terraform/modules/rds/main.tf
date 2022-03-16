@@ -1,18 +1,10 @@
 resource "aws_db_subnet_group" "default" {
   name       = lower(var.name_prefix)
-  subnet_ids = var.subnet_ids[*]
+  subnet_ids = var.subnet_ids
 
   tags = {
     Name = var.name_prefix
   }
-}
-
-data "aws_secretsmanager_secret_version" "default" {
-  secret_id = var.secret_id
-}
-
-locals {
-  secrets = jsondecode(data.aws_secretsmanager_secret_version.default.secret_string)
 }
 
 resource "aws_security_group" "default" {
@@ -46,8 +38,8 @@ resource "aws_db_instance" "default" {
   engine_version         = var.engine_version
   instance_class         = var.instance_class
   name                   = var.name
-  username               = local.secrets.db_root_username
-  password               = local.secrets.db_root_password
+  username               = var.root_username
+  password               = var.root_password
   skip_final_snapshot    = true
   identifier             = lower(var.name_prefix)
   db_subnet_group_name   = aws_db_subnet_group.default.name

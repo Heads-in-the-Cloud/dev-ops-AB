@@ -41,7 +41,13 @@ variable "subnet_ids" {
   default = null
 }
 
-variable "secret_id" {
+variable "root_username" {
   type = string
   default = null
+}
+
+variable "root_password" {
+  type = string
+  default = null
+  sensitive = true
 }
