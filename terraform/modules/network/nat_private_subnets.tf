@@ -18,18 +18,17 @@ resource "aws_subnet" "nat_private" {
 }
 
 resource "aws_eip" "nat" {
-  count      = length(aws_subnet.nat_private)
   vpc        = true
   depends_on = [ aws_internet_gateway.default ]
 
   tags = {
-    Name = format("%s-nat-%d", var.name_prefix, count.index + 1)
+    Name = format("%s-nat", var.name_prefix)
   }
 }
 
 resource "aws_nat_gateway" "default" {
   count         = length(aws_subnet.nat_private)
-  allocation_id = aws_eip.nat[count.index].id
+  allocation_id = aws_eip.nat.id
   subnet_id     = aws_subnet.public[count.index].id
   depends_on    = [ aws_internet_gateway.default ]
 

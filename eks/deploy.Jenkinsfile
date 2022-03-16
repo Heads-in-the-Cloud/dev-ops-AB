@@ -148,7 +148,7 @@ pipeline {
                                 "users-microservice"
                             ]) {
                                 sh """
-                                    ECR_PREFIX="$aws_account_id.dkr.ecr.$region.amazonaws.com/$docker_image_prefix" \
+                                    ECR_PREFIX="${aws_account_id}.dkr.ecr.${region}.amazonaws.com/$docker_image_prefix" \
                                         envsubst < "k8s/${microservice}.yml" | kubectl apply -f -
                                 """
                             }
