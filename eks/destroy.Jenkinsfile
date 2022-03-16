@@ -4,7 +4,7 @@ pipeline {
 
     environment {
         project_name = "AB-utopia"
-        environmment = "dev"
+        env          = "dev"
 
         cluster_name        = project_name
         domain              = "hitwc.link"
@@ -24,7 +24,7 @@ pipeline {
                     ]]) {
                         script {
                             // Get tf output
-                            sh "aws s3 cp s3://$s3_bucket/env:/$environment/tf_output_backup.json tf_output.json"
+                            sh "aws s3 cp s3://$s3_bucket/env:/$env/tf_output_backup.json tf_output.json"
                             def tf_output = readJSON file: 'tf_output.json'
                             def aws_account_id = sh(
                                 script: 'aws sts get-caller-identity --query "Account" --output text',
