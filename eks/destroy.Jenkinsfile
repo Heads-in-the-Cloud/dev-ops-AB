@@ -26,6 +26,10 @@ pipeline {
                             // Get tf output
                             sh "aws s3 cp s3://$s3_bucket/env:/$environment/tf_output_backup.json tf_output.json"
                             def tf_output = readJSON file: 'tf_output.json'
+                            def aws_account_id = sh(
+                                script: 'aws sts get-caller-identity --query "Account" --output text',
+                                returnStdout: true
+                            ).trim()
                             // teardown eks cluster
                             def region = sh(
                                 script: 'aws configure get region',
