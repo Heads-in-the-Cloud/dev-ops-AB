@@ -25,6 +25,11 @@ variable "vpc_cidr_block" {
   default = null
 }
 
+variable "num_availability_zones" {
+  type    = number
+  default = null
+}
+
 variable "subdomain_prefix" {
   type    = string
   default = null

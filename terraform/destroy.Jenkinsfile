@@ -2,15 +2,17 @@
 pipeline {
     agent any
 
-   environment {
-        environment = "dev"
-        region      = "us-west-2"
+    environment {
         project_id  = "AB-utopia"
+        region      = "us-west-2"
+        s3_bucket   = project_id.toLowerCase()
+        environment = "dev"
 
-        s3_bucket        = project_id.toLowerCase()
-        vpc_cidr_block   = "10.0.0.0/16"
         subdomain_prefix = project_id.toLowerCase()
         domain           = "hitwc.link"
+
+        vpc_cidr_block   = "10.0.0.0/16"
+        num_availability_zones = 2
     }
 
     stages {
@@ -33,6 +35,7 @@ name_prefix = "$project_id"
 environment = "$environment"
 vpc_cidr_block = "$vpc_cidr_block"
 subdomain_prefix = "$subdomain_prefix"
+num_availability_zones = "$num_availability_zones"
 domain = "$domain"
 EOF
                             """
