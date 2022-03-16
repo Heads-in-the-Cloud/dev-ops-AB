@@ -75,11 +75,11 @@ pipeline {
                             sh """
                                 kubectl get configmap/aws-auth -n kube-system -o yaml |
                                     sed '0,/data:/s//data: \
-                                    mapUsers: \| \
-                                      \- userarn: arn:aws:iam::${aws_account_id}:user\/Jenkins \
+                                    mapUsers: | \
+                                      - userarn: arn:aws:iam::${aws_account_id}:user/Jenkins \
                                         username: Jenkins \
                                         groups: \
-                                        \- system:masters/' |
+                                        - system:masters/' |
                                     kubectl apply -f -
                             """
 
