@@ -8,6 +8,7 @@ pipeline {
         PROJECT_ID = "AB-utopia"
 
         s3_bucket      = PROJECT_ID.toLowerCase()
+        vpc_cidr_block = "10.0.0.0/16"
         num_availability_zones = 2
     }
 
@@ -29,6 +30,7 @@ region = "$REGION"
 s3_bucket = "$s3_bucket"
 name_prefix = "$PROJECT_ID"
 environment = "$ENV"
+vpc_cidr_block = "$vpc_cidr_block"
 num_availability_zones = "$num_availability_zones"
 EOF
                         """
