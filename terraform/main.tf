@@ -27,6 +27,7 @@ locals {
 module "dns" {
   source = "./modules/dns"
   name_prefix = var.name_prefix
+  tls_subdomain = lower(var.name_prefix)
 }
 
 # ECR Repositories

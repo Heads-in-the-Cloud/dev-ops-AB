@@ -1,5 +1,5 @@
 locals {
-  num_availability_zones = length(var.availabaility_zones)
+  num_availability_zones = length(var.availability_zones)
 }
 
 // VPC for all below network services

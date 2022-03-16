@@ -1,17 +1,17 @@
 output "vpc_id" {
   value = module.network.vpc_id
 }
-output "subnet_ids" {
-  value = module.network.subnet_ids
+output "public_subnet_ids" {
+  value = module.network.public_subnet_ids
 }
-output "alb_sec_group_id" {
-  value = module.network.alb_sec_group_id
+output "nat_private_subnet_ids" {
+  value = module.network.nat_private_subnet_ids
+}
+output "private_subnet_ids" {
+  value = module.network.private_subnet_ids
 }
 output "db_url" {
   value = module.rds.instance_address
-}
-output "alb_names" {
-  value = module.network.alb_names
 }
 output "acm_cert_arn" {
   value = module.dns.acm_cert_arn
