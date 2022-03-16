@@ -3,13 +3,11 @@ pipeline {
     agent any
 
     environment {
-        cluster_name = "AB-utopia"
+        project_id   = "AB-utopia"
         environmment = "dev"
 
-        aws_account_id = sh(
-            script: 'aws sts get-caller-identity --query "Account" --output text',
-            returnStdout: true
-        ).trim()
+        cluster_name = project_id
+        s3_bucket    = project_id.toLowerCase()
     }
 
     stages {
@@ -26,6 +24,10 @@ pipeline {
                             // get terraform output
                             sh "aws s3 cp s3://$s3_bucket/env:/$environment/tf_output_backup.json tf_output.json"
                             def tf_output = readJSON file: 'tf_output.json'
+                            def aws_account_id = sh(
+                                script: 'aws sts get-caller-identity --query "Account" --output text',
+                                returnStdout: true
+                            ).trim()
                             // create eks cluster
                             def private_subnets = tf_output.nat_private_subnet_ids.toList().join(',')
                             sh """
@@ -54,6 +56,10 @@ pipeline {
                     ]]) {
                         script {
                             def tf_output = readJSON file: 'tf_output.json'
+                            def aws_account_id = sh(
+                                script: 'aws sts get-caller-identity --query "Account" --output text',
+                                returnStdout: true
+                            ).trim()
                             // Associate IAM OIDC provider for ALB
                             sh "aws eks update-kubeconfig --region $region --name $cluster_name"
                             sh """
@@ -107,6 +113,10 @@ pipeline {
                     ]]) {
                         script {
                             def tf_output = readJSON file: 'tf_output.json'
+                            def aws_account_id = sh(
+                                script: 'aws sts get-caller-identity --query "Account" --output text',
+                                returnStdout: true
+                            ).trim()
                             // Make sure microservices namespace is present
                             sh "kubectl apply -f k8s/namespace.yml"
                             // Set k8s secrets from stdin literals
@@ -164,6 +174,11 @@ pipeline {
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
                         script {
+                            def tf_output = readJSON file: 'tf_output.json'
+                            def aws_account_id = sh(
+                                script: 'aws sts get-caller-identity --query "Account" --output text',
+                                returnStdout: true
+                            ).trim()
                             // Create IAM service account w/ role & attached policies for external-dns
                             sh """
                                 eksctl create iamserviceaccount \
