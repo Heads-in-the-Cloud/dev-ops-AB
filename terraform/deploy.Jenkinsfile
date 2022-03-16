@@ -7,9 +7,9 @@ pipeline {
         region      = "us-west-2"
         project_id  = "AB-utopia"
 
-        s3_bucket        = PROJECT_ID.toLowerCase()
+        s3_bucket        = project_id.toLowerCase()
         vpc_cidr_block   = "10.0.0.0/16"
-        subdomain_prefix = PROJECT_ID.toLowerCase()
+        subdomain_prefix = project_id.toLowerCase()
         domain           = "hitwc.link"
     }
 
