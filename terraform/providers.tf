@@ -9,7 +9,8 @@ terraform {
       version = "~> 3.0"
     }
     assert = {
-      source  = "github.com/bwoznicki/assert"
+      source  = "bwoznicki/assert"
+      version = "= 0.0.1"
     }
   }
 }
