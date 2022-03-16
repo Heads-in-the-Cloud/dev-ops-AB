@@ -39,22 +39,23 @@ resource "aws_nat_gateway" "default" {
 }
 
 resource "aws_route_table" "nat_private" {
+  count  = length(aws_subnet.nat_private)
   vpc_id = aws_vpc.default.id
 
   tags = {
-    Name = "${var.name_prefix}-nat-private"
+    Name = "${var.name_prefix}-nat-private-${count.index}"
   }
 }
 
 resource "aws_route_table_association" "nat_private" {
   count          = length(aws_subnet.nat_private)
   subnet_id      = aws_subnet.nat_private[count.index].id
-  route_table_id = aws_route_table.nat_private.id
+  route_table_id = aws_route_table.nat_private[count.index].id
 }
 
 resource "aws_route" "nat_gateway" {
   count                  = length(aws_nat_gateway.default)
-  route_table_id         = aws_route_table.nat_private.id
+  route_table_id         = aws_route_table.nat_private[count.index].id
   destination_cidr_block = "0.0.0.0/0"
   nat_gateway_id         = aws_nat_gateway.default[count.index].id
 }
