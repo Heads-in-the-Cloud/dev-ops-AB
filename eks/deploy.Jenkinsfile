@@ -57,19 +57,34 @@ pipeline {
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
                         script {
-                            def tf_output = readJSON file: 'tf_output.json'
+                            def tf_output = readJSON file: 'tf_output_values.json'
                             def aws_account_id = sh(
                                 script: 'aws sts get-caller-identity --query "Account" --output text',
                                 returnStdout: true
                             ).trim()
-                            // Associate IAM OIDC provider for ALB
                             sh "aws eks update-kubeconfig --region $region --name $cluster_name"
+                            // Associate IAM OIDC provider for ALB
                             sh """
                                 eksctl utils associate-iam-oidc-provider \
                                     --region "$region" \
                                     --cluster "$cluster_name" \
                                     --approve
                             """
+
+                            // Setup AWS authentication configmap
+                            sh """
+                                kubectl get configmap/aws-auth -n kube-system -o yaml |
+                                    sed '0,/data:/s//data: \
+                                    mapUsers: | \
+                                      \- userarn: arn:aws:iam::${aws_account_id}:user\/Jenkins \
+                                        username: Jenkins \
+                                        groups: \
+                                        \- system:masters/' |
+                                    kubectl apply -f -
+                            """
+
+                            // Setup Cloudwatch logging
+                            sh "REGION='$region' envsubst < k8s/cloudwatch.yml | kubectl apply -f -"
 
                             // Create IAM service account w/ role & attached policies for ALB
                             sh """
@@ -114,11 +129,12 @@ pipeline {
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
                         script {
-                            def tf_output = readJSON file: 'tf_output.json'
+                            def tf_output = readJSON file: 'tf_output_values.json'
                             def aws_account_id = sh(
                                 script: 'aws sts get-caller-identity --query "Account" --output text',
                                 returnStdout: true
                             ).trim()
+                            sh "aws eks update-kubeconfig --region $region --name $cluster_name"
                             // Make sure microservices namespace is present
                             sh "kubectl apply -f k8s/namespace.yml"
                             // Set k8s secrets from stdin literals
@@ -176,11 +192,12 @@ pipeline {
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
                         script {
-                            def tf_output = readJSON file: 'tf_output.json'
+                            def tf_output = readJSON file: 'tf_output_values.json'
                             def aws_account_id = sh(
                                 script: 'aws sts get-caller-identity --query "Account" --output text',
                                 returnStdout: true
                             ).trim()
+                            sh "aws eks update-kubeconfig --region $region --name $cluster_name"
                             // Create IAM service account w/ role & attached policies for external-dns
                             sh """
                                 eksctl create iamserviceaccount \
