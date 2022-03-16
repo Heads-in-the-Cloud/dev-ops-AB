@@ -17,17 +17,18 @@ data "aws_secretsmanager_secret_version" "default" {
 }
 
 locals {
-  secrets                    = jsondecode(data.aws_secretsmanager_secret_version.default.secret_string)
   # At least two subnets are required for the RDS instance
   min_num_availability_zones = 2
   max_num_availability_zones = length(data.aws_availability_zones.available.names)
+  subdomain = "${var.subdomain_prefix}.${var.domain}"
+  secrets   = jsondecode(data.aws_secretsmanager_secret_version.default.secret_string)
 }
 
 # TLS cert & IAM policy for updating Route53 record with external-dns
 module "cert" {
-  source = "./modules/cert"
+  source      = "./modules/cert"
   name_prefix = var.name_prefix
-  tls_subdomain = lower(var.name_prefix)
+  domain_name = local.subdomain
 }
 
 # ECR Repositories

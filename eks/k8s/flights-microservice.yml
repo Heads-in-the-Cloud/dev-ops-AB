@@ -6,7 +6,7 @@ metadata:
   labels:
     app: flights-microservice
 spec:
-  replicas: 2
+  replicas: 3
   selector:
     matchLabels:
       app: flights-microservice
@@ -27,7 +27,7 @@ spec:
                 - arm64
       containers:
       - name: flights-microservice
-        image: $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$PROJECT_ID-flights-microservice:latest
+        image: $ECR_PREFIX-flights-microservice:latest
         imagePullPolicy: Always
         env:
           - name: DB_URL

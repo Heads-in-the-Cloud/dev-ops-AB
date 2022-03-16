@@ -3,7 +3,7 @@ variable "name_prefix" {
   default = null
 }
 
-variable "tls_subdomain" {
+variable "domain_name" {
   type = string
   default = null
 }

@@ -6,7 +6,7 @@ metadata:
   labels:
     app: bookings-microservice
 spec:
-  replicas: 2
+  replicas: 3
   selector:
     matchLabels:
       app: bookings-microservice
@@ -27,7 +27,7 @@ spec:
                 - arm64
       containers:
       - name: bookings-microservice
-        image: $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$PROJECT_ID-bookings-microservice:latest
+        image: $ECR_PREFIX-bookings-microservice:latest
         imagePullPolicy: Always
         env:
           - name: DB_URL

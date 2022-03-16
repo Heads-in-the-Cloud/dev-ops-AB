@@ -1,7 +1,7 @@
 # TLS certificate
 
 resource "aws_acm_certificate" "default" {
-  domain_name       = format("%s.hitwc.link", lower(var.tls_subdomain))
+  domain_name       = var.domain_name
   validation_method = "DNS"
 }
 

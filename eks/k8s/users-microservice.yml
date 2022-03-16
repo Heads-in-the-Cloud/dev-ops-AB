@@ -6,7 +6,7 @@ metadata:
   labels:
     app: users-microservice
 spec:
-  replicas: 2
+  replicas: 3
   selector:
     matchLabels:
       app: users-microservice
@@ -27,7 +27,7 @@ spec:
                 - arm64
       containers:
       - name: users-microservice
-        image: $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$PROJECT_ID-users-microservice:latest
+        image: $ECR_PREFIX-users-microservice:latest
         imagePullPolicy: Always
         env:
           - name: DB_URL

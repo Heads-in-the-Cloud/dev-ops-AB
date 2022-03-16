@@ -29,3 +29,13 @@ variable "num_availability_zones" {
   type    = number
   default = null
 }
+
+variable "subdomain_prefix" {
+  type    = string
+  default = null
+}
+
+variable "domain" {
+  type    = string
+  default = null
+}
