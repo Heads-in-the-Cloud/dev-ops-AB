@@ -1,4 +1,4 @@
-# Utopia Airlines IaC for AWS
+# Utopia Airlines IaC for EKS on AWS
 
 ## Initial Resources
 - Route53 domain
@@ -10,7 +10,7 @@
 
 ## Jenkins Pipelines
 ### Deploy/Destroy base infrastructure with Terraform
-(deploy pipeline is idempotent)
+(deployment is idempotent)
 - Network components (VPC, subnets, etc.)
 - RDS instance
 - Secrets manager
