@@ -54,7 +54,7 @@ module "network" {
   name_prefix        = var.name_prefix
   vpc_cidr_block     = var.vpc_cidr_block
   tls_subdomain      = lower(var.name_prefix)
-  availability_zones = data.aws_availability_zones.available.names
+  availability_zones = slice(data.aws_availability_zones.available.names, 0, var.num_availability_zones)
   support_eks        = true
 }
 
