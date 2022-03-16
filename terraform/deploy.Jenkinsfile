@@ -28,6 +28,7 @@ pipeline {
 region = "$REGION"
 name_prefix = "$PROJECT_ID"
 environment = "$ENV"
+num_availability_zones = "$num_availability_zones"
 EOF
                         """
                             sh "terraform plan -input=false -out=tfplan"
