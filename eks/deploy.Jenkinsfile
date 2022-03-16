@@ -6,7 +6,7 @@ pipeline {
         project_name = "AB-utopia"
         environment  = "dev"
 
-        cluster_name        = "$project_name-1"
+        cluster_name        = "$project_name"
         s3_bucket           = project_name.toLowerCase()
         docker_image_prefix = project_name.toLowerCase()
     }
