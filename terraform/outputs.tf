@@ -17,8 +17,5 @@ output "acm_cert_arn" {
   value = module.cert.tls_cert_arn
 }
 output "r53_zone_id" {
- value = module.dns.r53_zone_id
-}
-output "external_dns_policy" {
- value = module.dns.external_dns_policy
+ value = module.cert.r53_zone_id
 }
