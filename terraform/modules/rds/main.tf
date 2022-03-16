@@ -1,21 +1,22 @@
 resource "aws_db_subnet_group" "default" {
-  name       = lower(var.project_id)
+  name       = lower(var.name_prefix)
   subnet_ids = var.subnet_ids[*]
 
   tags = {
-    Name = var.project_id
+    Name = var.name_prefix
   }
 }
 
 data "aws_secretsmanager_secret_version" "default" {
   secret_id = var.secret_id
 }
+
 locals {
   secrets = jsondecode(data.aws_secretsmanager_secret_version.default.secret_string)
 }
 
 resource "aws_security_group" "default" {
-  name        = "${var.project_id}_db"
+  name        = "${var.name_prefix}_db"
   description = "Inbound to only 3306"
   vpc_id      = var.vpc.id
 
@@ -36,7 +37,7 @@ resource "aws_security_group" "default" {
   }
 
   tags = {
-    Name = "${var.project_id}-db"
+    Name = "${var.name_prefix}-db"
   }
 }
 resource "aws_db_instance" "default" {
@@ -48,7 +49,7 @@ resource "aws_db_instance" "default" {
   username               = local.secrets.db_root_username
   password               = local.secrets.db_root_password
   skip_final_snapshot    = true
-  identifier             = lower(var.project_id)
+  identifier             = lower(var.name_prefix)
   db_subnet_group_name   = aws_db_subnet_group.default.name
   vpc_security_group_ids = [ aws_security_group.default.id ]
 }
