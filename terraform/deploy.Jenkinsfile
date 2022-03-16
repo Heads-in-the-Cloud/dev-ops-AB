@@ -26,6 +26,7 @@ pipeline {
                             sh "terraform workspace select $ENV || terraform workspace new $ENV"
                             sh """cat > terraform.tfvars << EOF
 region = "$REGION"
+s3_bucket = "$s3_bucket"
 name_prefix = "$PROJECT_ID"
 environment = "$ENV"
 num_availability_zones = "$num_availability_zones"

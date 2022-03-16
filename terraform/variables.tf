@@ -3,6 +3,11 @@ variable "region" {
   default = null
 }
 
+variable "s3_bucket" {
+  type    = string
+  default = null
+}
+
 variable "name_prefix" {
   type        = string
   default     = null
