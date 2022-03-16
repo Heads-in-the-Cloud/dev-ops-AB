@@ -3,11 +3,6 @@ variable "project_id" {
   default = null
 }
 
-variable "environment" {
-  type = string
-  default = null
-}
-
 variable "allocated_storage" {
   type = number
   default = null

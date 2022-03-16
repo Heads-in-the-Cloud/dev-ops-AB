@@ -14,7 +14,7 @@ variable "user_data" {
   type = string
   default = null
 }
-variable "project_id" {
+variable "name_prefix" {
   type = string
   default = null
 }

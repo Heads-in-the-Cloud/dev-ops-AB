@@ -1,13 +1,12 @@
 variable "region" {
-  type        = string
-  default     = null
-  description = "region"
+  type    = string
+  default = null
 }
 
-variable "project_id" {
+variable "name_prefix" {
   type        = string
   default     = null
-  description = "project identifier to suffix all names with"
+  description = "identifier to prefix all names with"
 }
 
 variable "environment" {
@@ -16,8 +15,12 @@ variable "environment" {
   description = "dev, staging, or prod"
 }
 
-#variable "public_ssh_key" {
-#  type        = string
-#  default     = null
-#  description = "SSH key used for bastion hosts"
-#}
+variable "vpc_cidr_block" {
+  type    = string
+  default = null
+}
+
+variable "num_availability_zones" {
+  type    = number
+  default = null
+}

@@ -1,5 +1,7 @@
+# TLS certificate
+
 resource "aws_acm_certificate" "default" {
-  domain_name       = format("%s.hitwc.link", lower(var.project_id))
+  domain_name       = format("%s.hitwc.link", lower(var.tls_subdomain))
   validation_method = "DNS"
 }
 

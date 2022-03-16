@@ -30,7 +30,7 @@ EOT
 }
 
 resource "aws_iam_role" "external_dns" {
-  name               = "${var.project_id}-external-dns"
+  name               = "${var.name_prefix}-external-dns"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [

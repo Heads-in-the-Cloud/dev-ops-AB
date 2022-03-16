@@ -1,53 +1,65 @@
-# ECR Repositories
-data "aws_ecr_repository" "reverse_proxy" {
-  name = format("%s-reverse-proxy", lower(var.project_id))
+data "aws_availability_zones" "available" {
+  state = "available"
 }
 
-data "aws_ecr_repository" "users_microservice" {
-  name = format("%s-users-microservice", lower(var.project_id))
+data "assert_test" "num_availability_zones" {
+  test = var.num_availability_zones >= local.min_num_availability_zones && var.num_availability_zones <= local.max_num_availability_zones
+  throw = format(
+    "Invalid number of availabaility zones, must be between %d and %d",
+    local.min_num_availability_zones,
+    local.max_num_availability_zones
+  )
 }
 
-data "aws_ecr_repository" "flights_microservice" {
-  name = format("%s-flights-microservice", lower(var.project_id))
-}
-
-data "aws_ecr_repository" "bookings_microservice" {
-  name = format("%s-bookings-microservice", lower(var.project_id))
-}
-
-# Key/Value pairs of root db creds, microservice user creds, and the JWT secret
+# Key/Value pairs of root db creds, microservice user creds, and the JWT symmetric key
 data "aws_secretsmanager_secret_version" "default" {
-  secret_id = "${var.environment}/${var.project_id}/default"
+  secret_id = "${var.environment}/${var.name_prefix}/default"
 }
 
 locals {
-  secrets            = jsondecode(data.aws_secretsmanager_secret_version.default.secret_string)
-  vpc_cidr_block     = "10.0.0.0/16"
-  subnet_cidr_blocks = {
-      # Private: w/o NAT gateway
-      private     = ["10.0.0.0/24", "10.0.1.0/24"]
-      # Private: w/ NAT gateway
-      nat_private = ["10.0.2.0/24", "10.0.3.0/24"]
-      # Public: w/ Internet gateway
-      public      = ["10.0.4.0/24", "10.0.5.0/24"]
-  }
+  secrets                    = jsondecode(data.aws_secretsmanager_secret_version.default.secret_string)
+  # At least two subnets are required for the RDS instance
+  min_num_availability_zones = 2
+  max_num_availability_zones = length(data.aws_availability_zones.available.names)
+}
+
+# TLS cert & IAM policy for updating Route53 record with external-dns
+module "dns" {
+  source = "./modules/dns"
+  name_prefix = var.name_prefix
+}
+
+# ECR Repositories
+data "aws_ecr_repository" "reverse_proxy" {
+  name = format("%s-reverse-proxy", lower(var.name_prefix))
+}
+
+data "aws_ecr_repository" "users_microservice" {
+  name = format("%s-users-microservice", lower(var.name_prefix))
+}
+
+data "aws_ecr_repository" "flights_microservice" {
+  name = format("%s-flights-microservice", lower(var.name_prefix))
+}
+
+data "aws_ecr_repository" "bookings_microservice" {
+  name = format("%s-bookings-microservice", lower(var.name_prefix))
 }
 
 # Selects a random availability zone for each subnet in the given region
 module "network" {
   source             = "./modules/network"
-  project_id         = var.project_id
-  vpc_cidr_block     = local.vpc_cidr_block
-  subnet_cidr_blocks = local.subnet_cidr_blocks
+  name_prefix        = var.name_prefix
+  vpc_cidr_block     = var.vpc_cidr_block
+  tls_subdomain      = lower(var.name_prefix)
+  availability_zones = slice(data.aws_availability_zones.available.names, 0, var.num_availability_zones - 1)
   support_eks        = true
-  alb_names          = []
 }
 
 # RDS instance
 module "rds" {
   source            = "./modules/rds"
-  project_id        = var.project_id
-  environment       = var.environment
+  name_prefix        = var.name_prefix
   allocated_storage = 10
   instance_class    = "db.t2.micro"
   name              = "utopia"
@@ -55,20 +67,19 @@ module "rds" {
   engine            = "mysql"
   vpc               = {
     id         = module.network.vpc_id
-    cidr_block = local.vpc_cidr_block
+    cidr_block = var.vpc_cidr_block
   }
-  subnet_ids = module.network.subnet_ids.private
+  subnet_ids = module.network.private_subnet_ids
   secret_id  = data.aws_secretsmanager_secret_version.default.secret_id
 }
 
 # Bastion host on public subnet that initially connects to RDS instance to create schema and add the microservice user
-
 data "aws_iam_policy" "read_s3" {
   arn = "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
 }
 
 resource "random_shuffle" "bastion_subnet_id" {
-  input        = module.network.subnet_ids.public
+  input        = module.network.public_subnet_ids
   result_count = 1
 }
 
@@ -79,18 +90,14 @@ module "bastion" {
   vpc_id        = module.network.vpc_id
   subnet_id     = random_shuffle.bastion_subnet_id.result[0]
   user_data     = templatefile("${path.root}/user_data.sh", {
-    s3_bucket        = lower(var.project_id)
-    db_host          = module.rds.instance_address
-    db_root_username = local.secrets.db_root_username
-    db_root_password = local.secrets.db_root_password
-    db_username      = local.secrets.db_username
-    db_password      = local.secrets.db_password
+    VPC_CIDR_BLOCK   = var.vpc_cidr_block
+    S3_BUCKET        = var.s3_bucket
+    DB_HOST          = module.rds.instance_address
+    DB_ROOT_USERNAME = local.secrets.db_root_username
+    DB_ROOT_PASSWORD = local.secrets.db_root_password
+    DB_USER_USERNAME = local.secrets.db_username
+    DB_USER_PASSWORD = local.secrets.db_password
   })
 
-  project_id = var.project_id
+  name_prefix = var.name_prefix
 }
-
-#module "eks" {
-#  source = "./modules/eks"
-#  project_id = var.project_id
-#}
