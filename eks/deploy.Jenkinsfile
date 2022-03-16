@@ -6,7 +6,7 @@ pipeline {
         project_name = "AB-utopia"
         environment  = "dev"
 
-        cluster_name        = "$project_name"
+        cluster_name        = "$project_name-1"
         s3_bucket           = project_name.toLowerCase()
         docker_image_prefix = project_name.toLowerCase()
     }
@@ -23,8 +23,8 @@ pipeline {
                     ]]) {
                         script {
                             // get terraform output
-                            sh "aws s3 cp s3://$s3_bucket/env:/${environment.toLowerCase()}/tf_output_backup.json tf_output.json"
-                            def tf_output = readJSON file: 'tf_output.json'
+                            sh "aws s3 cp s3://$s3_bucket/env:/${environment.toLowerCase()}/tf_output_values.json ."
+                            def tf_output = readJSON file: 'tf_output_values.json'
                             def aws_account_id = sh(
                                 script: 'aws sts get-caller-identity --query "Account" --output text',
                                 returnStdout: true

@@ -57,8 +57,8 @@ EOF
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
                         sh "terraform apply -input=false tfplan"
-                        sh "terraform output -json | jq 'with_entries(.value |= .value)' > outputs.json"
-                        sh "aws s3 cp outputs.json s3://$s3_bucket/env:/$environment/tf_output_backup.json"
+                        sh "terraform output -json | jq 'with_entries(.value |= .value)' > output_values.json"
+                        sh "aws s3 cp output_values.json s3://$s3_bucket/env:/$environment/tf_output_values.json"
                     }
                 }
             }
