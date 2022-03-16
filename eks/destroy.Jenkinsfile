@@ -24,7 +24,8 @@ pipeline {
                     ]]) {
                         script {
                             // Get tf output
-                            sh "aws s3 cp s3://$s3_bucket/$environment:/tf_output.json ."
+                            sh "aws s3 cp s3://$s3_bucket/env:/$environment/tf_output_backup.json tf_output.json"
+                            def tf_output = readJSON file: 'tf_output.json'
                             // teardown eks cluster
                             def region = sh(
                                 script: 'aws configure get region',

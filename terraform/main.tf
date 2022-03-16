@@ -2,15 +2,6 @@ data "aws_availability_zones" "available" {
   state = "available"
 }
 
-data "assert_test" "num_availability_zones" {
-  test = var.num_availability_zones >= local.min_num_availability_zones && var.num_availability_zones <= local.max_num_availability_zones
-  throw = format(
-    "Invalid number of availabaility zones, must be between %d and %d",
-    local.min_num_availability_zones,
-    local.max_num_availability_zones
-  )
-}
-
 # Key/Value pairs of root db creds, microservice user creds, and the JWT symmetric key
 data "aws_secretsmanager_secret_version" "default" {
   secret_id = "${var.environment}/${var.name_prefix}/default"
@@ -19,9 +10,17 @@ data "aws_secretsmanager_secret_version" "default" {
 locals {
   # At least two subnets are required for the RDS instance
   min_num_availability_zones = 2
-  max_num_availability_zones = length(data.aws_availability_zones.available.names)
   subdomain = "${var.subdomain_prefix}.${var.domain}"
   secrets   = jsondecode(data.aws_secretsmanager_secret_version.default.secret_string)
+}
+
+data "assert_test" "num_availability_zones" {
+  test = length(data.aws_availability_zones.available.names) >= local.min_num_availability_zones
+  throw = format(
+    "Invalid number of availabaility zones, must be between %d and %d",
+    local.min_num_availability_zones,
+    local.max_num_availability_zones
+  )
 }
 
 # TLS cert & IAM policy for updating Route53 record with external-dns
@@ -54,7 +53,7 @@ module "network" {
   name_prefix        = var.name_prefix
   vpc_cidr_block     = var.vpc_cidr_block
   tls_subdomain      = lower(var.name_prefix)
-  availability_zones = slice(data.aws_availability_zones.available.names, 0, var.num_availability_zones)
+  availability_zones = data.aws_availability_zones.available.names
   support_eks        = true
 }
 

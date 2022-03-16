@@ -3,13 +3,14 @@ pipeline {
     agent any
 
    environment {
-        ENV        = "dev"
-        REGION     = "us-west-2"
-        PROJECT_ID = "AB-utopia"
+        environment = "dev"
+        region      = "us-west-2"
+        project_id  = "AB-utopia"
 
-        s3_bucket      = PROJECT_ID.toLowerCase()
-        vpc_cidr_block = "10.0.0.0/16"
-        num_availability_zones = 2
+        s3_bucket        = project_id.toLowerCase()
+        vpc_cidr_block   = "10.0.0.0/16"
+        subdomain_prefix = project_id.toLowerCase()
+        domain           = "hitwc.link"
     }
 
     stages {
@@ -23,17 +24,20 @@ pipeline {
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
                         script {
-                            sh "terraform init -backend-config='bucket=$s3_bucket' -backend-config='region=$REGION'"
-                            sh "terraform workspace select $ENV"
-                            sh """cat > terraform.tfvars << EOF
-region = "$REGION"
-s3_bucket = "$s3_bucket"
-name_prefix = "$PROJECT_ID"
-environment = "$ENV"
-vpc_cidr_block = "$vpc_cidr_block"
-num_availability_zones = "$num_availability_zones"
-EOF
-                        """
+                            sh "terraform init -backend-config='bucket=$s3_bucket' -backend-config='region=$region'"
+                            sh "terraform workspace select $environment"
+                            sh """
+                                cat > terraform.tfvars << EOF
+                                    region = "$region"
+                                    s3_bucket = "$s3_bucket"
+                                    name_prefix = "$project_id"
+                                    environment = "$environment"
+                                    vpc_cidr_block = "$vpc_cidr_block"
+                                    num_availability_zones = "$num_availability_zones"
+                                    subdomain_prefix = "$subdomain_prefix"
+                                    domain = "$domain"
+                                EOF
+                            """
                             sh "terraform plan -destroy -input=false -out=tfplan"
                         }
                     }

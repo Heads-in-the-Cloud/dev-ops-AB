@@ -24,14 +24,14 @@ pipeline {
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
                         script {
-                            sh "terraform init -backend-config='bucket=$s3_bucket' -backend-config='region=$REGION'"
-                            sh "terraform workspace select $ENV || terraform workspace new $ENV"
+                            sh "terraform init -backend-config='bucket=$s3_bucket' -backend-config='region=$region'"
+                            sh "terraform workspace select $environment || terraform workspace new $environment"
                             sh """
                                 cat > terraform.tfvars << EOF
-                                    region = "$REGION"
+                                    region = "$region"
                                     s3_bucket = "$s3_bucket"
-                                    name_prefix = "$PROJECT_ID"
-                                    environment = "$ENV"
+                                    name_prefix = "$project_id"
+                                    environment = "$environment"
                                     vpc_cidr_block = "$vpc_cidr_block"
                                     num_availability_zones = "$num_availability_zones"
                                     subdomain_prefix = "$subdomain_prefix"
@@ -57,7 +57,7 @@ pipeline {
                     ]]) {
                         sh "terraform apply -input=false tfplan"
                         sh "terraform output -json > outputs.json"
-                        sh "aws s3 cp file://outputs.json s3://$s3_bucket/env:/$ENV/tf_output_backup.json"
+                        sh "aws s3 cp file://outputs.json s3://$s3_bucket/env:/$environment/tf_output_backup.json"
                     }
                 }
             }
