@@ -38,6 +38,7 @@ pipeline {
                                     --nodes 2 \
                                     --node-type t3.small \
                                     --alb-ingress-access \
+                                    --node-private-networking \
                                     --vpc-private-subnets $private_subnets
                             """
                         }
