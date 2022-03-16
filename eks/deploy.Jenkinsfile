@@ -3,11 +3,12 @@ pipeline {
     agent any
 
     environment {
-        project_id   = "AB-utopia"
+        project_name = "AB-utopia"
         environmment = "dev"
 
-        cluster_name = project_id
-        s3_bucket    = project_id.toLowerCase()
+        cluster_name        = project_name
+        s3_bucket           = project_name.toLowerCase()
+        docker_image_prefix = project_name.toLowerCase()
     }
 
     stages {
