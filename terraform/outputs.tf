@@ -14,7 +14,7 @@ output "db_url" {
   value = module.rds.instance_address
 }
 output "acm_cert_arn" {
-  value = module.dns.acm_cert_arn
+  value = module.cert.tls_cert_arn
 }
 output "r53_zone_id" {
  value = module.dns.r53_zone_id

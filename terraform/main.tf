@@ -24,8 +24,8 @@ locals {
 }
 
 # TLS cert & IAM policy for updating Route53 record with external-dns
-module "dns" {
-  source = "./modules/dns"
+module "cert" {
+  source = "./modules/cert"
   name_prefix = var.name_prefix
   tls_subdomain = lower(var.name_prefix)
 }

@@ -1,7 +1,4 @@
-output "external_dns_policy" {
-  value = aws_iam_policy.AllowExternalDNSUpdates.name
-}
-output "acm_cert_arn" {
+output "tls_cert_arn" {
   value = aws_acm_certificate.default.arn
 }
 output "r53_zone_id" {
