@@ -33,7 +33,6 @@ pipeline {
                                     name_prefix = "$project_id"
                                     environment = "$environment"
                                     vpc_cidr_block = "$vpc_cidr_block"
-                                    num_availability_zones = "$num_availability_zones"
                                     subdomain_prefix = "$subdomain_prefix"
                                     domain = "$domain"
                                 EOF

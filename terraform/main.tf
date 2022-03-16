@@ -16,11 +16,7 @@ locals {
 
 data "assert_test" "num_availability_zones" {
   test = length(data.aws_availability_zones.available.names) >= local.min_num_availability_zones
-  throw = format(
-    "Invalid number of availabaility zones, must be between %d and %d",
-    local.min_num_availability_zones,
-    local.max_num_availability_zones
-  )
+  throw = format("ERROR: Must be more than %d availability zones", local.min_num_availability_zones)
 }
 
 # TLS cert & IAM policy for updating Route53 record with external-dns
