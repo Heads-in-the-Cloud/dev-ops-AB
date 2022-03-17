@@ -71,18 +71,6 @@ pipeline {
                                     --approve
                             """
 
-                            // Setup AWS authentication configmap
-                            sh """
-                                kubectl get configmap/aws-auth -n kube-system -o yaml |
-                                    sed 's@data:@data:
-  mapUsers: |
-    - userarn: arn:aws:iam::${aws_account_id}:user/Jenkins
-      username: Jenkins
-      groups:
-      - system:masters@' |
-                                    kubectl apply -f -
-                            """
-
                             // Setup Cloudwatch logging
                             sh "REGION='$region' envsubst < k8s/cloudwatch.yml | kubectl apply -f -"
 
