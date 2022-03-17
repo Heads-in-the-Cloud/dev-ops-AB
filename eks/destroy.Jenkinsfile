@@ -32,6 +32,7 @@ pipeline {
                             ).trim()
                             // teardown eks cluster
                             sh "eksctl delete cluster --name $cluster_name --region $region"
+                            sh "aws cloudformation wait stack-delete-complete --stack-name eksctl-$cluster_name-cluster"
                         }
                     }
                 }
