@@ -30,7 +30,7 @@ pipeline {
                                 returnStdout: true
                             ).trim()
                             // create eks cluster
-                            def private_subnets = tf_output.nat_private_subnet_ids.toList().join(',')
+                            def private_subnets = tf_output.public_subnet_ids.toList().join(',')
                             sh """
                                 eksctl create cluster \
                                     --name $cluster_name \
@@ -38,8 +38,7 @@ pipeline {
                                     --nodes 2 \
                                     --node-type t3.small \
                                     --alb-ingress-access \
-                                    --node-private-networking \
-                                    --vpc-private-subnets $private_subnets
+                                    --vpc-public-subnets $private_subnets
                             """
                         }
                     }
