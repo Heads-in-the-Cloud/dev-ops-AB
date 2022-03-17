@@ -42,6 +42,15 @@ pipeline {
                                     --node-private-networking \
                                     --vpc-private-subnets $private_subnets
                             """
+
+                            // Configure IAM user permissions in dev environment
+                            if(environment == "dev") {
+                                sh """
+                                    AWS_ACCOUNT_ID=$aws_account_id \
+                                    IAM_USERNAME=Austin \
+                                        ./aws-auth.sh
+                                """
+                            }
                         }
                     }
                 }
@@ -65,15 +74,6 @@ pipeline {
                                     --cluster "$cluster_name" \
                                     --approve
                             """
-
-                            // Configure IAM user permissions in dev environment
-                            if(environment == "dev") {
-                                sh """
-                                    AWS_ACCOUNT_ID=$aws_account_id \
-                                    IAM_USERNAME=Austin \
-                                        ./aws-auth.sh
-                                """
-                            }
 
                             // TODO: implement
                             // Cloudwatch logging setup
