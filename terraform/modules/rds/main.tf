@@ -14,7 +14,7 @@ resource "aws_security_group" "default" {
 
   ingress {
     description = "MySQL"
-    from_port   = 3306
+    from_port   = var.port
     to_port     = 3306
     protocol    = "tcp"
     cidr_blocks = [ var.vpc.cidr_block ]

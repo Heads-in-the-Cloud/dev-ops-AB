@@ -11,7 +11,7 @@ output "private_subnet_ids" {
   value = module.network.private_subnet_ids
 }
 output "mysql_url" {
-  value = module.rds.instance_address
+  value = "${module.rds.instance_address}:${tf_output.rds_port}/${tf_output.rds_db}"
 }
 output "acm_cert_arn" {
   value = module.cert.tls_cert_arn

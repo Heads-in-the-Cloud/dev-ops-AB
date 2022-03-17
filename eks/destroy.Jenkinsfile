@@ -5,6 +5,7 @@ pipeline {
     environment {
         project_name = "AB-utopia"
         environment  = "dev"
+        region       = "us-west-2"
 
         cluster_name        = "$project_name"
         s3_bucket           = project_name.toLowerCase()
@@ -30,10 +31,6 @@ pipeline {
                                 returnStdout: true
                             ).trim()
                             // teardown eks cluster
-                            def region = sh(
-                                script: 'aws configure get region',
-                                returnStdout: true
-                            ).trim()
                             sh "eksctl delete cluster --name $cluster_name --region $region"
                         }
                     }

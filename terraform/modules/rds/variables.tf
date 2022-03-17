@@ -18,6 +18,11 @@ variable "name" {
   default = null
 }
 
+variable "port" {
+  type = number
+  default = null
+}
+
 variable "engine_version" {
   type = string
   default = null

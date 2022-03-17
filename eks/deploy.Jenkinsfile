@@ -5,6 +5,7 @@ pipeline {
     environment {
         project_name = "AB-utopia"
         environment  = "dev"
+        region       = "us-west-2"
 
         cluster_name        = "$project_name"
         s3_bucket           = project_name.toLowerCase()
@@ -62,7 +63,6 @@ pipeline {
                                 script: 'aws sts get-caller-identity --query "Account" --output text',
                                 returnStdout: true
                             ).trim()
-                            sh "aws eks update-kubeconfig --region $region --name $cluster_name"
                             // Associate IAM OIDC provider for ALB
                             sh """
                                 eksctl utils associate-iam-oidc-provider \
@@ -136,7 +136,7 @@ pipeline {
                                 sh """
                                     kubectl create secret generic db-info \
                                         -n microservices \
-                                        --from-literal db-url="mysql://${tf_output.mysql_url}:3306/utopia" \
+                                        --from-literal db-url="mysql://${tf_output.mysql_url}" \
                                         --from-literal db-user="${aws_secrets.db_username}" \
                                         --from-literal db-password="${aws_secrets.db_password}"
                                     kubectl create secret generic jwt-secret \
@@ -185,7 +185,6 @@ pipeline {
                                 script: 'aws sts get-caller-identity --query "Account" --output text',
                                 returnStdout: true
                             ).trim()
-                            sh "aws eks update-kubeconfig --region $region --name $cluster_name"
                             // Create IAM service account w/ role & attached policies for external-dns
                             sh """
                                 eksctl create iamserviceaccount \
