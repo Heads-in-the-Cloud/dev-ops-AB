@@ -138,9 +138,9 @@ pipeline {
                                         --from-literal db-url="mysql://${tf_output.mysql_url}" \
                                         --from-literal db-user="${aws_secrets.db_username}" \
                                         --from-literal db-password="${aws_secrets.db_password}"
-                                    kubectl create secret generic jwt-secret \
+                                    kubectl create secret generic jwt-key \
                                         -n microservices \
-                                        --from-literal jwt-key="${aws_secrets.jwt_secret}"
+                                        --from-literal value="${aws_secrets.jwt_secret}"
                                 """
                             }
 
