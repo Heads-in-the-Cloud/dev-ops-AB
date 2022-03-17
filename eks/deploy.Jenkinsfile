@@ -30,7 +30,7 @@ pipeline {
                                 returnStdout: true
                             ).trim()
                             // create eks cluster
-                            def private_subnets = tf_output.public_subnet_ids.toList().join(',')
+                            def private_subnets = tf_output.nat_private_subnet_ids.toList().join(',')
                             sh """
                                 eksctl create cluster \
                                     --name $cluster_name \
@@ -38,7 +38,8 @@ pipeline {
                                     --nodes 2 \
                                     --node-type t3.small \
                                     --alb-ingress-access \
-                                    --vpc-public-subnets $private_subnets
+                                    --node-private-networking \
+                                    --vpc-private-subnets $private_subnets
                             """
                         }
                     }
@@ -157,7 +158,7 @@ pipeline {
                             }
                             // Apply ingress rules
                             sh """
-                                DOMAIN="${tf_output.subdomain}" \
+                                DOMAIN="${tf_output.subdomain_prefix}.${tf_output.domain}" \
                                 AWS_REGION="$region" \
                                 AWS_ACCOUNT_ID="$aws_account_id" \
                                 ACM_CERT_ARN="${tf_output.acm_cert_arn}" \
@@ -198,7 +199,7 @@ pipeline {
 
                             // Apply external-dns deployment manifest
                             sh """
-                                DOMAIN="${tf_output.subdomain}" \
+                                DOMAIN="${tf_output.domain}" \
                                 AWS_ACCOUNT_ID="$aws_account_id" \
                                 R53_ZONE_ID="${tf_output.r53_zone_id}" \
                                 IAM_SERVICE_ROLE_NAME="$cluster_name-external-dns" \

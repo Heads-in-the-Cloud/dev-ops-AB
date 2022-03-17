@@ -11,8 +11,7 @@ locals {
   # At least two subnets are required for the RDS instance
   min_num_availability_zones = 2
   max_num_availability_zones = length(data.aws_availability_zones.available.names)
-  subdomain = "${var.subdomain_prefix}.${var.domain}"
-  secrets   = jsondecode(data.aws_secretsmanager_secret_version.default.secret_string)
+  secrets                    = jsondecode(data.aws_secretsmanager_secret_version.default.secret_string)
 }
 
 data "assert_test" "num_availability_zones" {
@@ -28,7 +27,7 @@ data "assert_test" "num_availability_zones" {
 module "cert" {
   source      = "./modules/cert"
   name_prefix = var.name_prefix
-  domain_name = local.subdomain
+  domain_name = "${var.subdomain_prefix}.${var.domain}"
 }
 
 # ECR Repositories
@@ -53,7 +52,6 @@ module "network" {
   source             = "./modules/network"
   name_prefix        = var.name_prefix
   vpc_cidr_block     = var.vpc_cidr_block
-  tls_subdomain      = lower(var.name_prefix)
   availability_zones = slice(data.aws_availability_zones.available.names, 0, var.num_availability_zones)
   support_eks        = true
 }

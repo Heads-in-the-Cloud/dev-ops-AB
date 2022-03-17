@@ -19,6 +19,9 @@ output "acm_cert_arn" {
 output "r53_zone_id" {
  value = module.cert.r53_zone_id
 }
-output "subdomain" {
- value = local.subdomain
+output "subdomain_prefix" {
+ value = var.subdomain_prefix
+}
+output "domain" {
+ value = var.domain
 }
