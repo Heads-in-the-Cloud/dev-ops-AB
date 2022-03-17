@@ -10,6 +10,10 @@ pipeline {
         cluster_name        = "$project_name"
         s3_bucket           = project_name.toLowerCase()
         docker_image_prefix = project_name.toLowerCase()
+        aws_account_id = sh(
+            script: 'aws sts get-caller-identity --query "Account" --output text',
+            returnStdout: true
+        ).trim()
     }
 
     stages {
@@ -25,11 +29,7 @@ pipeline {
                         script {
                             // get terraform output
                             sh "aws s3 cp s3://$s3_bucket/env:/${environment.toLowerCase()}/tf_output_values.json ."
-                            def tf_output = readJSON file: 'tf_output_values.json'
-                            def aws_account_id = sh(
-                                script: 'aws sts get-caller-identity --query "Account" --output text',
-                                returnStdout: true
-                            ).trim()
+                            tf_output = readJSON file: 'tf_output_values.json'
                             // create eks cluster
                             def private_subnets = tf_output.nat_private_subnet_ids.toList().join(',')
                             sh """
@@ -58,11 +58,6 @@ pipeline {
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
                         script {
-                            def tf_output = readJSON file: 'tf_output_values.json'
-                            def aws_account_id = sh(
-                                script: 'aws sts get-caller-identity --query "Account" --output text',
-                                returnStdout: true
-                            ).trim()
                             // Associate IAM OIDC provider for ALB
                             sh """
                                 eksctl utils associate-iam-oidc-provider \
@@ -71,8 +66,18 @@ pipeline {
                                     --approve
                             """
 
-                            // Setup Cloudwatch logging
-                            sh "REGION='$region' envsubst < k8s/cloudwatch.yml | kubectl apply -f -"
+                            // Configure IAM user permissions in dev environment
+                            if(environment == "dev") {
+                                sh """
+                                    AWS_ACCOUNT_ID=$aws_account_id \
+                                    IAM_USERNAME=Austin \
+                                        ./aws-auth.sh
+                                """
+                            }
+
+                            // TODO: implement
+                            // Cloudwatch logging setup
+                            //sh "REGION='$region' envsubst < k8s/cloudwatch.yml | kubectl apply -f -"
 
                             // Create IAM service account w/ role & attached policies for ALB
                             sh """
@@ -117,12 +122,6 @@ pipeline {
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
                         script {
-                            def tf_output = readJSON file: 'tf_output_values.json'
-                            def aws_account_id = sh(
-                                script: 'aws sts get-caller-identity --query "Account" --output text',
-                                returnStdout: true
-                            ).trim()
-                            sh "aws eks update-kubeconfig --region $region --name $cluster_name"
                             // Make sure microservices namespace is present
                             sh "kubectl apply -f k8s/namespace.yml"
                             // Set k8s secrets from stdin literals
@@ -180,11 +179,6 @@ pipeline {
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
                         script {
-                            def tf_output = readJSON file: 'tf_output_values.json'
-                            def aws_account_id = sh(
-                                script: 'aws sts get-caller-identity --query "Account" --output text',
-                                returnStdout: true
-                            ).trim()
                             // Create IAM service account w/ role & attached policies for external-dns
                             sh """
                                 eksctl create iamserviceaccount \
