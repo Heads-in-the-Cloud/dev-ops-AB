@@ -22,7 +22,7 @@ INSERT INTO `user_role` VALUES (3,'Admin'),(1,'Employee'),(2,'Traveler');
 UNLOCK TABLES;
 
 -- Add microservice user
-CREATE USER '${db_username}'@'%' IDENTIFIED BY '${db_password}';
+CREATE USER '${db_username}'@'%' IDENTIFIED WITH mysql_native_password BY '${db_password}';
 GRANT SELECT, INSERT, UPDATE, DELETE ON utopia.* TO '${db_username}'@'%';
 FLUSH PRIVILEGES;
 EOF
