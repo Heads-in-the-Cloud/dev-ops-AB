@@ -94,12 +94,12 @@ module "bastion" {
   vpc_id        = module.network.vpc_id
   subnet_id     = random_shuffle.bastion_subnet_id.result[0]
   user_data     = templatefile("${path.root}/user_data.sh", {
-    S3_BUCKET        = var.s3_bucket
-    DB_HOST          = module.rds.instance_address
-    DB_ROOT_USERNAME = local.secrets.db_root_username
-    DB_ROOT_PASSWORD = local.secrets.db_root_password
-    DB_USER_USERNAME = local.secrets.db_username
-    DB_USER_PASSWORD = local.secrets.db_password
+    s3_bucket        = var.s3_bucket
+    db_host          = module.rds.instance_address
+    db_root_username = local.secrets.db_root_username
+    db_root_password = local.secrets.db_root_password
+    db_username      = local.secrets.db_username
+    db_password      = local.secrets.db_password
   })
 
   name_prefix = var.name_prefix
