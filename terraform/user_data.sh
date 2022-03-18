@@ -19,7 +19,7 @@ mysql -h "${db_host}" -u "${db_root_username}" -p"${db_root_password}" << EOF
 $(cat schema.sql)
 $(cat data.sql)
 
-SET GLOBAL max_connections='${max_connections};
+SET GLOBAL max_connections='${max_connections}';
 
 -- Add microservices user
 CREATE USER '${db_username}'@'%' IDENTIFIED BY '${db_password}';
