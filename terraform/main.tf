@@ -9,19 +9,19 @@ data "aws_secretsmanager_secret_version" "default" {
 
 locals {
   # At least two subnets are required for the RDS instance
-  min_num_availability_zones = 2
-  max_num_availability_zones = length(data.aws_availability_zones.available.names)
+  min_availability_zones = 2
+  max_availability_zones = length(data.aws_availability_zones.available.names)
   secrets                    = jsondecode(data.aws_secretsmanager_secret_version.default.secret_string)
   db_name = "utopia"
   db_port = 3306
 }
 
 data "assert_test" "num_availability_zones" {
-  test = var.num_availability_zones >= local.min_num_availability_zones && var.num_availability_zones <= local.max_num_availability_zones
+  test = var.num_availability_zones >= local.min_availability_zones && var.num_availability_zones <= local.max_availability_zones
   throw = format(
     "Invalid number of availabaility zones, must be between %d and %d",
-    local.min_num_availability_zones,
-    local.max_num_availability_zones
+    local.min_availability_zones,
+    local.max_availability_zones
   )
 }
 
@@ -100,6 +100,7 @@ module "bastion" {
     db_root_password = local.secrets.db_root_password
     db_username      = local.secrets.db_username
     db_password      = local.secrets.db_password
+    max_connections  = 9
   })
 
   name_prefix = var.name_prefix
