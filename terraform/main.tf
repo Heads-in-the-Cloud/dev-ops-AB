@@ -94,7 +94,6 @@ module "bastion" {
   vpc_id        = module.network.vpc_id
   subnet_id     = random_shuffle.bastion_subnet_id.result[0]
   user_data     = templatefile("${path.root}/user_data.sh", {
-    VPC_CIDR_BLOCK   = var.vpc_cidr_block
     S3_BUCKET        = var.s3_bucket
     DB_HOST          = module.rds.instance_address
     DB_ROOT_USERNAME = local.secrets.db_root_username
