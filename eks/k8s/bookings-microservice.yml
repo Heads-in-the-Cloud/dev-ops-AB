@@ -48,8 +48,8 @@ spec:
           - name: JWT_SECRET
             valueFrom:
               secretKeyRef:
-                key: jwt-key
-                name: value
+                key: value
+                name: jwt-key
         ports:
           - containerPort: 8080
 
