@@ -10,10 +10,6 @@ pipeline {
         cluster_name        = "$project_name"
         s3_bucket           = project_name.toLowerCase()
         docker_image_prefix = project_name.toLowerCase()
-        aws_account_id = sh(
-            script: 'aws sts get-caller-identity --query "Account" --output text',
-            returnStdout: true
-        ).trim()
     }
 
     stages {
@@ -27,6 +23,10 @@ pipeline {
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
                         script {
+                            aws_account_id = sh(
+                                script: 'aws sts get-caller-identity --query "Account" --output text',
+                                returnStdout: true
+                            ).trim()
                             // get terraform output
                             sh "aws s3 cp s3://$s3_bucket/env:/${environment.toLowerCase()}/tf_output_values.json ."
                             tf_output = readJSON file: 'tf_output_values.json'
