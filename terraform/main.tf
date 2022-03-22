@@ -11,7 +11,7 @@ locals {
   # At least two subnets are required for the RDS instance
   min_availability_zones = 2
   max_availability_zones = length(data.aws_availability_zones.available.names)
-  secrets                    = jsondecode(data.aws_secretsmanager_secret_version.default.secret_string)
+  secrets                = jsondecode(data.aws_secretsmanager_secret_version.default.secret_string)
   db_name = "utopia"
   db_port = 3306
 }
