@@ -7,7 +7,7 @@
 # - db_root_password
 # - db_username
 # - db_password
-# - max_connections
+# - max_connections TODO: determine how to set properly
 
 yum update -y
 yum install -y mysql
@@ -17,15 +17,14 @@ aws s3 cp --recursive s3://${s3_bucket}/mysql .
 mysql -h "${db_host}" -u "${db_root_username}" -p"${db_root_password}" << EOF
 
 $(cat schema.sql)
+$(cat data.sql)
 
-SET GLOBAL max_connections='${max_connections}';
+-- SET GLOBAL max_connections='${max_connections}';
 
 -- Add microservices user
 CREATE USER '${db_username}'@'%' IDENTIFIED BY '${db_password}';
 GRANT SELECT, INSERT, UPDATE, DELETE ON utopia.* TO '${db_username}'@'%';
 FLUSH PRIVILEGES;
-
-$(cat data.sql)
 EOF
 
 rm *.sql
