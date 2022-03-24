@@ -1,4 +1,0 @@
-moto==3.0.2
-localstack==0.13.3.6
-awscli==1.22.47
-awscli-local[ver1]==0.18

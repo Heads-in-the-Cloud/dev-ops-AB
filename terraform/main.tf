@@ -100,7 +100,6 @@ module "bastion" {
     db_root_password = local.secrets.db_root_password
     db_username      = local.secrets.db_username
     db_password      = local.secrets.db_password
-    max_connections  = 9
   })
 
   name_prefix = var.name_prefix
