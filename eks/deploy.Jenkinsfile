@@ -36,10 +36,8 @@ pipeline {
                                 eksctl create cluster \
                                     --name $cluster_name \
                                     --region $region \
-                                    --nodes 2 \
-                                    --node-type t3.small \
+                                    --fargate \
                                     --alb-ingress-access \
-                                    --node-private-networking \
                                     --vpc-private-subnets $private_subnets
                             """
 
