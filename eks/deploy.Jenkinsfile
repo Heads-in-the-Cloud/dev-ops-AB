@@ -1,4 +1,5 @@
 #!groovy
+
 pipeline {
     agent any
 
@@ -88,6 +89,9 @@ pipeline {
                                     --override-existing-serviceaccounts \
                                     --approve
                             """
+
+                            // Ensure service role was created successfully
+                            sh "kubectl get serviceaccount aws-load-balancer-controller --namespace kube-system"
 
                             // Install the TargetGroupBinding custom resource definitions
                             sh "kubectl apply -k 'github.com/aws/eks-charts/stable/aws-load-balancer-controller//crds?ref=master'"
