@@ -12,7 +12,7 @@ resource "aws_subnet" "public" {
     [var.support_eks ? {
       "kubernetes.io/role/elb" = 1,
       #TODO: set on deployment
-      "kubernetes.io/cluster/${var.name_prefix}" = "shared"
+      "kubernetes.io/cluster/${var.cluster_name}" = "shared"
     } : null]...
   )
 }

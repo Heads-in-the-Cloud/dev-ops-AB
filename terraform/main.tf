@@ -12,6 +12,7 @@ locals {
   min_availability_zones = 2
   max_availability_zones = length(data.aws_availability_zones.available.names)
   secrets                = jsondecode(data.aws_secretsmanager_secret_version.default.secret_string)
+  eks_cluster_name = var.name_prefix
   db_name = "utopia"
   db_port = 3306
 }
@@ -53,6 +54,7 @@ data "aws_ecr_repository" "bookings_microservice" {
 module "network" {
   source             = "./modules/network"
   name_prefix        = var.name_prefix
+  cluster_name       = local.eks_cluster_name
   vpc_cidr_block     = var.vpc_cidr_block
   availability_zones = slice(data.aws_availability_zones.available.names, 0, var.num_availability_zones)
   support_eks        = true

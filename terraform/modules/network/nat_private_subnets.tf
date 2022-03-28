@@ -12,7 +12,7 @@ resource "aws_subnet" "nat_private" {
     [var.support_eks ? {
       "kubernetes.io/role/internal-elb" = 1,
       #TODO: set on EKS deployment
-      "kubernetes.io/cluster/${var.name_prefix}" = "shared"
+      "kubernetes.io/cluster/${var.cluster_name}" = "shared"
     } : null]...
   )
 }

@@ -3,6 +3,11 @@ variable "name_prefix" {
   default = null
 }
 
+variable "cluster_name" {
+  type = string
+  default = null
+}
+
 variable "support_eks" {
   type = bool
   default = false

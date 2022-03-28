@@ -3,16 +3,15 @@ pipeline {
     agent any
 
     environment {
-        project_id  = "AB-utopia"
-        region      = "us-west-2"
-        s3_bucket   = project_id.toLowerCase()
-        environment = "dev"
-
-        subdomain_prefix = project_id.toLowerCase()
-        domain           = "hitwc.link"
-
-        vpc_cidr_block   = "10.0.0.0/16"
+        project_id             = "AB-utopia"
+        region                 = "us-west-2"
+        environment            = "dev"
+        domain                 = "hitwc.link"
+        vpc_cidr_block         = "10.0.0.0/16"
         num_availability_zones = 2
+
+        s3_bucket        = project_id.toLowerCase()
+        subdomain_prefix = project_id.toLowerCase()
     }
 
     stages {
@@ -58,7 +57,7 @@ EOF
                     ]]) {
                         sh "terraform apply -input=false tfplan"
                         sh "terraform output -json | jq 'with_entries(.value |= .value)' > output_values.json"
-                        sh "aws s3 cp output_values.json s3://$s3_bucket/env:/$environment/tf_output_values.json"
+                        sh "aws s3 cp output_values.json s3://$s3_bucket/env:/$environment/tf_info.json"
                     }
                 }
             }
