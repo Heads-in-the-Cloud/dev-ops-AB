@@ -3,16 +3,16 @@ pipeline {
     agent any
 
     environment {
-        project_id  = "AB-utopia"
-        region      = "us-west-2"
-        s3_bucket   = project_id.toLowerCase()
-        environment = "dev"
-
-        subdomain_prefix = project_id.toLowerCase()
-        domain           = "hitwc.link"
-
-        vpc_cidr_block   = "10.0.0.0/16"
+        project_id             = "AB-utopia"
+        region                 = "us-west-2"
+        environment            = "dev"
+        domain                 = "hitwc.link"
+        vpc_cidr_block         = "10.0.0.0/16"
         num_availability_zones = 2
+
+        s3_bucket        = "${project_id.toLowerCase()}-tf-sync"
+        dyanmodb_table   = "${project_id.toLowerCase()}-tf-lock"
+        subdomain_prefix = project_id.toLowerCase()
     }
 
     stages {
@@ -26,12 +26,17 @@ pipeline {
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
                         script {
-                            sh "terraform init -backend-config='bucket=$s3_bucket' -backend-config='region=$region'"
+                            sh """
+                                terraform init \
+                                    -backend-config='bucket=$s3_bucket' \
+                                    -backend-config='region=$region' \
+                                    -backend-config='dynamodb_table=$dynamodb_table' \
+                                    -backend-config='encrypt=true'
+                            """
                             sh "terraform workspace select $environment"
                             sh """cat > terraform.tfvars << EOF
 region = "$region"
-s3_bucket = "$s3_bucket"
-name_prefix = "$project_id"
+project_id = "$project_id"
 environment = "$environment"
 vpc_cidr_block = "$vpc_cidr_block"
 subdomain_prefix = "$subdomain_prefix"
@@ -59,6 +64,20 @@ EOF
                         sh "terraform apply -input=false tfplan"
                     }
                 }
+            }
+        }
+
+        stage('Destroy Dependant Resources') {
+            steps {
+                ansibleTower(
+                    towerServer: 'Tower 1',
+                    jobTemplate: 'AB-destroy-tf-dependancies',
+                    extraVars: '''---
+                        project_id: "$project_id"
+                        region: "$region"
+                    ''',
+                    async: false
+                )
             }
         }
     }

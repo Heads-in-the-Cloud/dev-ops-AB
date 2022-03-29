@@ -9,7 +9,7 @@
   tasks:
 
   - community.aws.aws_kms:
-      alias: "{{ project_id }}-s3"
+      alias: "{{ project_id }}-tf-state-s3-encryption"
       state: absent
       region: "{{ region }}"
 

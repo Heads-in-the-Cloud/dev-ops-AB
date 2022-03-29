@@ -4,7 +4,7 @@ data "aws_availability_zones" "available" {
 
 # Key/Value pairs of root db creds, microservice user creds, and the JWT symmetric key
 data "aws_secretsmanager_secret_version" "default" {
-  secret_id = "${var.environment}/${var.name_prefix}/default"
+  secret_id = "${var.environment}/${var.project_id}/default"
 }
 
 locals {
@@ -12,9 +12,9 @@ locals {
   min_availability_zones = 2
   max_availability_zones = length(data.aws_availability_zones.available.names)
   secrets                = jsondecode(data.aws_secretsmanager_secret_version.default.secret_string)
-  eks_cluster_name = var.name_prefix
-  db_name = "utopia"
-  db_port = 3306
+  eks_cluster_name       = var.project_id
+  db_name                = "utopia"
+  db_port                = 3306
 }
 
 data "assert_test" "num_availability_zones" {
@@ -29,31 +29,31 @@ data "assert_test" "num_availability_zones" {
 # TLS cert & IAM policy for updating Route53 record with external-dns
 module "cert" {
   source      = "./modules/cert"
-  name_prefix = var.name_prefix
+  name_prefix = var.project_id
   domain_name = "${var.subdomain_prefix}.${var.domain}"
 }
 
 # ECR Repositories
 data "aws_ecr_repository" "reverse_proxy" {
-  name = format("%s-reverse-proxy", lower(var.name_prefix))
+  name = format("%s-reverse-proxy", lower(var.project_id))
 }
 
 data "aws_ecr_repository" "users_microservice" {
-  name = format("%s-users-microservice", lower(var.name_prefix))
+  name = format("%s-users-microservice", lower(var.project_id))
 }
 
 data "aws_ecr_repository" "flights_microservice" {
-  name = format("%s-flights-microservice", lower(var.name_prefix))
+  name = format("%s-flights-microservice", lower(var.project_id))
 }
 
 data "aws_ecr_repository" "bookings_microservice" {
-  name = format("%s-bookings-microservice", lower(var.name_prefix))
+  name = format("%s-bookings-microservice", lower(var.project_id))
 }
 
 # Selects a random availability zone for each subnet in the given region
 module "network" {
   source             = "./modules/network"
-  name_prefix        = var.name_prefix
+  name_prefix        = var.project_id
   cluster_name       = local.eks_cluster_name
   vpc_cidr_block     = var.vpc_cidr_block
   availability_zones = slice(data.aws_availability_zones.available.names, 0, var.num_availability_zones)
@@ -63,7 +63,7 @@ module "network" {
 # RDS instance
 module "rds" {
   source            = "./modules/rds"
-  name_prefix       = var.name_prefix
+  name_prefix       = var.project_id
   allocated_storage = 10
   instance_class    = "db.t2.micro"
   name              = local.db_name
@@ -89,6 +89,10 @@ resource "random_shuffle" "bastion_subnet_id" {
   result_count = 1
 }
 
+data "aws_s3_bucket" "mysql" {
+  name = lower(var.project_id)
+}
+
 module "bastion" {
   source        = "./modules/bastion"
   policy_arn    = data.aws_iam_policy.read_s3.arn
@@ -96,7 +100,7 @@ module "bastion" {
   vpc_id        = module.network.vpc_id
   subnet_id     = random_shuffle.bastion_subnet_id.result[0]
   user_data     = templatefile("${path.root}/user_data.sh", {
-    s3_bucket        = var.s3_bucket
+    s3_bucket        = data.aws_s3_bucket.mysql.name
     db_host          = module.rds.instance_address
     db_root_username = local.secrets.db_root_username
     db_root_password = local.secrets.db_root_password
@@ -104,5 +108,5 @@ module "bastion" {
     db_password      = local.secrets.db_password
   })
 
-  name_prefix = var.name_prefix
+  name_prefix = var.project_id
 }

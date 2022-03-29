@@ -10,11 +10,27 @@ pipeline {
         vpc_cidr_block         = "10.0.0.0/16"
         num_availability_zones = 2
 
-        s3_bucket        = project_id.toLowerCase()
+        s3_bucket        = "${project_id.toLowerCase()}-tf-sync"
+        dyanmodb_table   = "${project_id.toLowerCase()}-tf-lock"
         subdomain_prefix = project_id.toLowerCase()
     }
 
     stages {
+        stage('Deploy Dependant Resources') {
+            steps {
+                ansibleTower(
+                    towerServer: 'Tower 1',
+                    jobTemplate: 'AB-deploy-tf-dependancies',
+                    extraVars: '''---
+                        project_id: "$project_id"
+                        s3_bucket: "$s3_bucket"
+                        dynamodb_table: "$dynamodb_table"
+                        region: "$region"
+                    ''',
+                    async: false
+                )
+            }
+        }
         stage('Init & Plan') {
             steps {
                 dir("terraform") {
@@ -25,12 +41,17 @@ pipeline {
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
                         script {
-                            sh "terraform init -backend-config='bucket=$s3_bucket' -backend-config='region=$region'"
+                            sh """
+                                terraform init \
+                                    -backend-config='bucket=$s3_bucket' \
+                                    -backend-config='region=$region' \
+                                    -backend-config='dynamodb_table=$dynamodb_table' \
+                                    -backend-config='encrypt=true'
+                            """
                             sh "terraform workspace select $environment || terraform workspace new $environment"
                             sh """cat > terraform.tfvars << EOF
 region = "$region"
-s3_bucket = "$s3_bucket"
-name_prefix = "$project_id"
+project_id = "$project_id"
 environment = "$environment"
 vpc_cidr_block = "$vpc_cidr_block"
 subdomain_prefix = "$subdomain_prefix"

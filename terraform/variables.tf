@@ -3,15 +3,9 @@ variable "region" {
   default = null
 }
 
-variable "s3_bucket" {
-  type    = string
-  default = null
-}
-
-variable "name_prefix" {
+variable "project_id" {
   type        = string
   default     = null
-  description = "identifier to prefix all names with"
 }
 
 variable "environment" {
