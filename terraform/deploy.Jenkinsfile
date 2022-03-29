@@ -26,8 +26,7 @@ pipeline {
                         s3_bucket: "$s3_bucket"
                         dynamodb_table: "$dynamodb_table"
                         region: "$region"
-                    ''',
-                    async: false
+                    '''
                 )
             }
         }

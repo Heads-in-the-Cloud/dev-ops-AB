@@ -75,8 +75,7 @@ EOF
                     extraVars: '''---
                         project_id: "$project_id"
                         region: "$region"
-                    ''',
-                    async: false
+                    '''
                 )
             }
         }
