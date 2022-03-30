@@ -89,9 +89,9 @@ resource "random_shuffle" "bastion_subnet_id" {
   result_count = 1
 }
 
-data "aws_s3_bucket" "mysql" {
-  name = lower(var.project_id)
-}
+//data "aws_s3_bucket" "mysql" {
+//  name = lower(var.project_id)
+//}
 
 module "bastion" {
   source        = "./modules/bastion"
@@ -100,7 +100,7 @@ module "bastion" {
   vpc_id        = module.network.vpc_id
   subnet_id     = random_shuffle.bastion_subnet_id.result[0]
   user_data     = templatefile("${path.root}/user_data.sh", {
-    s3_bucket        = data.aws_s3_bucket.mysql.name
+    s3_bucket        = var.s3_bucket
     db_host          = module.rds.instance_address
     db_root_username = local.secrets.db_root_username
     db_root_password = local.secrets.db_root_password

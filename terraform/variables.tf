@@ -8,6 +8,11 @@ variable "project_id" {
   default     = null
 }
 
+variable "s3_bucket" {
+  type    = string
+  default = null
+}
+
 variable "environment" {
   type        = string
   default     = "dev"
