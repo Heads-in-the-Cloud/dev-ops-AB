@@ -8,7 +8,6 @@ pipeline {
         environment  = "dev"
         region       = "us-west-2"
         iam_username = "Austin"
-        node_type    = "t3.small"
 
         s3_bucket           = project_name.toLowerCase()
         docker_image_prefix = project_name.toLowerCase()
@@ -38,12 +37,13 @@ pipeline {
                                 eksctl create cluster \
                                     --name ${tf_info.eks_cluster_name} \
                                     --region $region \
-                                    --nodes ${tf_info.num_availability_zones} \
-                                    --node-type $node_type \
-                                    --node-private-networking \
+                                    --fargate \
                                     --alb-ingress-access \
                                     --vpc-private-subnets $private_subnets
                             """
+
+                            // create fargate profile
+                            sh "eksctl create fargateprofile --cluster ${tf_info.eks_cluster_name}"
 
                             // Configure IAM user permissions in dev environment
                             if(environment == "dev") {
