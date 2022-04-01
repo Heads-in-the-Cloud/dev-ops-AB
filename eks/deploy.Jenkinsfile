@@ -43,7 +43,6 @@ pipeline {
                             """
 
                             // create fargate profile
-                            sh "eksctl create fargateprofile --cluster ${tf_info.eks_cluster_name}"
 			    sh """
 			        CLUSTER_NAME=${tf_info.eks_cluster_name} \
 			        AWS_REGION=${region} \
