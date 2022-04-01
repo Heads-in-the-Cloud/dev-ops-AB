@@ -1,13 +1,12 @@
+---
 apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
 metadata:
   name: ${CLUSTER_NAME}
   region: ${AWS_REGION}
 fargateProfiles:
-  - name: fargate
+  - name: fp-dev
     selectors:
-      - namespace: default
-      - namespace: kube-system
       - namespace: microservices
       - namespace: aws-obsaervability
       - namespace: external-dns
