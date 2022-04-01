@@ -46,7 +46,7 @@ pipeline {
 			    sh """
 			        CLUSTER_NAME=${tf_info.eks_cluster_name} \
 			        AWS_REGION=${region} \
-			            envsubst < cluster-config.yaml | eksctl create fargateprofile -f -
+			            envsubst < cluster-config.yml | eksctl create fargateprofile -f -
 			    """
 
                             // Configure IAM user permissions in dev environment
