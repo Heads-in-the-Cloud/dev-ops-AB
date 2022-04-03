@@ -8,4 +8,4 @@ fargateProfiles:
   - name: fp-additions
     selectors:
       - namespace: aws-observability
-      - namespace: external-dns
+      - namespace: microservices

@@ -187,7 +187,7 @@ pipeline {
                                     eksctl create iamserviceaccount \
                                         --name=external-dns \
                                         --cluster "${tf_info.eks_cluster_name}" \
-                                        --namespace=default \
+                                        --namespace=kube-system \
                                         --attach-policy-arn=arn:aws:iam::$AWS_ACCOUNT_ID:policy/AllowExternalDNSUpdates \
                                         --override-existing-serviceaccounts \
                                         --approve
