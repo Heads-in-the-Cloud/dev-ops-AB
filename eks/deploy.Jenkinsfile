@@ -32,7 +32,7 @@ pipeline {
                                 script: 'aws sts get-caller-identity --query "Account" --output text',
                                 returnStdout: true
                             ).trim()
-                            env.ECR_PREFIX = "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/${project_name.toLowerCase()}"
+                            env.ECR_PREFIX = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${project_name.toLowerCase()}"
                             // get terraform output
                             sh 'aws s3 cp s3://$S3_PATH ./tf_info.json'
                             tf_info = readJSON file: 'tf_info.json'
