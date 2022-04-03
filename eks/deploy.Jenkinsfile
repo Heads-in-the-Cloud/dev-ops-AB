@@ -26,9 +26,6 @@ pipeline {
                         accessKeyVariable: 'AWS_ACCESS_KEY_ID',
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
-                        // get terraform output
-                        sh 'aws s3 cp s3://$S3_PATH ./tf_info.json'
-                        tf_info = readJSON file: 'tf_info.json'
                         script {
                             // TODO: Multi-tenancy deployment; using different AWS accounts for different environment stages
                             env.AWS_ACCOUNT_ID = sh(
@@ -36,10 +33,16 @@ pipeline {
                                 returnStdout: true
                             ).trim()
                             env.ECR_PREFIX = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${project_name.toLowerCase()}"
+                            // get terraform output
+                            sh 'aws s3 cp s3://$S3_PATH ./tf_info.json'
+                            tf_info = readJSON file: 'tf_info.json'
                             // check if eks cluster already exists
-                            cluster_exists = "eksctl get cluster ${tf_info.eks_cluster_name} --region $AWS_REGION".execute().exitValue()
-                            // create cluster if it does not exist
+                            cluster_exists = sh(
+                                script: "eksctl get cluster ${tf_info.eks_cluster_name} --region $AWS_REGION",
+                                returnStatus: true
+                            ) == 0
                             if(!cluster_exists) {
+                                // create cluster if it does not exist
                                 def private_subnets = tf_info.nat_private_subnet_ids.toList().join(',')
                                 sh """
                                     eksctl create cluster \
