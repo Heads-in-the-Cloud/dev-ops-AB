@@ -35,7 +35,7 @@ pipeline {
                             """
                             sh "terraform workspace select ${vars.environment} || terraform workspace new ${vars.environment}"
 
-                            def vars_as_cli_args = vars.keySet().collect{ key -> "-var \'${key}=${vars.get(key)}\' " }.join()
+                            def vars_as_cli_args = vars.keySet().collect{ key -> "-var \'${key}=${vars.get(key)}\'" }.join(' ')
 
                             sh "terraform plan -destroy -input=false -out=tfplan $vars_as_cli_args"
                         }
