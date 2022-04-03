@@ -65,12 +65,12 @@ pipeline {
                             if(environment == "dev") {
                                 sh '''
                                     kubectl get configmap/aws-auth -n kube-system -o yaml |
-                                    sed '0,/data:$s$$data:\n' \
-                                        '  mapusers: |\n' \
-                                        '    - "userarn: arn:aws:iam::$AWS_ACCOUNT_ID:user/$IAM_USERNAME"\n' \
-                                        '      "username: $IAM_USERNAME"\n' \
-                                        '      groups:\n' \
-                                        '      - system:masters\n$' |
+                                    sed '0,/data:/s//data: \
+                                          mapusers: | \
+                                            \- '"userarn: arn:aws:iam::$AWS_ACCOUNT_ID:user/$IAM_USERNAME"' \
+                                              '"username: $IAM_USERNAME"' \
+                                              groups:' \
+                                              \- system:masters/' |
                                     kubectl apply -f -
                                 '''
                             }
