@@ -121,6 +121,14 @@ pipeline {
                                     --set serviceAccount.name=aws-load-balancer-controller \
                                     -n kube-system
                             """
+                            // Wait for ALB controller pods to be ready
+                            sh '''
+                             kubectl wait \
+                                --namespace kube-system \
+                                --for=condition=ready pod \
+                                --selector=app.kubernetes.io/name=aws-load-balancer-controller \
+                                --timeout=180s
+                            '''
                         }
                     }
                 }

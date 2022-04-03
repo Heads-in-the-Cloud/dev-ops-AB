@@ -52,12 +52,6 @@ spec:
                 name: jwt-key
         ports:
           - containerPort: 8080
-        readinessProbe:
-          httpGet:
-            path: /actuator/health
-            port: 8080
-          initialDelaySeconds: 30
-          periodSeconds: 15
 
 ---
 
