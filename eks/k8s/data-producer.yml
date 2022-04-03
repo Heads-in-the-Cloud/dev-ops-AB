@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: data-producer
+  namespace: default
   labels:
     app: data-producer
 spec:
@@ -40,6 +41,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: data-producer
+  namespace: default
   labels:
     app: data-producer
   annotations:
