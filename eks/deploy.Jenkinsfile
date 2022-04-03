@@ -113,7 +113,7 @@ pipeline {
                             sh """
                                 helm upgrade \
                                     -i aws-load-balancer-controller aws-load-balancer-controller \
-                                    --repo https://aws.github.io/eks-charts \
+                                    --repo https://aws.github.io/eks-charts/ \
                                     --set clusterName="${tf_info.eks_cluster_name}" \
                                     --set vpcId="${tf_info.vpc_id}" \
                                     --set region="$AWS_REGION" \
@@ -195,7 +195,7 @@ pipeline {
                                     eksctl create iamserviceaccount \
                                         --name=external-dns \
                                         --cluster "${tf_info.eks_cluster_name}" \
-                                        --namespace=kube-system \
+                                        --namespace=default \
                                         --attach-policy-arn=arn:aws:iam::$AWS_ACCOUNT_ID:policy/AllowExternalDNSUpdates \
                                         --override-existing-serviceaccounts \
                                         --approve
@@ -210,6 +210,14 @@ pipeline {
                                     envsubst < k8s/external-dns.yml |
                                     kubectl apply -f -
                             """
+                            // Wait for external-dns pod to be ready
+                            sh '''
+                             kubectl wait \
+                                --namespace default \
+                                --for=condition=ready pod \
+                                --selector=app=external-dns \
+                                --timeout=180s
+                            '''
                         }
                     }
                 }
