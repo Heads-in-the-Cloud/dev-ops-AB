@@ -59,11 +59,11 @@ pipeline {
                                         envsubst < cluster-config.yml |
                                         eksctl create fargateprofile -f -
                                 """
-                            }
 
-                            // Configure IAM user permissions in dev environment
-                            if(environment == "dev") {
-                                sh './aws-auth.sh'
+                                // Configure IAM user permissions in dev environment
+                                if(environment == "dev") {
+                                    sh './aws-auth.sh'
+                                }
                             }
                         }
                     }
