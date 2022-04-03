@@ -109,7 +109,7 @@ pipeline {
                             // Install the TargetGroupBinding custom resource definitions
                             sh 'kubectl apply -k "github.com/aws/eks-charts/stable/aws-load-balancer-controller//crds?ref=master"'
 
-                            // Install AWS load balancer controller
+                            // Install AWS load balancer controller and wait for it to be ready
                             sh """
                                 helm upgrade \
                                     -i aws-load-balancer-controller aws-load-balancer-controller \
@@ -119,16 +119,9 @@ pipeline {
                                     --set region="$AWS_REGION" \
                                     --set serviceAccount.create=false \
                                     --set serviceAccount.name=aws-load-balancer-controller \
+                                    --wait \
                                     -n kube-system
                             """
-                            // Wait for ALB controller pods to be ready
-                            sh '''
-                             kubectl wait \
-                                --namespace kube-system \
-                                --for=condition=ready pod \
-                                --selector=app.kubernetes.io/name=aws-load-balancer-controller \
-                                --timeout=180s
-                            '''
                         }
                     }
                 }

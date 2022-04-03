@@ -28,8 +28,9 @@ pipeline {
                         sh "aws s3 cp s3://$S3_PATH ./tf_info.json"
                         def tf_info = readJSON file: 'tf_info.json'
                         sh "aws eks --region $AWS_REGION update-kubeconfig --name ${tf_info.eks_cluster_name}"
+                        sh 'helm list -aq'
                         //sh 'helm delete external-dns'
-                        sh 'helm delete aws-load-balancer-controller'
+                        sh 'helm uninstall aws-load-balancer-controller'
                     }
                 }
             }
