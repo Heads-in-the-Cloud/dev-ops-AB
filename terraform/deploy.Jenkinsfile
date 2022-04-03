@@ -1,13 +1,15 @@
 #!groovy
+def project_id = 'AB-utopia'
+
 
 def vars = [
     'region': 'us-west-2',
-    'project_id': 'AB-utopia',
+    'project_id': project_id,
     'environment': 'dev',
     'vpc_cidr_block': '10.0.0.0/16',
     'num_availability_zones': 2,
     'domain': 'hitwc.link',
-    's3_bucket': $project_id.toLowerCase(),
+    's3_bucket': project_id.toLowerCase(),
     'subdomain_prefix': project_id.toLowerCase(),
 ]
 

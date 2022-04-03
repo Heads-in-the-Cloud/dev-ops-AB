@@ -156,11 +156,7 @@ pipeline {
 
                             // Deploy microservices
                             for(name in [ 'flights', 'bookings', 'users' ]) {
-                                sh """
-                                    HEALTH_PATH=/actuator/health \
-                                        envsubst < 'k8s/${name}-microservice.yml' |
-                                        kubectl apply -f -
-                               """
+                                sh "envsubst < 'k8s/${name}-microservice.yml' | kubectl apply -f -"
                             }
                             // Apply ingress rules
                             sh """

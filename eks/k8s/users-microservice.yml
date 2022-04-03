@@ -64,8 +64,6 @@ metadata:
     app: users-microservice
   annotations:
     alb.ingress.kubernetes.io/target-type: ip
-    alb.ingress.kubernetes.io/healthcheck-path: $HEALTH_PATH
-    alb.ingress.kubernetes.io/healthcheck-port: '80'
 spec:
   selector:
     app: users-microservice
