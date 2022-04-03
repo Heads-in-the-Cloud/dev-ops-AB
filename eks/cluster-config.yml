@@ -5,8 +5,7 @@ metadata:
   name: ${CLUSTER_NAME}
   region: ${AWS_REGION}
 fargateProfiles:
-  - name: fp-dev
+  - name: fp-additions
     selectors:
-      - namespace: microservices
-      - namespace: aws-obsaervability
+      - namespace: aws-observability
       - namespace: external-dns

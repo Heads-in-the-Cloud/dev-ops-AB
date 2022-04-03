@@ -1,16 +1,19 @@
 #!groovy
 
+def project_name = 'AB-utopia'
+
 pipeline {
     agent any
 
     environment {
-        project_name = "AB-utopia"
-        environment  = "dev"
-        region       = "us-west-2"
-        iam_username = "Austin"
+        // Currently using single-tenancy architecture where build account is dev account
+        ENVIRONMENT = 'dev'
+        IAM_USERNAME = 'Austin'
+        // TODO: test mutli-region deployment
+        AWS_REGION = 'us-west-2'
 
-        s3_bucket           = project_name.toLowerCase()
-        docker_image_prefix = project_name.toLowerCase()
+        S3_PATH = "${project_name.toLowerCase()}/env:/$ENVIRONMENT/tf_info.json"
+        SECRETS_ID = "$ENVIRONMENT/$project_name/default"
     }
 
     stages {
@@ -19,43 +22,54 @@ pipeline {
                 dir("eks") {
                     withCredentials([[
                         $class: 'AmazonWebServicesCredentialsBinding',
-                        credentialsId: "jenkins",
+                        credentialsId: 'jenkins',
                         accessKeyVariable: 'AWS_ACCESS_KEY_ID',
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
                         script {
-                            aws_account_id = sh(
+                            // TODO: Multi-tenancy deployment; using different AWS accounts for different environment stages
+                            env.AWS_ACCOUNT_ID = sh(
                                 script: 'aws sts get-caller-identity --query "Account" --output text',
                                 returnStdout: true
                             ).trim()
+                            env.ECR_PREFIX = "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/${project_name.toLowerCase()}"
                             // get terraform output
-                            sh "aws s3 cp s3://$s3_bucket/env:/${environment.toLowerCase()}/tf_info.json ."
+                            sh 'aws s3 cp s3://$S3_PATH ./tf_info.json'
                             tf_info = readJSON file: 'tf_info.json'
-                            // create eks cluster
-                            def private_subnets = tf_info.nat_private_subnet_ids.toList().join(',')
-                            sh """
-                                eksctl create cluster \
-                                    --name ${tf_info.eks_cluster_name} \
-                                    --region $region \
-                                    --fargate \
-                                    --alb-ingress-access \
-                                    --vpc-private-subnets $private_subnets
-                            """
+                            // check if eks cluster already exists
+                            cluster_exists = "eksctl get cluster ${tf_info.eks_cluster_name} --region $AWS_REGION".execute().exitValue()
+                            // create cluster if it does not exist
+                            if(!cluster_exists) {
+                                def private_subnets = tf_info.nat_private_subnet_ids.toList().join(',')
+                                sh """
+                                    eksctl create cluster \
+                                        --name ${tf_info.eks_cluster_name} \
+                                        --region $AWS_REGION \
+                                        --fargate \
+                                        --alb-ingress-access \
+                                        --vpc-private-subnets $private_subnets
+                                """
 
-                            // create fargate profile
-			    sh """
-			        CLUSTER_NAME=${tf_info.eks_cluster_name} \
-			        AWS_REGION=${region} \
-			            envsubst < cluster-config.yml | eksctl create fargateprofile -f -
-			    """
+                                // create fargate profile
+                                sh """
+                                    CLUSTER_NAME=${tf_info.eks_cluster_name} \
+                                        envsubst < cluster-config.yml |
+                                        eksctl create fargateprofile -f -
+                                """
+                            }
 
                             // Configure IAM user permissions in dev environment
                             if(environment == "dev") {
-                                sh """
-                                    AWS_ACCOUNT_ID=$aws_account_id \
-                                    IAM_USERNAME=$iam_username \
-                                        ./aws-auth.sh
-                                """
+                                sh '''
+                                    kubectl get configmap/aws-auth -n kube-system -o yaml |
+                                    sed '0,/data:/s//data:\n' \
+                                        '  mapusers: |\n' \
+                                        '    \- "userarn: arn:aws:iam::$AWS_ACCOUNT_ID:user\/$IAM_USERNAME"\n' \
+                                        '      "username: $IAM_USERNAME"\n' \
+                                        '      groups:\n' \
+                                        '      \- system:masters\n/' |
+                                    kubectl apply -f -
+                                '''
                             }
                         }
                     }
@@ -68,7 +82,7 @@ pipeline {
                 dir("eks") {
                     withCredentials([[
                         $class: 'AmazonWebServicesCredentialsBinding',
-                        credentialsId: "jenkins",
+                        credentialsId: 'jenkins',
                         accessKeyVariable: 'AWS_ACCESS_KEY_ID',
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
@@ -76,28 +90,30 @@ pipeline {
                             // Associate IAM OIDC provider for ALB
                             sh """
                                 eksctl utils associate-iam-oidc-provider \
-                                    --region "$region" \
+                                    --region "$AWS_REGION" \
                                     --cluster "${tf_info.eks_cluster_name}" \
                                     --approve
                             """
 
                             // TODO: implement
                             // Cloudwatch logging setup
-                            //sh "REGION='$region' envsubst < k8s/cloudwatch.yml | kubectl apply -f -"
+                            //sh "envsubst < k8s/cloudwatch.yml | kubectl apply -f -"
 
-                            // Create IAM service account w/ role & attached policies for ALB
-                            sh """
-                                eksctl create iamserviceaccount \
-                                    --name=aws-load-balancer-controller \
-                                    --cluster "${tf_info.eks_cluster_name}" \
-                                    --namespace=kube-system \
-                                    --attach-policy-arn="arn:aws:iam::$aws_account_id:policy/AWSLoadBalancerControllerIAMPolicy" \
-                                    --override-existing-serviceaccounts \
-                                    --approve
-                            """
+                            if(!cluster_exists) {
+                                // Create IAM service account w/ role & attached policies for ALB
+                                sh """
+                                    eksctl create iamserviceaccount \
+                                        --name=aws-load-balancer-controller \
+                                        --cluster "${tf_info.eks_cluster_name}" \
+                                        --namespace=kube-system \
+                                        --attach-policy-arn="arn:aws:iam::$AWS_ACCOUNT_ID:policy/AWSLoadBalancerControllerIAMPolicy" \
+                                        --override-existing-serviceaccounts \
+                                        --approve
+                                """
+                            }
 
                             // Install the TargetGroupBinding custom resource definitions
-                            sh "kubectl apply -k 'github.com/aws/eks-charts/stable/aws-load-balancer-controller//crds?ref=master'"
+                            sh 'kubectl apply -k "github.com/aws/eks-charts/stable/aws-load-balancer-controller//crds?ref=master"'
 
                             // Install AWS load balancer controller
                             sh """
@@ -106,7 +122,7 @@ pipeline {
                                     --repo https://aws.github.io/eks-charts \
                                     --set clusterName="${tf_info.eks_cluster_name}" \
                                     --set vpcId="${tf_info.vpc_id}" \
-                                    --set region="$region" \
+                                    --set region="$AWS_REGION" \
                                     --set serviceAccount.create=false \
                                     --set serviceAccount.name=aws-load-balancer-controller \
                                     -n kube-system
@@ -122,51 +138,38 @@ pipeline {
                 dir("eks") {
                     withCredentials([[
                         $class: 'AmazonWebServicesCredentialsBinding',
-                        credentialsId: "jenkins",
+                        credentialsId: 'jenkins',
                         accessKeyVariable: 'AWS_ACCESS_KEY_ID',
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
                         script {
-                            // Make sure microservices namespace is present
-                            sh "kubectl apply -f k8s/namespace.yml"
-                            // Set k8s secrets from stdin literals
-                            withCredentials([
-                                string(
-                                    credentialsId: "${environment.toLowerCase()}/$project_name/default",
-                                    variable: 'SECRETS'
-                                )
-                            ]) {
-                                def aws_secrets = readJSON text: SECRETS
-                                sh """
-                                    kubectl create secret generic db-info \
-                                        -n microservices \
-                                        --from-literal db-url="mysql://${tf_info.mysql_url}" \
-                                        --from-literal db-user="${aws_secrets.db_username}" \
-                                        --from-literal db-password="${aws_secrets.db_password}"
-                                    kubectl create secret generic jwt-key \
-                                        -n microservices \
-                                        --from-literal value="${aws_secrets.jwt_secret}"
-                                """
+                            if(!cluster_exists) { // TODO: make idempotent implementation to update secrets
+                                // Set k8s secrets from stdin literals
+                                withCredentials([ string(credentialsId: env.SECRETS_ID, variable: 'SECRETS') ]) {
+                                    def aws_secrets = readJSON text: SECRETS
+                                    sh """
+                                        kubectl create secret generic db-info \
+                                            --from-literal db-url="mysql://${tf_info.mysql_url}" \
+                                            --from-literal db-user="${aws_secrets.db_username}" \
+                                            --from-literal db-password="${aws_secrets.db_password}"
+                                    """
+                                    sh """
+                                        kubectl create secret generic jwt-key \
+                                            --from-literal value="${aws_secrets.jwt_secret}"
+                                    """
+                                }
                             }
 
                             // Deploy microservices
-                            for(microservice in [
-                                "flights-microservice",
-                                "bookings-microservice",
-                                "users-microservice"
-                            ]) {
-                                sh """
-                                    ECR_PREFIX="${aws_account_id}.dkr.ecr.${region}.amazonaws.com/$docker_image_prefix" \
-                                        envsubst < "k8s/${microservice}.yml" | kubectl apply -f -
-                                """
+                            for(name in [ 'flights', 'bookings', 'users' ]) {
+                                sh "envsubst < 'k8s/${name}-microservice.yml' | kubectl apply -f -"
                             }
                             // Apply ingress rules
                             sh """
                                 DOMAIN="${tf_info.subdomain_prefix}.${tf_info.domain}" \
-                                AWS_REGION="$region" \
-                                AWS_ACCOUNT_ID="$aws_account_id" \
                                 ACM_CERT_ARN="${tf_info.acm_cert_arn}" \
-                                    envsubst < k8s/ingress.yml | kubectl apply -f -
+                                    envsubst < k8s/ingress.yml |
+                                    kubectl apply -f -
                             """
                         }
                     }
@@ -179,29 +182,31 @@ pipeline {
                 dir("eks") {
                     withCredentials([[
                         $class: 'AmazonWebServicesCredentialsBinding',
-                        credentialsId: "jenkins",
+                        credentialsId: 'jenkins',
                         accessKeyVariable: 'AWS_ACCESS_KEY_ID',
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
                         script {
-                            // Create IAM service account w/ role & attached policies for external-dns
-                            sh """
-                                eksctl create iamserviceaccount \
-                                    --name=external-dns \
-                                    --cluster "${tf_info.eks_cluster_name}" \
-                                    --namespace=default \
-                                    --attach-policy-arn=arn:aws:iam::$aws_account_id:policy/AllowExternalDNSUpdates \
-                                    --override-existing-serviceaccounts \
-                                    --approve
-                            """
+                            if(!cluster_exists) {
+                                // Create IAM service account w/ role & attached policies for external-dns
+                                sh """
+                                    eksctl create iamserviceaccount \
+                                        --name=external-dns \
+                                        --cluster "${tf_info.eks_cluster_name}" \
+                                        --namespace=default \
+                                        --attach-policy-arn=arn:aws:iam::$AWS_ACCOUNT_ID:policy/AllowExternalDNSUpdates \
+                                        --override-existing-serviceaccounts \
+                                        --approve
+                                """
+                            }
 
                             // Apply external-dns deployment manifest
                             sh """
                                 DOMAIN="${tf_info.domain}" \
-                                AWS_ACCOUNT_ID="$aws_account_id" \
                                 R53_ZONE_ID="${tf_info.r53_zone_id}" \
                                 IAM_SERVICE_ROLE_NAME="${tf_info.eks_cluster_name}-external-dns" \
-                                    envsubst < k8s/external-dns.yml | kubectl apply -f -
+                                    envsubst < k8s/external-dns.yml |
+                                    kubectl apply -f -
                             """
                         }
                     }
