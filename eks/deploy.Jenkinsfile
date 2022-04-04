@@ -43,14 +43,15 @@ pipeline {
                             ) == 0
                             if(!cluster_exists) {
                                 // create cluster with default fargate profile
-                                def private_subnets = tf_info.nat_private_subnet_ids.toList().join(',')
+                                def private_subnets = tf_info.nat_private_subnet_ids.toList()
+                                def private_subnet_1 = private_subnets[0]
+                                def private_subnet_2 = private_subnets[1]
                                 sh """
                                     CLUSTER_NAME=${tf_info.eks_cluster_name} \
+				    PRIVATE_SUBNET_1=$private_subnet_1 \
+				    PRIVATE_SUBNET_2=$private_subnet_2 \
                                         envsubst < cluster-config.yml |
-				        eksctl create cluster \
-				            -f - \
-				            --alb-ingress-access \
-				            --vpc-private-subnets $private_subnets
+				        eksctl create cluster -f -
                                 """
 
                                 sh 'envsubst < k8s/cloudwatch.yml | kubectl apply -f -'

@@ -4,6 +4,11 @@ kind: ClusterConfig
 metadata:
   name: ${CLUSTER_NAME}
   region: ${AWS_REGION}
+vpc:
+  subnets:
+    private:
+      us-west-2a: { id: $PRIVATE_SUBNET_1 }
+      us-west-2b: { id: $PRIVATE_SUBNET_2 }
 iam:
   withOIDC: true
 fargateProfiles:
