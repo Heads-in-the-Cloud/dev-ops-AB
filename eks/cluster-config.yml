@@ -4,8 +4,13 @@ kind: ClusterConfig
 metadata:
   name: ${CLUSTER_NAME}
   region: ${AWS_REGION}
+iam:
+  withOIDC: true
 fargateProfiles:
-  - name: fp-additions
+  - name: fp-default
     selectors:
-      - namespace: aws-observability
-      - namespace: microservices
+      - namespace: default
+      - namespace: kube-system
+cloudWatch:
+  clusterLogging:
+    enableTypes: ["*"]

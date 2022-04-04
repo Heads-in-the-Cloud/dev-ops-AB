@@ -42,23 +42,18 @@ pipeline {
                                 returnStatus: true
                             ) == 0
                             if(!cluster_exists) {
-                                // create cluster if it does not exist
+                                // create cluster with default fargate profile
                                 def private_subnets = tf_info.nat_private_subnet_ids.toList().join(',')
-                                sh """
-                                    eksctl create cluster \
-                                        --name ${tf_info.eks_cluster_name} \
-                                        --region $AWS_REGION \
-                                        --fargate \
-                                        --alb-ingress-access \
-                                        --vpc-private-subnets $private_subnets
-                                """
-
-                                // create fargate profile
                                 sh """
                                     CLUSTER_NAME=${tf_info.eks_cluster_name} \
                                         envsubst < cluster-config.yml |
-                                        eksctl create fargateprofile -f -
+				        eksctl create cluster \
+				            -f - \
+				            --alb-ingress-access \
+				            --vpc-private-subnets $private_subnets
                                 """
+
+                                sh 'envsubst < k8s/cloudwatch.yml | kubectl apply -f -'
 
                                 // Configure IAM user permissions in dev environment
                                 if(environment == "dev") {
