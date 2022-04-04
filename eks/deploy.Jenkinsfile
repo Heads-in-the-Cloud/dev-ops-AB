@@ -14,6 +14,7 @@ pipeline {
 
         S3_PATH = "${project_name.toLowerCase()}/env:/$ENVIRONMENT/tf_info.json"
         SECRETS_ID = "$ENVIRONMENT/$project_name/default"
+	LOG_GROUP_NAME = "/aws/eks/${project_name}/cluster"
     }
 
     stages {
@@ -54,13 +55,14 @@ pipeline {
 				        eksctl create cluster -f -
                                 """
 
-                                sh 'envsubst < k8s/cloudwatch.yml | kubectl apply -f -'
-
                                 // Configure IAM user permissions in dev environment
                                 if(environment == "dev") {
                                     sh './aws-auth.sh'
                                 }
                             }
+			    // Enable logging to cloudwatch with fluentbit configmap
+			    sh 'envsubst < k8s/cloudwatch.yml | kubectl apply -f -'
+
                         }
                     }
                 }
