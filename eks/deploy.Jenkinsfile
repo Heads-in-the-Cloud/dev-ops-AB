@@ -49,10 +49,10 @@ pipeline {
                                 def private_subnet_2 = private_subnets[1]
                                 sh """
                                     CLUSTER_NAME=${tf_info.eks_cluster_name} \
-				    PRIVATE_SUBNET_1=$private_subnet_1 \
-				    PRIVATE_SUBNET_2=$private_subnet_2 \
+                                    PRIVATE_SUBNET_1=$private_subnet_1 \
+                                    PRIVATE_SUBNET_2=$private_subnet_2 \
                                         envsubst < cluster-config.yml |
-				        eksctl create cluster -f -
+                                        eksctl create cluster -f -
                                 """
 
                                 // Configure IAM user permissions in dev environment
@@ -60,8 +60,8 @@ pipeline {
                                     sh './aws-auth.sh'
                                 }
                             }
-			    // Enable logging to cloudwatch with fluentbit configmap
-			    sh 'envsubst < k8s/cloudwatch.yml | kubectl apply -f -'
+			                // TODO: Enable logging to cloudwatch with fluentbit configmap
+			                // sh 'envsubst < k8s/cloudwatch.yml | kubectl apply -f -'
 
                         }
                     }
