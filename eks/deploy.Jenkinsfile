@@ -14,7 +14,7 @@ pipeline {
 
         S3_PATH = "${project_name.toLowerCase()}/env:/$ENVIRONMENT/tf_info.json"
         SECRETS_ID = "$ENVIRONMENT/$project_name/default"
-	LOG_GROUP_NAME = "/aws/eks/${project_name}/cluster"
+	    LOG_GROUP_NAME = "/aws/eks/$project_name/$ENVIRONMENT"
     }
 
     stages {
@@ -60,9 +60,13 @@ pipeline {
                                     sh './aws-auth.sh'
                                 }
                             }
-			                // TODO: Enable logging to cloudwatch with fluentbit configmap
-			                // sh 'envsubst < k8s/cloudwatch.yml | kubectl apply -f -'
-
+			                // Enable logging to cloudwatch with fluentbit configmap
+			                sh 'envsubst < k8s/cloudwatch.yml | kubectl apply -f -'
+                            sh """
+                                aws iam attach-role-policy \
+                                    --policy-arn arn:aws:iam::${AWS_ACCOUNT_ID}:policy/FluentBitEKSFargate \
+                                    --role-name eksctl-${tf_info.eks_cluster_name}-cluster-FargatePodExecutionRole-159LQ1WDCOUTT
+                            """
                         }
                     }
                 }
@@ -86,10 +90,6 @@ pipeline {
                                     --cluster "${tf_info.eks_cluster_name}" \
                                     --approve
                             """
-
-                            // TODO: implement
-                            // Cloudwatch logging setup
-                            //sh "envsubst < k8s/cloudwatch.yml | kubectl apply -f -"
 
                             if(!cluster_exists) {
                                 // Create IAM service account w/ role & attached policies for ALB
