@@ -44,15 +44,14 @@ pipeline {
                             ) == 0
                             if(!cluster_exists) {
                                 // create cluster with default fargate profile
-                                def private_subnets = tf_info.nat_private_subnet_ids.toList()
-                                def private_subnet_1 = private_subnets[0]
-                                def private_subnet_2 = private_subnets[1]
+                                def private_subnets = tf_info.nat_private_subnet_ids.toList().join(',')
                                 sh """
-                                    CLUSTER_NAME=${tf_info.eks_cluster_name} \
-                                    PRIVATE_SUBNET_1=$private_subnet_1 \
-                                    PRIVATE_SUBNET_2=$private_subnet_2 \
-                                        envsubst < cluster-config.yml |
-                                        eksctl create cluster -f -
+                                    eksctl create cluster \
+                                        --name ${tf_info.eks_cluster_name} \
+                                        --region $AWS_REGION \
+                                        --fargate \
+                                        --alb-ingress-access \
+                                        --vpc-private-subnets $private_subnets
                                 """
 
                                 // Configure IAM user permissions in dev environment
