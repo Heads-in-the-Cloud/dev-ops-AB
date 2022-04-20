@@ -63,14 +63,7 @@ pipeline {
 			                // Enable logging to cloudwatch with fluentbit configmap
 			                sh 'envsubst < k8s/cloudwatch.yml | kubectl apply -f -'
                             def pod_exec_role = sh(
-                                script: """
-                                    aws eks describe-fargate-profile \
-                                        --cluster-name ${tf_info.eks_cluster_name} \
-                                        --region $AWS_REGION \
-                                        --fargate-profile-name fp-default \
-                                        --query 'fargateProfile.podExecutionRoleArn' |
-                                    sed -n 's/^.*role\/\(.*\)".*$/\1/ p'
-                                """,
+                                script: "CLUSTER_NAME=${tf_info.eks_cluster_name} ./pod-exec-role.sh",
                                 returnStdout: true
                             )
                             sh """
