@@ -20,6 +20,12 @@ data:
         log_stream_prefix from-fluent-bit-
         auto_create_group true
         log_key log
+    [OUTPUT]
+        Name         es
+        Match        *
+        Host         $ELASTIC_HOST
+        Port         9200
+        Index        placeholder
 
   parsers.conf: |
     [PARSER]

@@ -11,6 +11,7 @@ pipeline {
         IAM_USERNAME = 'Austin'
         // TODO: test mutli-region deployment
         AWS_REGION = 'us-west-2'
+        ELASTIC_HOST = 'elk.hitwc.link'
 
         S3_PATH = "${project_name.toLowerCase()}/env:/$ENVIRONMENT/tf_info.json"
         SECRETS_ID = "$ENVIRONMENT/$project_name/default"
