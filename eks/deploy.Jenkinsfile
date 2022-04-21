@@ -71,6 +71,15 @@ pipeline {
                                     --policy-arn arn:aws:iam::${AWS_ACCOUNT_ID}:policy/FluentBitEKSFargate \
                                     --role-name $pod_exec_role
                             """
+                            // Enable logging with elastic-agent
+                            def es_username = credentials('ELK_USERNAME')
+                            def es_password = credentials('ELK_PASSWORD')
+                            sh """
+                                ES_USERNAME=$es_username \
+                                ES_PASSWORD=$es_password \
+                                    envsubst < 'k8s/elastic-agent.yml' |
+                                    kubectl apply -f -
+                            """
                         }
                     }
                 }
