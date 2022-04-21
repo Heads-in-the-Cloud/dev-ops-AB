@@ -25,6 +25,7 @@ data:
         Match        *
         Host         $ELASTIC_HOST
         Port         9200
+        Index        fluent_bit
 
   parsers.conf: |
     [PARSER]
