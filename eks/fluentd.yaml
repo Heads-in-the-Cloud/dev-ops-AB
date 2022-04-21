@@ -4,14 +4,6 @@ metadata:
   name: elasticsearch-output
 data:
   fluentd.conf: |
-    # input plugin that collects metrics from MonitorAgent
-    <source>
-      @type prometheus_monitor
-      <labels>
-        host ${hostname}
-      </labels>
-    </source>
-
     # Ignore fluentd own events
     <match fluent.**>
       @type null

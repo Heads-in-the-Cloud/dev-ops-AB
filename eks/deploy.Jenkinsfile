@@ -72,9 +72,9 @@ pipeline {
                             """
                             // Enable logging with fluentd
                             sh '''
-                                helm upgrade -i fluentd fluentd \
-                                    --repo https://charts.bitnami.com/bitnami \
-                                    -f fluentd.yaml
+                                helm upgrade -i fluentd \
+                                    -f fluentd.yaml fluentd \
+                                    --repo https://charts.bitnami.com/bitnami
                             '''
                         }
                     }
