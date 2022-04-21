@@ -11,7 +11,7 @@ pipeline {
         IAM_USERNAME = 'Austin'
         // TODO: test mutli-region deployment
         AWS_REGION = 'us-west-2'
-        ES_ENDPOINT = 'http://elk.hitwc.link:9200'
+        ES_ENDPOINT = 'elk.hitwc.link:9200'
         ES_USERNAME = credentials('ELK_USERNAME')
         ES_PASSWORD = credentials('ELK_PASSWORD')
 
@@ -62,8 +62,8 @@ pipeline {
                                     sh './aws-auth.sh'
                                 }
                             }
-			                // Enable logging to cloudwatch with fluentbit configmap
-			                sh 'envsubst < k8s/cloudwatch.yml | kubectl apply -f -'
+                            // Enable logging to cloudwatch with fluentbit configmap
+                            sh 'envsubst < k8s/cloudwatch.yml | kubectl apply -f -'
                             def pod_exec_role = sh(
                                 script: "CLUSTER_NAME=${tf_info.eks_cluster_name} ./pod-exec-role.sh",
                                 returnStdout: true
@@ -78,7 +78,11 @@ pipeline {
                                 helm upgrade -i fluentd kokuwa/fluentd-elasticsearch \
                                     --repo https://kokuwaio.github.io/helm-charts \
                                     --set elasticsearch.setOutputHostEnvVar=false \
-                                    --set elasticsearch.hosts=["$ES_ENDPOINT"]
+                                    --set elasticsearch.hosts=["$ES_ENDPOINT"] \
+                                    --set elasticsearch.auth.enabled=true \
+                                    --set elasticsearch.auth.user=$ES_USERNAME \
+                                    --set elasticsearch.auth.password=$ES_PASSWORD \
+                                    --set elasticsearch.logstash.prefix=utopia
                             """
                         }
                     }

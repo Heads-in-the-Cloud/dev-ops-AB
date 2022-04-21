@@ -15,7 +15,7 @@ pipeline {
     }
 
     stages {
-        stage('Delete Installed Helm charts') {
+        stage('Detach FluentBit IAM Role') {
             steps {
                 withCredentials([[
                     $class: 'AmazonWebServicesCredentialsBinding',
@@ -28,7 +28,15 @@ pipeline {
                         sh "aws s3 cp s3://$S3_PATH ./tf_info.json"
                         def tf_info = readJSON file: 'tf_info.json'
                         sh "aws eks --region $AWS_REGION update-kubeconfig --name ${tf_info.eks_cluster_name}"
-                        // sh 'helm uninstall -n kube-system aws-load-balancer-controller --wait'
+                        def pod_exec_role = sh(
+                            script: "CLUSTER_NAME=${tf_info.eks_cluster_name} ./pod-exec-role.sh",
+                            returnStdout: true
+                        )
+                        sh """
+                            aws iam detach-role-policy \
+                                --policy-arn arn:aws:iam::${AWS_ACCOUNT_ID}:policy/FluentBitEKSFargate \
+                                --role-name $pod_exec_role
+                        """
                     }
                 }
             }
