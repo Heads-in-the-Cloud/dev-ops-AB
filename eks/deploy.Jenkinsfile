@@ -11,9 +11,6 @@ pipeline {
         IAM_USERNAME = 'Austin'
         // TODO: test mutli-region deployment
         AWS_REGION = 'us-west-2'
-        ES_ENDPOINT = 'elk.hitwc.link:9200'
-        ES_USERNAME = credentials('ELK_USERNAME')
-        ES_PASSWORD = credentials('ELK_PASSWORD')
 
         S3_PATH = "${project_name.toLowerCase()}/env:/$ENVIRONMENT/tf_info.json"
         SECRETS_ID = "$ENVIRONMENT/$project_name/default"
@@ -75,14 +72,9 @@ pipeline {
                             """
                             // Enable logging with fluentd
                             sh '''
-                                helm upgrade -i fluentd-elasticsearch fluentd-elasticsearch \
-                                    --repo https://kokuwaio.github.io/helm-charts \
-                                    --set elasticsearch.setOutputHostEnvVar=false \
-                                    --set elasticsearch.hosts=["$ES_ENDPOINT"] \
-                                    --set elasticsearch.auth.enabled=true \
-                                    --set elasticsearch.auth.user=$ES_USERNAME \
-                                    --set elasticsearch.auth.password=$ES_PASSWORD \
-                                    --set elasticsearch.logstash.prefix=utopia
+                                helm upgrade -i fluentd fluentd \
+                                    --repo https://charts.bitnami.com/bitnami \
+                                    --f fluentd.yaml
                             '''
                         }
                     }
