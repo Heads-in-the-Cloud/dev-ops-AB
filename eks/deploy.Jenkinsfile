@@ -75,7 +75,7 @@ pipeline {
                             """
                             // Enable logging with fluentd
                             sh """
-                                helm upgrade -i fluentd kokuwa/fluentd-elasticsearch \
+                                helm upgrade -i fluentd-elasticsearch kokuwa/fluentd-elasticsearch \
                                     --repo https://kokuwaio.github.io/helm-charts \
                                     --set elasticsearch.setOutputHostEnvVar=false \
                                     --set elasticsearch.hosts=["$ES_ENDPOINT"] \
@@ -108,7 +108,7 @@ pipeline {
                                     --approve
                             """
 
-                            if(!cluster_exists) {
+                            //if(!cluster_exists) {
                                 // Create IAM service account w/ role & attached policies for ALB
                                 sh """
                                     eksctl create iamserviceaccount \
@@ -119,7 +119,7 @@ pipeline {
                                         --override-existing-serviceaccounts \
                                         --approve
                                 """
-                            }
+                            //}
 
                             // Install the TargetGroupBinding custom resource definitions
                             sh 'kubectl apply -k "github.com/aws/eks-charts/stable/aws-load-balancer-controller//crds?ref=master"'
@@ -152,7 +152,7 @@ pipeline {
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
                         script {
-                            if(!cluster_exists) { // TODO: make idempotent implementation to update secrets
+                            //if(!cluster_exists) { // TODO: make idempotent implementation to update secrets
                                 // Set k8s secrets from stdin literals
                                 withCredentials([ string(credentialsId: env.SECRETS_ID, variable: 'SECRETS') ]) {
                                     def aws_secrets = readJSON text: SECRETS
@@ -167,7 +167,7 @@ pipeline {
                                             --from-literal value="${aws_secrets.jwt_secret}"
                                     """
                                 }
-                            }
+                            //}
 
                             // Deploy microservices
                             for(name in [ 'flights', 'bookings', 'users' ]) {
@@ -196,7 +196,7 @@ pipeline {
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
                         script {
-                            if(!cluster_exists) {
+                            //if(!cluster_exists) {
                                 // Create IAM service account w/ role & attached policies for external-dns
                                 sh """
                                     eksctl create iamserviceaccount \
@@ -207,7 +207,7 @@ pipeline {
                                         --override-existing-serviceaccounts \
                                         --approve
                                 """
-                            }
+                            //}
 
                             // Apply external-dns deployment manifest
                             sh """
