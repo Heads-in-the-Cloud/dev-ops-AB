@@ -74,7 +74,7 @@ pipeline {
                             sh '''
                                 helm upgrade -i fluentd fluentd \
                                     --repo https://charts.bitnami.com/bitnami \
-                                    --f fluentd.yaml
+                                    -f fluentd.yaml
                             '''
                         }
                     }
