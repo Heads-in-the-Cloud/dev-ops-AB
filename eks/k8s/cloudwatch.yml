@@ -25,7 +25,6 @@ data:
         Match        *
         Host         $ELASTIC_HOST
         Port         9200
-        Index        placeholder
 
   parsers.conf: |
     [PARSER]
