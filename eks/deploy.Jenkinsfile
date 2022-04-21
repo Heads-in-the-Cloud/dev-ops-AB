@@ -74,8 +74,8 @@ pipeline {
                                     --role-name $pod_exec_role
                             """
                             // Enable logging with fluentd
-                            sh """
-                                helm upgrade -i fluentd-elasticsearch kokuwa/fluentd-elasticsearch \
+                            sh '''
+                                helm upgrade -i fluentd-elasticsearch fluentd-elasticsearch \
                                     --repo https://kokuwaio.github.io/helm-charts \
                                     --set elasticsearch.setOutputHostEnvVar=false \
                                     --set elasticsearch.hosts=["$ES_ENDPOINT"] \
@@ -83,7 +83,7 @@ pipeline {
                                     --set elasticsearch.auth.user=$ES_USERNAME \
                                     --set elasticsearch.auth.password=$ES_PASSWORD \
                                     --set elasticsearch.logstash.prefix=utopia
-                            """
+                            '''
                         }
                     }
                 }
