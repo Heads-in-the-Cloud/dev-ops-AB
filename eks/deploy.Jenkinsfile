@@ -11,7 +11,6 @@ pipeline {
         IAM_USERNAME = 'Austin'
         // TODO: test mutli-region deployment
         AWS_REGION = 'us-west-2'
-        ELASTIC_HOST = 'elk.hitwc.link'
         ES_ENDPOINT = 'http://elk.hitwc.link:9200'
         ES_USERNAME = credentials('ELK_USERNAME')
         ES_PASSWORD = credentials('ELK_PASSWORD')
@@ -74,8 +73,13 @@ pipeline {
                                     --policy-arn arn:aws:iam::${AWS_ACCOUNT_ID}:policy/FluentBitEKSFargate \
                                     --role-name $pod_exec_role
                             """
-                            // Enable logging with elastic-agent
-                            sh 'envsubst < k8s/elastic-agent.yml | kubectl apply -f -'
+                            // Enable logging with fluentd
+                            sh """
+                                helm upgrade -i fluentd kokuwa/fluentd-elasticsearch \
+                                    --repo https://kokuwaio.github.io/helm-charts \
+                                    --set elasticsearch.setOutputHostEnvVar=false \
+                                    --set elasticsearch.hosts=["$ES_ENDPOINT"]
+                            """
                         }
                     }
                 }
