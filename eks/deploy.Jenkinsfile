@@ -12,6 +12,7 @@ pipeline {
         // TODO: test mutli-region deployment
         AWS_REGION = 'us-west-2'
         ELASTIC_HOST = 'elk.hitwc.link'
+        ES_ENDPOINT = 'http://elk.hitwc.link:9200'
         ES_USERNAME = credentials('ELK_USERNAME')
         ES_PASSWORD = credentials('ELK_PASSWORD')
 

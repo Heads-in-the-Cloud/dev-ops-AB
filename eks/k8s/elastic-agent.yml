@@ -12,7 +12,7 @@ data:
       default:
         type: elasticsearch
         hosts:
-          - 'http://localhost:9200'
+          - '$ES_ENDPOINT'
         username: '$ES_USERNAME'
         password: '$ES_PASSWORD'
     inputs:
