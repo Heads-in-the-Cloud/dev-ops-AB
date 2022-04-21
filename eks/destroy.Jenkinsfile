@@ -17,26 +17,32 @@ pipeline {
     stages {
         stage('Detach FluentBit IAM Role') {
             steps {
-                withCredentials([[
-                    $class: 'AmazonWebServicesCredentialsBinding',
-                    credentialsId: "jenkins",
-                    accessKeyVariable: 'AWS_ACCESS_KEY_ID',
-                    secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
-                ]]) {
-                    script {
-                        // Get tf output
-                        sh "aws s3 cp s3://$S3_PATH ./tf_info.json"
-                        def tf_info = readJSON file: 'tf_info.json'
-                        sh "aws eks --region $AWS_REGION update-kubeconfig --name ${tf_info.eks_cluster_name}"
-                        def pod_exec_role = sh(
-                            script: "CLUSTER_NAME=${tf_info.eks_cluster_name} ./pod-exec-role.sh",
-                            returnStdout: true
-                        )
-                        sh """
-                            aws iam detach-role-policy \
-                                --policy-arn arn:aws:iam::${AWS_ACCOUNT_ID}:policy/FluentBitEKSFargate \
-                                --role-name $pod_exec_role
-                        """
+                dir("eks") {
+                    withCredentials([[
+                        $class: 'AmazonWebServicesCredentialsBinding',
+                        credentialsId: "jenkins",
+                        accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                        secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                    ]]) {
+                        script {
+                            // Get tf output
+                            sh "aws s3 cp s3://$S3_PATH ./tf_info.json"
+                            def tf_info = readJSON file: 'tf_info.json'
+                            sh "aws eks --region $AWS_REGION update-kubeconfig --name ${tf_info.eks_cluster_name}"
+                            def aws_account_id = sh(
+                                script: 'aws sts get-caller-identity --query "Account" --output text',
+                                returnStdout: true
+                            ).trim()
+                            def pod_exec_role = sh(
+                                script: "CLUSTER_NAME=${tf_info.eks_cluster_name} ./pod-exec-role.sh",
+                                returnStdout: true
+                            )
+                            sh """
+                                aws iam detach-role-policy \
+                                    --policy-arn arn:aws:iam::${aws_account_id}:policy/FluentBitEKSFargate \
+                                    --role-name $pod_exec_role
+                            """
+                        }
                     }
                 }
             }
