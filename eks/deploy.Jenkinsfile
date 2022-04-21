@@ -100,18 +100,16 @@ pipeline {
                                     --approve
                             """
 
-                            //if(!cluster_exists) {
-                                // Create IAM service account w/ role & attached policies for ALB
-                                sh """
-                                    eksctl create iamserviceaccount \
-                                        --name=aws-load-balancer-controller \
-                                        --cluster "${tf_info.eks_cluster_name}" \
-                                        --namespace=kube-system \
-                                        --attach-policy-arn="arn:aws:iam::$AWS_ACCOUNT_ID:policy/AWSLoadBalancerControllerIAMPolicy" \
-                                        --override-existing-serviceaccounts \
-                                        --approve
-                                """
-                            //}
+                            // Create IAM service account w/ role & attached policies for ALB
+                            sh """
+                                eksctl create iamserviceaccount \
+                                    --name=aws-load-balancer-controller \
+                                    --cluster "${tf_info.eks_cluster_name}" \
+                                    --namespace=kube-system \
+                                    --attach-policy-arn="arn:aws:iam::$AWS_ACCOUNT_ID:policy/AWSLoadBalancerControllerIAMPolicy" \
+                                    --override-existing-serviceaccounts \
+                                    --approve
+                            """
 
                             // Install the TargetGroupBinding custom resource definitions
                             sh 'kubectl apply -k "github.com/aws/eks-charts/stable/aws-load-balancer-controller//crds?ref=master"'
@@ -144,7 +142,7 @@ pipeline {
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
                         script {
-                            //if(!cluster_exists) { // TODO: make idempotent implementation to update secrets
+                            if(!cluster_exists) { // TODO: make idempotent implementation to update secrets
                                 // Set k8s secrets from stdin literals
                                 withCredentials([ string(credentialsId: env.SECRETS_ID, variable: 'SECRETS') ]) {
                                     def aws_secrets = readJSON text: SECRETS
@@ -159,7 +157,7 @@ pipeline {
                                             --from-literal value="${aws_secrets.jwt_secret}"
                                     """
                                 }
-                            //}
+                            }
 
                             // Deploy microservices
                             for(name in [ 'flights', 'bookings', 'users' ]) {
@@ -188,18 +186,16 @@ pipeline {
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
                         script {
-                            //if(!cluster_exists) {
-                                // Create IAM service account w/ role & attached policies for external-dns
-                                sh """
-                                    eksctl create iamserviceaccount \
-                                        --name=external-dns \
-                                        --cluster "${tf_info.eks_cluster_name}" \
-                                        --namespace=default \
-                                        --attach-policy-arn=arn:aws:iam::$AWS_ACCOUNT_ID:policy/AllowExternalDNSUpdates \
-                                        --override-existing-serviceaccounts \
-                                        --approve
-                                """
-                            //}
+                            // Create IAM service account w/ role & attached policies for external-dns
+                            sh """
+                                eksctl create iamserviceaccount \
+                                    --name=external-dns \
+                                    --cluster "${tf_info.eks_cluster_name}" \
+                                    --namespace=default \
+                                    --attach-policy-arn=arn:aws:iam::$AWS_ACCOUNT_ID:policy/AllowExternalDNSUpdates \
+                                    --override-existing-serviceaccounts \
+                                    --approve
+                            """
 
                             // Apply external-dns deployment manifest
                             sh """
