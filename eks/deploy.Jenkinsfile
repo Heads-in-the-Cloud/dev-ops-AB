@@ -12,6 +12,8 @@ pipeline {
         // TODO: test mutli-region deployment
         AWS_REGION = 'us-west-2'
         ELASTIC_HOST = 'elk.hitwc.link'
+        ES_USERNAME = credentials('ELK_USERNAME')
+        ES_PASSWORD = credentials('ELK_PASSWORD')
 
         S3_PATH = "${project_name.toLowerCase()}/env:/$ENVIRONMENT/tf_info.json"
         SECRETS_ID = "$ENVIRONMENT/$project_name/default"
@@ -72,14 +74,7 @@ pipeline {
                                     --role-name $pod_exec_role
                             """
                             // Enable logging with elastic-agent
-                            def es_username = credentials('ELK_USERNAME')
-                            def es_password = credentials('ELK_PASSWORD')
-                            sh """
-                                ES_USERNAME=$es_username \
-                                ES_PASSWORD=$es_password \
-                                    envsubst < 'k8s/elastic-agent.yml' |
-                                    kubectl apply -f -
-                            """
+                            sh 'envsubst < k8s/elastic-agent.yml | kubectl apply -f -'
                         }
                     }
                 }
