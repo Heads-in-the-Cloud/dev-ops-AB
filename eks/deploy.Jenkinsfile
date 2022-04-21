@@ -113,8 +113,7 @@ pipeline {
 
                             // Install AWS load balancer controller and wait for it to be ready
                             sh """
-                                helm upgrade \
-                                    -i aws-load-balancer-controller aws-load-balancer-controller \
+                                helm upgrade -i aws-load-balancer-controller aws-load-balancer-controller \
                                     --repo https://aws.github.io/eks-charts/ \
                                     --set clusterName="${tf_info.eks_cluster_name}" \
                                     --set vpcId="${tf_info.vpc_id}" \
