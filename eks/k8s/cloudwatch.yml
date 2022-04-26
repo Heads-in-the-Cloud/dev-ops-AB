@@ -15,7 +15,7 @@ data:
     [OUTPUT]
         Name  es
         Match *
-        Host $HOST
+        Host $ELK_HOST
         Logstash_Format On
         Logstash_Prefix_Key $LOGS_PREFIX
         Path                  /elasticsearch
