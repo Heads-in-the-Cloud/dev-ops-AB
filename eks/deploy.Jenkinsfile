@@ -14,7 +14,11 @@ pipeline {
 
         S3_PATH = "${project_name.toLowerCase()}/env:/$ENVIRONMENT/tf_info.json"
         SECRETS_ID = "$ENVIRONMENT/$project_name/default"
-	    LOG_GROUP_NAME = "/aws/eks/$project_name/$ENVIRONMENT"
+
+        ELK_HOST = 'nr-elk.hitwc.link'
+        LOGS_PREFIX = project_name.toLowerCase()
+        ELK_USERNAME = credentials('ELK_USERNAME')
+        ELK_PASSWORD = credentials('ELK_PASSWORD')
     }
 
     stages {
@@ -70,13 +74,6 @@ pipeline {
                                     --policy-arn arn:aws:iam::${AWS_ACCOUNT_ID}:policy/FluentBitEKSFargate \
                                     --role-name $pod_exec_role
                             """
-                            // Enable logging with fluentd
-                            sh '''
-                                helm upgrade \
-                                    -f fluentd.yaml \
-                                    -i fluentd fluentd \
-                                    --repo https://charts.bitnami.com/bitnami
-                            '''
                         }
                     }
                 }
