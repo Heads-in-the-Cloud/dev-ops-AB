@@ -14,6 +14,7 @@ pipeline {
 
         S3_PATH = "${project_name.toLowerCase()}/env:/$ENVIRONMENT/tf_info.json"
         SECRETS_ID = "$ENVIRONMENT/$project_name/default"
+	    LOG_GROUP_NAME = "/aws/eks/$project_name/$ENVIRONMENT"
 
         ELK_HOST = 'nr-elk.hitwc.link'
         LOGS_PREFIX = project_name.toLowerCase()
