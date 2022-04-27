@@ -17,7 +17,7 @@ data:
         Match *
         Host $ELK_HOST
         Logstash_Format On
-        Logstash_Prefix_Key $LOGS_PREFIX
+        Logstash_Prefix $LOGS_PREFIX
         Path                  /elasticsearch
         Logstash_Format       On
         Replace_Dots          On
