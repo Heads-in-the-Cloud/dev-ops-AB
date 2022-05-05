@@ -44,104 +44,104 @@ spec:
           pathType: Prefix
           backend:
             service:
-              name: flights-microservice
+              name: ab-utopia-flights
               port:
                 number: 80
         - path: /api/airplane-types
           pathType: Prefix
           backend:
             service:
-              name: flights-microservice
+              name: ab-utopia-flights
               port:
                 number: 80
         - path: /api/airports
           pathType: Prefix
           backend:
             service:
-              name: flights-microservice
+              name: ab-utopia-flights
               port:
                 number: 80
         - path: /api/flights
           pathType: Prefix
           backend:
             service:
-              name: flights-microservice
+              name: ab-utopia-flights
               port:
                 number: 80
         - path: /api/routes
           pathType: Prefix
           backend:
             service:
-              name: flights-microservice
+              name: ab-utopia-flights
               port:
                 number: 80
         - path: /api/bookings
           pathType: Prefix
           backend:
             service:
-              name: bookings-microservice
+              name: ab-utopia-bookings
               port:
                 number: 80
         - path: /api/booking-agents
           pathType: Prefix
           backend:
             service:
-              name: bookings-microservice
+              name: ab-utopia-bookings
               port:
                 number: 80
         - path: /api/booking-users
           pathType: Prefix
           backend:
             service:
-              name: bookings-microservice
+              name: ab-utopia-bookings
               port:
                 number: 80
         - path: /api/booking-guests
           pathType: Prefix
           backend:
             service:
-              name: bookings-microservice
+              name: ab-utopia-bookings
               port:
                 number: 80
         - path: /api/booking-payments
           pathType: Prefix
           backend:
             service:
-              name: bookings-microservice
+              name: ab-utopia-bookings
               port:
                 number: 80
         - path: /api/passengers
           pathType: Prefix
           backend:
             service:
-              name: bookings-microservice
+              name: ab-utopia-bookings
               port:
                 number: 80
         - path: /api/flight-bookings
           pathType: Prefix
           backend:
             service:
-              name: bookings-microservice
+              name: ab-utopia-bookings
               port:
                 number: 80
         - path: /api/login
           pathType: Prefix
           backend:
             service:
-              name: users-microservice
+              name: ab-utopia-users
               port:
                 number: 80
         - path: /api/users
           pathType: Prefix
           backend:
             service:
-              name: users-microservice
+              name: ab-utopia-users
               port:
                 number: 80
         - path: /api/user-roles
           pathType: Prefix
           backend:
             service:
-              name: users-microservice
+              name: ab-utopia-users
               port:
                 number: 80
