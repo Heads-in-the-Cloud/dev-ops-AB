@@ -21,7 +21,7 @@ data:
       HTTP_User           $ELK_USERNAME
       HTTP_Passwd         $ELK_PASSWORD
       Logstash_Format     On
-      Logstash_Prefix_Key kubernetes['labels']['app.kubernetes.io/name']
+      Logstash_Prefix_Key kubernetes.pod_name
       Replace_Dots        On
       Retry_Limit         False
       tls                 On
