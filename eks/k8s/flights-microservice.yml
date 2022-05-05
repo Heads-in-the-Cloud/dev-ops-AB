@@ -15,7 +15,7 @@ spec:
       labels:
         app: flights-microservice
       annotations:
-        fluentbit.io/parser: crio
+        fluentbit.io/parser: spring
     spec:
       affinity:
         nodeAffinity:
