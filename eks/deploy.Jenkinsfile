@@ -64,8 +64,8 @@ pipeline {
                                     sh './aws-auth.sh'
                                 }
                             }
-                            // Enable logging to cloudwatch with fluentbit configmap
-                            sh 'envsubst < k8s/cloudwatch.yml | kubectl apply -f -'
+                            // Enable logging fluent-bit configmap
+                            sh 'envsubst < k8s/fluent-bit.yml | kubectl apply -f -'
                             def pod_exec_role = sh(
                                 script: "CLUSTER_NAME=${tf_info.eks_cluster_name} ./pod-exec-role.sh",
                                 returnStdout: true
