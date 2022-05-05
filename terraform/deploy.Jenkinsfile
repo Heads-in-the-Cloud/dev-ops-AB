@@ -52,15 +52,17 @@ pipeline {
                         accessKeyVariable: 'AWS_ACCESS_KEY_ID',
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
-                        sh "terraform workspace select ${vars.environment} || terraform workspace new ${vars.environment}"
+                        script {
+                            sh "terraform workspace select ${vars.environment} || terraform workspace new ${vars.environment}"
 
-                        def vars_as_cli_args = vars.keySet().collect{ key -> "-var '${key}=${vars.get(key)}'" }.join(' ')
-                        sh "terraform plan -input=false -out=tfplan $vars_as_cli_args"
-                        sh 'terraform show tfplan'
+                            def vars_as_cli_args = vars.keySet().collect{ key -> "-var '${key}=${vars.get(key)}'" }.join(' ')
+                            sh "terraform plan -input=false -out=tfplan $vars_as_cli_args"
+                            sh 'terraform show tfplan'
 
-                        sh 'terraform apply -input=false tfplan'
-                        sh 'terraform output -json | jq "with_entries(.value |= .value)" > output_values.json'
-                        sh "aws s3 cp output_values.json s3://${vars.s3_bucket}/env:/${vars.environment}/tf_info.json"
+                            sh 'terraform apply -input=false tfplan'
+                            sh 'terraform output -json | jq "with_entries(.value |= .value)" > output_values.json'
+                            sh "aws s3 cp output_values.json s3://${vars.s3_bucket}/env:/${vars.environment}/tf_info.json"
+                        }
                     }
                 }
             }
