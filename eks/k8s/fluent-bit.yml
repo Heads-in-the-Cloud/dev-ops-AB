@@ -13,18 +13,18 @@ metadata:
 data:
   output.conf: |
     [OUTPUT]
-        Name                es
-        Match               *
-        Host                $ELK_HOST
-        Port                443
-        Path                /elasticsearch
-        HTTP_User           $ELK_USERNAME
-        HTTP_Passwd         $ELK_PASSWORD
-        Logstash_Format     On
-        Logstash_Prefix_Key kubernetes['labels']['app.kubernetes.io/name']
-        Replace_Dots        On
-        Retry_Limit         False
-        tls                 On
+      Name            es
+      Match           *
+      Host            $ELK_HOST
+      Port            443
+      Path            /elasticsearch
+      HTTP_User       $ELK_USERNAME
+      HTTP_Passwd     $ELK_PASSWORD
+      Logstash_Format On
+      Logstash_Prefix $LOGS_PREFIX
+      Replace_Dots    On
+      Retry_Limit     False
+      tls             On
 
   parsers.conf: |
     [PARSER]
