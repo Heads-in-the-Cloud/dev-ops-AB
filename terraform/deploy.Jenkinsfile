@@ -17,7 +17,7 @@ pipeline {
     agent any
 
     stages {
-        stage('Init & Plan') {
+        stage('Init & Lint') {
             steps {
                 dir("terraform") {
                     withCredentials([[
@@ -33,19 +33,17 @@ pipeline {
                                     -backend-config='region=${vars.region}' \
                                     -backend-config='encrypt=true'
                             """
-                            sh "terraform workspace select ${vars.environment} || terraform workspace new ${vars.environment}"
 
-                            def vars_as_cli_args = vars.keySet().collect{ key -> "-var '${key}=${vars.get(key)}'" }.join(' ')
-
-                            sh "terraform plan -input=false -out=tfplan $vars_as_cli_args"
+                            vars_as_cli_args = vars.keySet().collect{ key -> "-var '${key}=${vars.get(key)}'" }.join(' ')
+                            sh 'tflint --init'
+                            sh "tflint $vars_as_cli_args"
                         }
                     }
-                    sh 'terraform show tfplan'
                 }
             }
         }
 
-        stage('Apply') {
+        stage('Plan & Apply') {
             steps {
                 dir("terraform") {
                     withCredentials([[
@@ -54,6 +52,11 @@ pipeline {
                         accessKeyVariable: 'AWS_ACCESS_KEY_ID',
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
+                        sh "terraform workspace select ${vars.environment} || terraform workspace new ${vars.environment}"
+
+                        sh "terraform plan -input=false -out=tfplan $vars_as_cli_args"
+                        sh 'terraform show tfplan'
+
                         sh 'terraform apply -input=false tfplan'
                         sh 'terraform output -json | jq "with_entries(.value |= .value)" > output_values.json'
                         sh "aws s3 cp output_values.json s3://${vars.s3_bucket}/env:/${vars.environment}/tf_info.json"

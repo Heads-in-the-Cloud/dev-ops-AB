@@ -4,13 +4,13 @@ variable "region" {
 }
 
 variable "project_id" {
-  type        = string
-  default     = null
+  type    = string
+  default = ""
 }
 
 variable "s3_bucket" {
   type    = string
-  default = null
+  default = ""
 }
 
 variable "environment" {
@@ -31,10 +31,10 @@ variable "num_availability_zones" {
 
 variable "subdomain_prefix" {
   type    = string
-  default = null
+  default = ""
 }
 
 variable "domain" {
   type    = string
-  default = null
+  default = ""
 }
