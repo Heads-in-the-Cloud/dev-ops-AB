@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: flights-microservice
+  name: ab-utopia-flights
   namespace: default
   labels:
-    app: flights-microservice
+    app: ab-utopia-flights
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: flights-microservice
+      app: ab-utopia-flights
   template:
     metadata:
       labels:
-        app: flights-microservice
+        app: ab-utopia-flights
       annotations:
         fluentbit.io/parser: spring
     spec:
@@ -60,16 +60,15 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: flights-microservice
+  name: ab-utopia-flights
   namespace: default
   labels:
-    app: flights-microservice
-  annotations:
+    app: ab-utopia-flights
   annotations:
     alb.ingress.kubernetes.io/target-type: ip
 spec:
   selector:
-    app: flights-microservice
+    app: ab-utopia-flights
   ports:
     - protocol: TCP
       port: 80

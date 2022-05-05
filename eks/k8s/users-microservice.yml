@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: users-microservice
+  name: ab-utopia-users
   namespace: default
   labels:
-    app: users-microservice
+    app: ab-utopia-users
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: users-microservice
+      app: ab-utopia-users
   template:
     metadata:
       labels:
-        app: users-microservice
+        app: ab-utopia-users
       annotations:
         fluentbit.io/parser: spring
     spec:
@@ -60,15 +60,15 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: users-microservice
+  name: ab-utopia-users
   namespace: default
   labels:
-    app: users-microservice
+    app: ab-utopia-users
   annotations:
     alb.ingress.kubernetes.io/target-type: ip
 spec:
   selector:
-    app: users-microservice
+    app: ab-utopia-users
   ports:
     - protocol: TCP
       port: 80

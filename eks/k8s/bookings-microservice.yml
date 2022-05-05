@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: bookings-microservice
+  name: ab-utopia-bookings
   namespace: default
   labels:
-    app: bookings-microservice
+    app: ab-utopia-bookings
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: bookings-microservice
+      app: ab-utopia-bookings
   template:
     metadata:
       labels:
-        app: bookings-microservice
+        app: ab-utopia-bookings
       annotations:
         fluentbit.io/parser: spring
     spec:
@@ -60,15 +60,15 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: bookings-microservice
+  name: ab-utopia-bookings
   namespace: default
   labels:
-    app: bookings-microservice
+    app: ab-utopia-bookings
   annotations:
     alb.ingress.kubernetes.io/target-type: ip
 spec:
   selector:
-    app: bookings-microservice
+    app: ab-utopia-bookings
   ports:
     - protocol: TCP
       port: 80
