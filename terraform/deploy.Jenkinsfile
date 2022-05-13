@@ -43,6 +43,23 @@ pipeline {
             }
         }
 
+        stage('Terratest') {
+            steps {
+                dir("terraform/test") {
+                    withCredentials([[
+                        $class: 'AmazonWebServicesCredentialsBinding',
+                        credentialsId: 'jenkins',
+                        accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                        secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                    ]]) {
+                        sh 'go mod tidy'
+                        sh 'go mod init test'
+                        sh 'go test general_test.go -v -timeout 30m'
+                    }
+                }
+            }
+        }
+
         stage('Plan & Apply') {
             steps {
                 dir("terraform") {
