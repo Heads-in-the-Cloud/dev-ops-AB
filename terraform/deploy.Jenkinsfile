@@ -57,7 +57,6 @@ pipeline {
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
                         sh 'go mod tidy'
-                        sh 'go mod init test'
                         sh 'go test general_test.go -v -timeout 30m'
                     }
                 }
